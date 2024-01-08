@@ -29,3 +29,12 @@ fn pairwise_sum(arr: Float64Array, n: Int, start: Int, stop: Int) -> SIMD[DType.
 
         for i in range(m, stop):
             res += arr[i]
+
+        return res
+    else:
+        var n2 = n // 2
+        n2 -= (n2 % 8)
+        let middle = start + n2
+        return (pairwise_sum(arr, n2, start, middle)
+                + pairwise_sum(arr, n - n2, middle, stop))
+                
