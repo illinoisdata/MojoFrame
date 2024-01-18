@@ -9,6 +9,10 @@ fn main() raises:
     test_array_vector_creation()
     print()
     test_pairwise_sum()
+    print()
+    test_df_creation()
+    print()
+    test_df_sum()
 
 fn test_array_creation() raises:
     # Creating a small Float64 array with 2 elements
@@ -70,8 +74,53 @@ fn test_pairwise_sum() raises:
     print("Numpy sum:", np_sum)
     print("Pairwise sum:", pairwise_sum)
 
-fn test_df_creation():
-    pass
+fn test_df_creation() raises:
+    var col1 = Float64Array(10000)
+    var col2 = Float64Array(10000)
+    col1[0] = 21
+    col2[0] = 23
 
-fn test_df_sum():
-    pass
+    var col_data = DynamicVector[Float64Array]()
+    col_data.append(col1)
+    col_data.append(col2)
+
+    let col1_name = "Units Sold"
+    let col2_name = "UID"
+    var col_names = DynamicVector[String]()
+    col_names.append(col1_name)
+    col_names.append(col2_name)
+    
+    let df = DataFrame(col_data, col_names)
+
+    let df_col1_using_index = df[0][0]
+    let df_col2_using_name = df["UID"][0]
+
+    print("DataFrame first column first element:", df_col1_using_index)
+    print("DataFrame second column first element:", df_col2_using_name)
+
+fn test_df_sum() raises:
+    var col1 = Float64Array(3)
+    var col2 = Float64Array(3)
+    col1[0] = 1
+    col1[1] = 2
+    col1[2] = 3
+
+    col2[0] = 3
+    col2[1] = 4
+    col2[2] = 5
+
+    var col_data = DynamicVector[Float64Array]()
+    col_data.append(col1)
+    col_data.append(col2)
+
+    let col1_name = "Units Sold"
+    let col2_name = "Number of Customers"
+    var col_names = DynamicVector[String]()
+    col_names.append(col1_name)
+    col_names.append(col2_name)
+    
+    let df = DataFrame(col_data, col_names)
+    let df_sums = df.sum(0)
+
+    print("DataFrame 1st column sum:", df_sums[0])
+    print("DataFrame 2nd column sum:", df_sums[1])
