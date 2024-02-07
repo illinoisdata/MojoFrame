@@ -1,6 +1,7 @@
-from core.Arrays import Float64Array
-from core.Calculations import pairwise_sum
-from core.DataFrame import DataFrame
+from core.Arrays import Float64Array, Float32Array, Int32Array
+from core.Calculations import pairwise_sum_f64, pairwise_sum_f32, pairwise_sum_i32
+from core.DataFrame import DataFrameF64, DataFrameF32, DataFrameI32
+from random import rand
 from python import Python
 
 fn main() raises:
@@ -16,12 +17,20 @@ fn main() raises:
 
 fn test_array_creation() raises:
     # Creating a small Float64 array with 2 elements
-    var small_arr = Float64Array(2)
-    small_arr[0] = 5
-    small_arr[1] = 10
+    var small_arr_f64 = Float64Array(2)
+    small_arr_f64[0] = 5
+    small_arr_f64[1] = 10
+
+    var small_arr_f32 = Float32Array(2)
+    small_arr_f32[0] = 5
+    small_arr_f32[1] = 10
+
+    var small_arr_i32 = Int32Array(2)
+    small_arr_i32[0] = 5
+    small_arr_i32[1] = 10
 
     print("Small array with 2 elements")
-    print(small_arr[0], small_arr[1])
+    print(small_arr_f64[0], small_arr_f64[1], small_arr_f32[0], small_arr_f32[1],  small_arr_i32[0], small_arr_i32[1])
 
 fn test_array_vector_creation() raises:
     # Creating a vector of two arrays
@@ -38,14 +47,14 @@ fn test_array_vector_creation() raises:
     vector.append(arr_ele2)
 
     print("Print elements from the vector of arrays")
-    print(vector[0][1], vector[1][1])
+    print(vector[0][0], vector[0][1], vector[1][0], vector[1][1])
 
 fn test_pairwise_sum() raises:
     # Test that pairwise sum works and its compare its accuracy against naive, Numpy, and high precision sum
     let np = Python.import_module("numpy")
     let decimal = Python.import_module("decimal")
 
-    let max_num = 1000
+    let max_num = 1
     let size = 10000000
     let small_float = 3.1415926585
     var np_arr = np.random.randint(0, max_num + 1, size)
@@ -66,7 +75,7 @@ fn test_pairwise_sum() raises:
         naive_sum += np_arr[i].to_float64()
         mojo_arr[i] = np_arr[i].to_float64()
     
-    let pairwise_sum = pairwise_sum(mojo_arr, size, 0, size)
+    let pairwise_sum = pairwise_sum_f64(mojo_arr, size, 0, size)
 
     # Compare
     print("High precicion sum:", decimal_sum)
@@ -75,10 +84,16 @@ fn test_pairwise_sum() raises:
     print("Pairwise sum:", pairwise_sum)
 
 fn test_df_creation() raises:
-    var col1 = Float64Array(10000)
-    var col2 = Float64Array(10000)
-    col1[0] = 21
-    col2[0] = 23
+    let size = 100000
+    let arr1 = rand[DType.float64](size)
+    let arr2 = rand[DType.float64](size)
+
+    var col1 = Float64Array(size)
+    var col2 = Float64Array(size)
+    
+    for i in range(size):
+        col1[i] = arr1[i]
+        col2[i] = arr2[i]
 
     var col_data = DynamicVector[Float64Array]()
     col_data.append(col1)
@@ -90,7 +105,7 @@ fn test_df_creation() raises:
     col_names.append(col1_name)
     col_names.append(col2_name)
     
-    let df = DataFrame(col_data, col_names)
+    let df = DataFrameF64(col_data, col_names)
 
     let df_col1_using_index = df[0][0]
     let df_col2_using_name = df["UID"][0]
@@ -99,8 +114,8 @@ fn test_df_creation() raises:
     print("DataFrame second column first element:", df_col2_using_name)
 
 fn test_df_sum() raises:
-    var col1 = Float64Array(3)
-    var col2 = Float64Array(3)
+    var col1 = Int32Array(3)
+    var col2 = Int32Array(3)
     col1[0] = 1
     col1[1] = 2
     col1[2] = 3
@@ -109,7 +124,7 @@ fn test_df_sum() raises:
     col2[1] = 4
     col2[2] = 5
 
-    var col_data = DynamicVector[Float64Array]()
+    var col_data = DynamicVector[Int32Array]()
     col_data.append(col1)
     col_data.append(col2)
 
@@ -119,7 +134,7 @@ fn test_df_sum() raises:
     col_names.append(col1_name)
     col_names.append(col2_name)
     
-    let df = DataFrame(col_data, col_names)
+    let df = DataFrameI32(col_data, col_names)
     let df_sums = df.sum(0)
 
     print("DataFrame 1st column sum:", df_sums[0])
