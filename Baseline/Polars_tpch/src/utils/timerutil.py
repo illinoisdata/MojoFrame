@@ -21,7 +21,7 @@ class TPCHTimer:
         """
         return self
 
-    def __exit__(self):
+    def __exit__(self, exc_type, exc_value, exc_traceback):
         """Stop the timer within a context manager"""
         time_elapsed = time.perf_counter() - self.start_time
 
