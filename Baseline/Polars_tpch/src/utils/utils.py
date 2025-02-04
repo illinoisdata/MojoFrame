@@ -78,3 +78,99 @@ def test_results(query: int, result_df: pl.DataFrame):
         the query
     """
     pass
+
+
+def get_line_item_ds(base_dir: str = DATASET_BASE_DIR) -> pl.LazyFrame:
+    """Fetch the lineitem data items
+
+    Args:
+        base_dir (str, optional): base dataset directory. Defaults to DATASET_BASE_DIR.
+
+    Returns:
+        pl.LazyFrame: polars dataframe containing the fetched data
+    """
+    return fetch_dataset(os.path.join(base_dir, "lineitem"))
+
+
+def get_orders_ds(base_dir: str = DATASET_BASE_DIR) -> pl.LazyFrame:
+    """Fetch the orders data items
+
+    Args:
+        base_dir (str, optional): base dataset directory. Defaults to DATASET_BASE_DIR.
+
+    Returns:
+        pl.LazyFrame: polars dataframe containing the fetched data
+    """
+    return fetch_dataset(os.path.join(base_dir, "orders"))
+
+
+def get_customer_ds(base_dir: str = DATASET_BASE_DIR) -> pl.LazyFrame:
+    """Fetch the customer data items
+
+    Args:
+        base_dir (str, optional): base dataset directory. Defaults to DATASET_BASE_DIR.
+
+    Returns:
+        pl.LazyFrame: polars dataframe containing the fetched data
+    """
+    return fetch_dataset(os.path.join(base_dir, "customer"))
+
+
+def get_region_ds(base_dir: str = DATASET_BASE_DIR) -> pl.LazyFrame:
+    """Fetch the region data items
+
+    Args:
+        base_dir (str, optional): base dataset directory. Defaults to DATASET_BASE_DIR.
+
+    Returns:
+        pl.LazyFrame: polars dataframe containing the fetched data
+    """
+    return fetch_dataset(os.path.join(base_dir, "region"))
+
+
+def get_nation_ds(base_dir: str = DATASET_BASE_DIR) -> pl.LazyFrame:
+    """Fetch the nation data items
+
+    Args:
+        base_dir (str, optional): base dataset directory. Defaults to DATASET_BASE_DIR.
+
+    Returns:
+        pl.LazyFrame: polars dataframe containing the fetched data
+    """
+    return fetch_dataset(os.path.join(base_dir, "nation"))
+
+
+def get_supplier_ds(base_dir: str = DATASET_BASE_DIR) -> pl.LazyFrame:
+    """Fetch the supplier data items
+
+    Args:
+        base_dir (str, optional): base dataset directory. Defaults to DATASET_BASE_DIR.
+
+    Returns:
+        pl.LazyFrame: polars dataframe containing the fetched data
+    """
+    return fetch_dataset(os.path.join(base_dir, "supplier"))
+
+
+def get_part_ds(base_dir: str = DATASET_BASE_DIR) -> pl.LazyFrame:
+    """Fetch the part data items
+
+    Args:
+        base_dir (str, optional): base dataset directory. Defaults to DATASET_BASE_DIR.
+
+    Returns:
+        pl.LazyFrame: polars dataframe containing the fetched data
+    """
+    return fetch_dataset(os.path.join(base_dir, "part"))
+
+
+def get_part_supp_ds(base_dir: str = DATASET_BASE_DIR) -> pl.LazyFrame:
+    """Fetch the partsupp data items
+
+    Args:
+        base_dir (str, optional): base dataset directory. Defaults to DATASET_BASE_DIR.
+
+    Returns:
+        pl.LazyFrame: polars dataframe containing the fetched data
+    """
+    return fetch_dataset(os.path.join(base_dir, "partsupp"))
