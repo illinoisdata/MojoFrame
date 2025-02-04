@@ -24,7 +24,12 @@ class TPCHTimer:
 
     def __exit__(self):
         """Stop the timer within a context manager"""
-        pass
+        time_elapsed = time.perf_counter() - self.start_time
+
+        if self.name in TPCHTimer.times:
+            TPCHTimer.times[self.name] += time_elapsed
+        else:
+            TPCHTimer.times[self.name] = time_elapsed
 
     def time(self, func: callable, name: str):
         """Timer function wrapper
