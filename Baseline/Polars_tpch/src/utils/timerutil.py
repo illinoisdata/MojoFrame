@@ -1,4 +1,5 @@
 import time
+from functools import wraps
 
 
 class TPCHTimer:
@@ -33,11 +34,25 @@ class TPCHTimer:
         if self.logging:
             print(time_elapsed)
 
-    def time(self, func: callable, name: str):
+    def __call__(self, func: callable):
         """Timer function wrapper
 
         Args:
             func (callable): the function to wrap
-            name (str): the process name to save
         """
-        pass
+
+        @wraps(func)
+        def timed_func(*args, **kwargs):
+            func(*args, **kwargs)
+
+            time_elapsed = time.perf_counter() - self.start_time
+
+            if self.name in TPCHTimer.times:
+                TPCHTimer.times[self.name] += time_elapsed
+            else:
+                TPCHTimer.times[self.name] = time_elapsed
+
+            if self.logging:
+                print(time_elapsed)
+
+        return timed_func
