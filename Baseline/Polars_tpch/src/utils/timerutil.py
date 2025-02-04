@@ -32,7 +32,7 @@ class TPCHTimer:
             TPCHTimer.times[self.name] = time_elapsed
 
         if self.logging:
-            print(time_elapsed)
+            print(f"{self.name} ran for {time_elapsed:.8f}s")
 
     def __call__(self, func: callable):
         """Timer function wrapper
@@ -43,6 +43,8 @@ class TPCHTimer:
 
         @wraps(func)
         def timed_func(*args, **kwargs):
+            self.start_time = time.perf_counter()
+
             func(*args, **kwargs)
 
             time_elapsed = time.perf_counter() - self.start_time
@@ -53,6 +55,6 @@ class TPCHTimer:
                 TPCHTimer.times[self.name] = time_elapsed
 
             if self.logging:
-                print(time_elapsed)
+                print(f"{self.name} ran for {time_elapsed:.8f}s")
 
         return timed_func

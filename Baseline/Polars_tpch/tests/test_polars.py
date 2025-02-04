@@ -17,5 +17,6 @@ def test_timer_decorator(capsys):
         def test_function():
             time.sleep(0.1)
 
-        for i in range(100):
+        for i in range(10):
             test_function()
+            time.sleep(0.5)
