@@ -3,8 +3,8 @@ import os
 # The filetype of the input data
 FILE_TYPE = os.environ.get("FILE_TYPE", "parquet")
 # TODO : ADD DATA PATH
-# Dataset directory
-DATA_DIR = os.environ.get("DATA_DIR", "../data")
+# Dataset directory``
+DATA_DIR = os.environ.get("DATA_DIR", "../../../Data")
 # Current directory
 CWD = os.path.dirname(os.path.realpath(__file__))
 # Whether to print the query results while running
