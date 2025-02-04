@@ -67,3 +67,14 @@ def get_query_answer(query: int, base_dir: str = ANSWERS_BASE_DIR) -> pl.LazyFra
         dataframe
     """
     pass
+
+
+def test_results(query: int, result_df: pl.DataFrame):
+    """Test the results of a query
+
+    Args:
+        query (int): the TPC-H query number to test
+        result_df (pl.DataFrame): the results from running
+        the query
+    """
+    pass
