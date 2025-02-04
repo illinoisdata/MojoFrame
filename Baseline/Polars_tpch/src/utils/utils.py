@@ -1,5 +1,9 @@
 import os
 
+import polars as pl
+
+# from timerutil import TPCHTimer
+
 # The filetype of the input data
 FILE_TYPE = os.environ.get("FILE_TYPE", "parquet")
 # TODO : ADD DATA PATH
@@ -35,3 +39,16 @@ if not os.path.exists(OUTPUT_BASE_DIR):
 TIMINGS_FILE = os.path.join(CWD, f"{OUTPUT_BASE_DIR}/timings.csv")
 # Plots directory
 DEFAULT_PLOTS_DIR = os.path.join(CWD, f"{OUTPUT_BASE_DIR}/plots")
+
+
+def fetch_dataset(path: str) -> pl.LazyFrame:
+    """Fetch TPC-H dataset found at path
+
+    Args:
+        path (str): the path to the dataset
+
+    Returns:
+        pl.LazyFrame: the dataset placed in a polars
+        dataframe
+    """
+    pass
