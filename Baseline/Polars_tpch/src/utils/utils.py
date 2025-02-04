@@ -52,3 +52,18 @@ def fetch_dataset(path: str) -> pl.LazyFrame:
         dataframe
     """
     pass
+
+
+def get_query_answer(query: int, base_dir: str = ANSWERS_BASE_DIR) -> pl.LazyFrame:
+    """Retrieve the answer to query in the form
+    of a polars dataframe
+
+    Args:
+        query (int): the TPC-H query number
+        base_dir (str, optional): the answers directory. Defaults to ANSWERS_BASE_DIR.
+
+    Returns:
+        pl.LazyFrame: the answer to query in a polars
+        dataframe
+    """
+    pass
