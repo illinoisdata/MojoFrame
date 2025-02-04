@@ -8,19 +8,18 @@ class TPCHTimer:
 
     times = {}
 
-    def __init__(self, name: str):
+    def __init__(self, name: str, logging=False):
         self.start_time = time.perf_counter()
         self.name = name
+        self.logging = logging
 
-    def __enter__(self, name: str):
+    def __enter__(self):
         """Start the timer within a context manager
 
-        Args:
-            name (str): the process name that you are
-            timing
+        Returns:
+            TPCHTimer: The timer created
         """
-        self.start_time = time.perf_counter()
-        self.name = name
+        return self
 
     def __exit__(self):
         """Stop the timer within a context manager"""
@@ -30,6 +29,9 @@ class TPCHTimer:
             TPCHTimer.times[self.name] += time_elapsed
         else:
             TPCHTimer.times[self.name] = time_elapsed
+
+        if self.logging:
+            print(time_elapsed)
 
     def time(self, func: callable, name: str):
         """Timer function wrapper
