@@ -174,3 +174,13 @@ def get_part_supp_ds(base_dir: str = DATASET_BASE_DIR) -> pl.LazyFrame:
         pl.LazyFrame: polars dataframe containing the fetched data
     """
     return fetch_dataset(os.path.join(base_dir, "partsupp"))
+
+
+def run_query(query: int, lp: pl.LazyFrame):
+    """Execute TPC-H query
+
+    Args:
+        query (int): query number (1-22)
+        lp (pl.LazyFrame): polars lazyframe for processing
+    """
+    pass
