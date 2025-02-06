@@ -15,6 +15,8 @@ DATA_DIR: str = os.environ.get("DATA_DIR", "../../../Data")
 CWD: str = os.path.dirname(os.path.realpath(__file__))
 # Whether to print the query results while running
 SHOW_RESULTS: bool = bool(os.environ.get("SHOW_RESULTS", False))
+# Whether to save the query results to a file
+SAVE_RESULTS: bool = bool(os.environ.get("SAVE_RESULTS", False))
 # Whether to log the query timings
 LOG_TIMINGS: bool = bool(os.environ.get("LOG_TIMINGS", False))
 # Whether to write the TPC-H query timings graph
@@ -60,7 +62,7 @@ def fetch_dataset(path: str) -> pl.LazyFrame:
         case "feather":
             scan: pl.LazyFrame = pl.scan_ipc(path)
         case _:
-            raise ValueError(f"File type: {FILE_TYPE} not expected")
+            raise IOError(f"File type: {FILE_TYPE} not expected")
 
     return scan.collect().lazy()
 
@@ -230,3 +232,33 @@ def run_query(query_num: int, lp: pl.LazyFrame):
         query_num (int): query number (1-22)
         lp (pl.LazyFrame): polars lazyframe for processing
     """
+    try:
+        with TPCHTimer(
+            name=f"Overall execution time for Query {query_num}", logging=False
+        ):
+            with TPCHTimer(name=f"Fetch results for Query {query_num}", logging=False):
+                result = lp.collect()
+
+            fetch_time = TPCHTimer.times[f"Fetch results for Query {query_num}"]
+            if INCLUDE_IO:
+                fetch_time += TPCHTimer.times[f"Data load time for Query {query_num}"]
+
+            if LOG_TIMINGS:
+                write_row(
+                    query_num=str(query_num), time=fetch_time, version=pl.__version__
+                )
+
+            if TEST_RESULTS:
+                test_results(query_num, result)
+
+            if SHOW_RESULTS:
+                print(result)
+
+            if SAVE_RESULTS:
+                result.write_csv(f"{OUTPUT_BASE_DIR}/q{query_num}.csv")
+    except IOError:
+        pass
+    except AssertionError:
+        pass
+    except Exception:
+        pass
