@@ -1,5 +1,6 @@
 import time
 from functools import wraps
+from typing import Any, Callable
 
 
 class TPCHTimer:
@@ -7,9 +8,9 @@ class TPCHTimer:
     the TPC-H benchmarks
     """
 
-    times = {}
+    times: dict[str, float] = {}
 
-    def __init__(self, name: str, logging=False):
+    def __init__(self, name: str, logging: bool = False):
         self.start_time = time.perf_counter()
         self.name = name
         self.logging = logging
@@ -22,7 +23,7 @@ class TPCHTimer:
         """
         return self
 
-    def __exit__(self, exc_type, exc_value, exc_traceback):
+    def __exit__(self, exc_type: Any, exc_value: Any, exc_traceback: Any):
         """Stop the timer within a context manager"""
         time_elapsed = time.perf_counter() - self.start_time
 
@@ -34,7 +35,7 @@ class TPCHTimer:
         if self.logging:
             print(f"{self.name} ran for {time_elapsed:.8f}s")
 
-    def __call__(self, func: callable):
+    def __call__(self, func: Callable[..., Any]):
         """Timer function wrapper
 
         Args:
@@ -42,7 +43,7 @@ class TPCHTimer:
         """
 
         @wraps(func)
-        def timed_func(*args, **kwargs):
+        def timed_func(*args: Any, **kwargs: Any) -> None:
             self.start_time = time.perf_counter()
 
             func(*args, **kwargs)
