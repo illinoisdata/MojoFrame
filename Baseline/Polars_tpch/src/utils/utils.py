@@ -204,6 +204,19 @@ def get_part_supp_ds(base_dir: str = DATASET_BASE_DIR) -> pl.LazyFrame:
     return fetch_dataset(os.path.join(base_dir, "partsupp"))
 
 
+def write_row(query: str, time: float, version: str, success: bool = True):
+    """Write the timings results for TPC-H query number query
+    to the TIMINGS_FILE in a CSV format.
+
+    Args:
+        query (str): the TPC-H query number
+        time (float): The execution time for the query
+        version (str): The polars version
+        success (bool, optional): Whether the query was a success or not.
+        Defaults to True.
+    """
+
+
 def run_query(query: int, lp: pl.LazyFrame):
     """Execute TPC-H query
 
