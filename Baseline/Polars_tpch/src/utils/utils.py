@@ -5,40 +5,40 @@ import polars as pl
 # from timerutil import TPCHTimer
 
 # The filetype of the input data
-FILE_TYPE = os.environ.get("FILE_TYPE", "parquet")
+FILE_TYPE: str = os.environ.get("FILE_TYPE", "parquet")
 # TODO : ADD DATA PATH
 # Dataset directory``
-DATA_DIR = os.environ.get("DATA_DIR", "../../../Data")
+DATA_DIR: str = os.environ.get("DATA_DIR", "../../../Data")
 # Current directory
-CWD = os.path.dirname(os.path.realpath(__file__))
+CWD: str = os.path.dirname(os.path.realpath(__file__))
 # Whether to print the query results while running
-SHOW_RESULTS = bool(os.environ.get("SHOW_RESULTS", False))
+SHOW_RESULTS: bool = bool(os.environ.get("SHOW_RESULTS", False))
 # Whether to log the query timings
-LOG_TIMINGS = bool(os.environ.get("LOG_TIMINGS", False))
+LOG_TIMINGS: bool = bool(os.environ.get("LOG_TIMINGS", False))
 # Whether to write the TPC-H query timings graph
-WRITE_PLOT = bool(os.environ.get("WRITE_PLOT", False))
+WRITE_PLOT: bool = bool(os.environ.get("WRITE_PLOT", False))
 # Whether to test the results of the queries for accuracy
-TEST_RESULTS = bool(os.environ.get("TEST_RESULTS", False))
+TEST_RESULTS: bool = bool(os.environ.get("TEST_RESULTS", False))
 # Data scale
-SCALE_FACTOR = os.environ.get("SCALE_FACTOR", "1")
+SCALE_FACTOR: str = os.environ.get("SCALE_FACTOR", "1")
 # Data partition
-PARTITION = os.environ.get("PARTITION", "1")
+PARTITION: str = os.environ.get("PARTITION", "1")
 # Directory to the specific scale/partition dataset
-DATASET_BASE_DIR = os.path.join(
+DATASET_BASE_DIR: str = os.path.join(
     DATA_DIR, f"scale={SCALE_FACTOR}/partition={PARTITION}/parquet/"
 )
 # Directory for the specific scale/partition answers
-ANSWERS_BASE_DIR = os.path.join(DATA_DIR, f"scale={SCALE_FACTOR}/original/")
+ANSWERS_BASE_DIR: str = os.path.join(DATA_DIR, f"scale={SCALE_FACTOR}/original/")
 # Output directory
-OUTPUT_BASE_DIR = os.path.join(
+OUTPUT_BASE_DIR: str = os.path.join(
     CWD, f"outputs/scale={SCALE_FACTOR}/partition={PARTITION}"
 )
 if not os.path.exists(OUTPUT_BASE_DIR):
     os.makedirs(OUTPUT_BASE_DIR, exist_ok=True)
 # Timings CSV output directory
-TIMINGS_FILE = os.path.join(CWD, f"{OUTPUT_BASE_DIR}/timings.csv")
+TIMINGS_FILE: str = os.path.join(CWD, f"{OUTPUT_BASE_DIR}/timings.csv")
 # Plots directory
-DEFAULT_PLOTS_DIR = os.path.join(CWD, f"{OUTPUT_BASE_DIR}/plots")
+DEFAULT_PLOTS_DIR: str = os.path.join(CWD, f"{OUTPUT_BASE_DIR}/plots")
 
 
 def fetch_dataset(path: str) -> pl.LazyFrame:
@@ -54,9 +54,9 @@ def fetch_dataset(path: str) -> pl.LazyFrame:
     path = f"{path}.{FILE_TYPE}*"
     match FILE_TYPE:
         case "parquet":
-            scan = pl.scan_parquet(path)
+            scan: pl.LazyFrame = pl.scan_parquet(path)
         case "feather":
-            scan = pl.scan_ipc(path)
+            scan: pl.LazyFrame = pl.scan_ipc(path)
         case _:
             raise ValueError(f"File type: {FILE_TYPE} not expected")
 
@@ -75,7 +75,19 @@ def get_query_answer(query: int, base_dir: str = ANSWERS_BASE_DIR) -> pl.LazyFra
         pl.LazyFrame: the answer to query in a polars
         dataframe
     """
-    pass
+    answer_ldf: pl.LazyFrame = pl.scan_csv(
+        source=os.path.join(base_dir, f"{query}.csv"),
+        separator=",",
+        has_header=True,
+        try_parse_dates=True,
+    )
+    answer_schema: pl.Schema = answer_ldf.collect_schema()
+    columns: list[str] = answer_schema.names()
+    answer_ldf = answer_ldf.select(
+        [pl.col(c).alias(c.strip()) for c in columns]
+    ).with_columns([pl.col(pl.datatypes.Utf8).str.strip_chars().name.keep()])
+
+    return answer_ldf
 
 
 def test_results(query: int, result_df: pl.DataFrame):
