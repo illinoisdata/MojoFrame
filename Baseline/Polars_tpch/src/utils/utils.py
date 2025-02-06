@@ -4,6 +4,8 @@ import polars as pl
 
 from utils.timerutil import TPCHTimer
 
+# Whether to include data fetching time in the query duration result
+INCLUDE_IO = bool(os.environ.get("INCLUDE_IO", False))
 # The filetype of the input data
 FILE_TYPE: str = os.environ.get("FILE_TYPE", "parquet")
 # TODO : ADD DATA PATH
@@ -63,9 +65,9 @@ def fetch_dataset(path: str) -> pl.LazyFrame:
     return scan.collect().lazy()
 
 
-def get_query_answer(query: int, base_dir: str = ANSWERS_BASE_DIR) -> pl.LazyFrame:
-    """Retrieve the answer to query in the form
-    of a polars dataframe
+def get_query_answer(query_num: int, base_dir: str = ANSWERS_BASE_DIR) -> pl.LazyFrame:
+    """Retrieve the answer to TPC-H query number query_num
+    in the form of a polars dataframe
 
     Args:
         query (int): the TPC-H query number
@@ -76,7 +78,7 @@ def get_query_answer(query: int, base_dir: str = ANSWERS_BASE_DIR) -> pl.LazyFra
         dataframe
     """
     answer_ldf: pl.LazyFrame = pl.scan_csv(
-        source=os.path.join(base_dir, f"{query}.csv"),
+        source=os.path.join(base_dir, f"{query_num}.csv"),
         separator=",",
         has_header=True,
         try_parse_dates=True,
@@ -90,16 +92,16 @@ def get_query_answer(query: int, base_dir: str = ANSWERS_BASE_DIR) -> pl.LazyFra
     return answer_ldf
 
 
-def test_results(query: int, result_df: pl.DataFrame):
-    """Test the results of a query
+def test_results(query_num: int, result_df: pl.DataFrame) -> None:
+    """Test the results of TPC-H query number query_num
 
     Args:
-        query (int): the TPC-H query number to test
+        query_num (int): the TPC-H query number to test
         result_df (pl.DataFrame): the results from running
         the query
     """
-    with TPCHTimer(f"Query {query} result testing"):
-        answer: pl.DataFrame = get_query_answer(query).collect()
+    with TPCHTimer(f"Query {query_num} result testing"):
+        answer: pl.DataFrame = get_query_answer(query_num).collect()
         result_df = (
             result_df.lazy()
             .with_columns([pl.col(pl.datatypes.Utf8).str.strip_chars().name.keep()])
@@ -204,12 +206,12 @@ def get_part_supp_ds(base_dir: str = DATASET_BASE_DIR) -> pl.LazyFrame:
     return fetch_dataset(os.path.join(base_dir, "partsupp"))
 
 
-def write_row(query: str, time: float, version: str, success: bool = True):
-    """Write the timings results for TPC-H query number query
+def write_row(query_num: str, time: float, version: str, success: bool = True) -> None:
+    """Write the timings results for TPC-H query number query_num
     to the TIMINGS_FILE in a CSV format.
 
     Args:
-        query (str): the TPC-H query number
+        query_num (str): the TPC-H query number
         time (float): The execution time for the query
         version (str): The polars version
         success (bool, optional): Whether the query was a success or not.
@@ -217,11 +219,11 @@ def write_row(query: str, time: float, version: str, success: bool = True):
     """
 
 
-def run_query(query: int, lp: pl.LazyFrame):
-    """Execute TPC-H query
+def run_query(query_num: int, lp: pl.LazyFrame):
+    """Execute TPC-H query number query_num
 
     Args:
-        query (int): query number (1-22)
+        query_num (int): query number (1-22)
         lp (pl.LazyFrame): polars lazyframe for processing
     """
     pass
