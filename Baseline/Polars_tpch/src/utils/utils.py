@@ -217,6 +217,10 @@ def write_row(query_num: str, time: float, version: str, success: bool = True) -
         success (bool, optional): Whether the query was a success or not.
         Defaults to True.
     """
+    with open(TIMINGS_FILE, "a") as f:
+        if f.tell() == 0:
+            f.write("version,query_number,duration,include_io,success\n")
+        f.write(f"{version},{query_num},{time},{INCLUDE_IO},{success}")
 
 
 def run_query(query_num: int, lp: pl.LazyFrame):
@@ -226,4 +230,3 @@ def run_query(query_num: int, lp: pl.LazyFrame):
         query_num (int): query number (1-22)
         lp (pl.LazyFrame): polars lazyframe for processing
     """
-    pass
