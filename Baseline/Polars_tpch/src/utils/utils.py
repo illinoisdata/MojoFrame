@@ -2,7 +2,7 @@ import os
 
 import polars as pl
 
-# from timerutil import TPCHTimer
+from utils.timerutil import TPCHTimer
 
 # The filetype of the input data
 FILE_TYPE: str = os.environ.get("FILE_TYPE", "parquet")
@@ -98,7 +98,14 @@ def test_results(query: int, result_df: pl.DataFrame):
         result_df (pl.DataFrame): the results from running
         the query
     """
-    pass
+    with TPCHTimer(f"Query {query} result testing"):
+        answer: pl.DataFrame = get_query_answer(query).collect()
+        result_df = (
+            result_df.lazy()
+            .with_columns([pl.col(pl.datatypes.Utf8).str.strip_chars().name.keep()])
+            .collect()
+        )
+        pl.testing.assert_frame_equals(left=result_df, right=answer, check_dtype=False)
 
 
 def get_line_item_ds(base_dir: str = DATASET_BASE_DIR) -> pl.LazyFrame:
