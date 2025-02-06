@@ -9,7 +9,7 @@ INCLUDE_IO = bool(os.environ.get("INCLUDE_IO", False))
 # The filetype of the input data
 FILE_TYPE: str = os.environ.get("FILE_TYPE", "parquet")
 # TODO : ADD DATA PATH
-# Dataset directory``
+# Dataset directory
 DATA_DIR: str = os.environ.get("DATA_DIR", "../../../Data")
 # Current directory
 CWD: str = os.path.dirname(os.path.realpath(__file__))
@@ -94,13 +94,17 @@ def get_query_answer(query_num: int, base_dir: str = ANSWERS_BASE_DIR) -> pl.Laz
     return answer_ldf
 
 
-def test_results(query_num: int, result_df: pl.DataFrame) -> None:
+def test_results(query_num: int, result_df: pl.DataFrame) -> bool:
     """Test the results of TPC-H query number query_num
 
     Args:
         query_num (int): the TPC-H query number to test
         result_df (pl.DataFrame): the results from running
         the query
+
+    Returns:
+        bool: whether the passed dataframe is the correct answer
+        or not
     """
     with TPCHTimer(f"Query {query_num} result testing"):
         answer: pl.DataFrame = get_query_answer(query_num).collect()
@@ -109,7 +113,12 @@ def test_results(query_num: int, result_df: pl.DataFrame) -> None:
             .with_columns([pl.col(pl.datatypes.Utf8).str.strip_chars().name.keep()])
             .collect()
         )
-        pl.testing.assert_frame_equals(left=result_df, right=answer, check_dtype=False)
+        correct = result_df.equals(answer)
+
+        if correct:
+            print(f"QUERY {query_num} FAILED")
+
+        return correct
 
 
 def get_line_item_ds(base_dir: str = DATASET_BASE_DIR) -> pl.LazyFrame:
@@ -232,33 +241,26 @@ def run_query(query_num: int, lp: pl.LazyFrame):
         query_num (int): query number (1-22)
         lp (pl.LazyFrame): polars lazyframe for processing
     """
-    try:
-        with TPCHTimer(
-            name=f"Overall execution time for Query {query_num}", logging=False
-        ):
-            with TPCHTimer(name=f"Fetch results for Query {query_num}", logging=False):
-                result = lp.collect()
+    with TPCHTimer(name=f"Overall execution time for Query {query_num}", logging=False):
+        with TPCHTimer(name=f"Fetch results for Query {query_num}", logging=False):
+            result: pl.DataFrame = lp.collect()
 
-            fetch_time = TPCHTimer.times[f"Fetch results for Query {query_num}"]
-            if INCLUDE_IO:
-                fetch_time += TPCHTimer.times[f"Data load time for Query {query_num}"]
+        fetch_time: float = TPCHTimer.times[f"Fetch results for Query {query_num}"]
+        if INCLUDE_IO:
+            fetch_time += TPCHTimer.times[f"Data load time for Query {query_num}"]
 
-            if LOG_TIMINGS:
-                write_row(
-                    query_num=str(query_num), time=fetch_time, version=pl.__version__
-                )
+        success: bool = test_results(query_num, result) if TEST_RESULTS else True
 
-            if TEST_RESULTS:
-                test_results(query_num, result)
+        if LOG_TIMINGS:
+            write_row(
+                query_num=str(query_num),
+                time=fetch_time,
+                version=pl.__version__,
+                success=success,
+            )
 
-            if SHOW_RESULTS:
-                print(result)
+        if SHOW_RESULTS:
+            print(result)
 
-            if SAVE_RESULTS:
-                result.write_csv(f"{OUTPUT_BASE_DIR}/q{query_num}.csv")
-    except IOError:
-        pass
-    except AssertionError:
-        pass
-    except Exception:
-        pass
+        if SAVE_RESULTS:
+            result.write_csv(f"{OUTPUT_BASE_DIR}/q{query_num}.csv")
