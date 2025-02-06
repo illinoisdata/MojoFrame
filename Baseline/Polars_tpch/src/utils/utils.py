@@ -42,7 +42,7 @@ DEFAULT_PLOTS_DIR = os.path.join(CWD, f"{OUTPUT_BASE_DIR}/plots")
 
 
 def fetch_dataset(path: str) -> pl.LazyFrame:
-    """Fetch TPC-H dataset found at path
+    """Lazily fetch TPC-H dataset found at path
 
     Args:
         path (str): the path to the dataset
@@ -51,7 +51,16 @@ def fetch_dataset(path: str) -> pl.LazyFrame:
         pl.LazyFrame: the dataset placed in a polars
         dataframe
     """
-    pass
+    path = f"{path}.{FILE_TYPE}*"
+    match FILE_TYPE:
+        case "parquet":
+            scan = pl.scan_parquet(path)
+        case "feather":
+            scan = pl.scan_ipc(path)
+        case _:
+            raise ValueError(f"File type: {FILE_TYPE} not expected")
+
+    return scan.collect().lazy()
 
 
 def get_query_answer(query: int, base_dir: str = ANSWERS_BASE_DIR) -> pl.LazyFrame:
