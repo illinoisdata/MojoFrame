@@ -1,4 +1,5 @@
 import os
+from types import FrameType
 
 import polars as pl
 
@@ -10,7 +11,7 @@ INCLUDE_IO = bool(os.environ.get("INCLUDE_IO", False))
 FILE_TYPE: str = os.environ.get("FILE_TYPE", "parquet")
 # TODO : ADD DATA PATH
 # Dataset directory
-DATA_DIR: str = os.environ.get("DATA_DIR", "../../../Data")
+DATA_DIR: str = os.environ.get("DATA_DIR", "./data")
 # Current directory
 CWD: str = os.path.dirname(os.path.realpath(__file__))
 # Whether to print the query results while running
@@ -43,6 +44,18 @@ if not os.path.exists(OUTPUT_BASE_DIR):
 TIMINGS_FILE: str = os.path.join(CWD, f"{OUTPUT_BASE_DIR}/timings.csv")
 # Plots directory
 DEFAULT_PLOTS_DIR: str = os.path.join(CWD, f"{OUTPUT_BASE_DIR}/plots")
+
+
+def keyboard_interrupt_handler(signal_num: int, stack_frame: FrameType):
+    """A handler function used to handle a SIGINT signal
+    with the signal.signal() function. If INTERRUPT_CLEANUP
+    env variable is True, it will clean all outputted directories
+    and files.
+
+    Args:
+        signal_num (int): the system signal int
+        stack_frame (FrameType): the current execution frame
+    """
 
 
 def fetch_dataset(path: str) -> pl.LazyFrame:

@@ -1,6 +1,7 @@
 # Python Files
 .venv/
 __pycache__/
+.pytest_cache/
 
 # Mac Files
 .DS_Store
