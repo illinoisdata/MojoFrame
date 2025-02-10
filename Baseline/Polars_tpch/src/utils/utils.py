@@ -1,6 +1,7 @@
 import os
 import signal
 import sys
+import tracemalloc
 from types import FrameType
 
 import polars as pl
@@ -8,7 +9,11 @@ import polars as pl
 from utils.timerutil import TPCHTimer
 
 # Whether to include data fetching time in the query duration result
-INCLUDE_IO = bool(os.environ.get("INCLUDE_IO", False))
+INCLUDE_IO: bool = bool(os.environ.get("INCLUDE_IO", False))
+# Whether to record the RAM usage as well
+INCLUDE_RAM: bool = bool(os.environ.get("INCLUDE_RAM", False))
+# The dictionary with the RAM values
+RAM_USAGE: dict[str, int] = {}
 # The filetype of the input data
 FILE_TYPE: str = os.environ.get("FILE_TYPE", "parquet")
 # Dataset directory
@@ -266,10 +271,20 @@ def run_query(query_num: int, lp: pl.LazyFrame):
         lp (pl.LazyFrame): polars lazyframe for processing
     """
     with TPCHTimer(name=f"Overall execution time for Query {query_num}", logging=False):
-        with TPCHTimer(name=f"Fetch results for Query {query_num}", logging=False):
+        if INCLUDE_RAM:
+            tracemalloc.start()
+
+        with TPCHTimer(name=f"Query {query_num} execution", logging=False):
             result: pl.DataFrame = lp.collect()
 
-        fetch_time: float = TPCHTimer.times[f"Fetch results for Query {query_num}"]
+        if INCLUDE_RAM:
+            _, peak = (
+                tracemalloc.get_traced_memory() - tracemalloc.get_tracemalloc_memory()
+            )
+            RAM_USAGE[f"Query {query_num} peak RAM"] = peak
+            tracemalloc.stop()
+
+        fetch_time: float = TPCHTimer.times[f"Query {query_num} execution"]
         if INCLUDE_IO:
             fetch_time += TPCHTimer.times[f"Data load time for Query {query_num}"]
 
