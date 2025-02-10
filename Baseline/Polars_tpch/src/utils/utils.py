@@ -1,4 +1,6 @@
 import os
+import signal
+import sys
 from types import FrameType
 
 import polars as pl
@@ -9,15 +11,16 @@ from utils.timerutil import TPCHTimer
 INCLUDE_IO = bool(os.environ.get("INCLUDE_IO", False))
 # The filetype of the input data
 FILE_TYPE: str = os.environ.get("FILE_TYPE", "parquet")
-# TODO : ADD DATA PATH
 # Dataset directory
-DATA_DIR: str = os.environ.get("DATA_DIR", "./data")
+DATA_DIR: str = os.environ.get("DATA_DIR", "data/")
 # Current directory
 CWD: str = os.path.dirname(os.path.realpath(__file__))
 # Whether to print the query results while running
 SHOW_RESULTS: bool = bool(os.environ.get("SHOW_RESULTS", False))
 # Whether to save the query results to a file
 SAVE_RESULTS: bool = bool(os.environ.get("SAVE_RESULTS", False))
+# Whether to delete all output files on a keyboard interrupt
+INTERRUPT_CLEANUP: bool = bool(os.environ.get("INTERRUPT_CLEANUP", default=False))
 # Whether to log the query timings
 LOG_TIMINGS: bool = bool(os.environ.get("LOG_TIMINGS", False))
 # Whether to write the TPC-H query timings graph
@@ -56,6 +59,14 @@ def keyboard_interrupt_handler(signal_num: int, stack_frame: FrameType):
         signal_num (int): the system signal int
         stack_frame (FrameType): the current execution frame
     """
+    # TODO: Implement file cleanup
+    if INTERRUPT_CLEANUP:
+        print("Cleaning files...")
+
+    sys.exit(130)
+
+
+signal.signal(signal.SIGINT, keyboard_interrupt_handler)
 
 
 def fetch_dataset(path: str) -> pl.LazyFrame:
