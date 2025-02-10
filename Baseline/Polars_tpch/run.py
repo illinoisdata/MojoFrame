@@ -1,5 +1,90 @@
-from src.utils.timerutil import TPCHTimer
+import argparse
+
+
+def main(args):
+    print("hello")
+
 
 if __name__ == "__main__":
-    with TPCHTimer("test", True):
-        print("hello")
+    parser = argparse.ArgumentParser("polars_tpch")
+    parser.add_argument(
+        "-d",
+        "--data_dir",
+        nargs=1,
+        help="the directory (relative to the project root) with the input data",
+        type=int,
+    )
+    parser.add_argument(
+        "-o",
+        "--output_dir",
+        nargs=1,
+        help="the directory (relative to the project root) for file output",
+        type=int,
+    )
+    parser.add_argument(
+        "-s",
+        "--scale",
+        nargs=1,
+        help="The scale factor of the data, used for locating input data.",
+        type=int,
+    )
+    parser.add_argument(
+        "-p",
+        "--partition",
+        nargs=1,
+        help="The partition of the data, used for locating input data.",
+        type=int,
+    )
+    parser.add_argument(
+        "-i",
+        "--include_io",
+        help="Whether to include data fetching time in the query duration result",
+        action="store_true",
+    )
+    parser.add_argument(
+        "-t",
+        "--test_results",
+        help="Whether to test the query results against the correct answers",
+        action="store_true",
+    )
+    parser.add_argument(
+        "-r",
+        "--record_ram",
+        help="Whether to record ram usage during queries",
+        action="store_true",
+    )
+    parser.add_argument(
+        "-sr",
+        "--show_results",
+        help="Whether to print the query results to standard output",
+        action="store_true",
+    )
+    parser.add_argument(
+        "-svr",
+        "--save_results",
+        help="Whether to save the results to output_dir",
+        action="store_true",
+    )
+    parser.add_argument(
+        "-l",
+        "--log_timings",
+        help="Whether to save the timing results to output_dir",
+        action="store_true",
+    )
+    parser.add_argument(
+        "-pl",
+        "--write_plot",
+        help="Whether to save a timings plot to output_dir",
+        action="store_true",
+    )
+    parser.add_argument(
+        "-f",
+        "--file_type",
+        help="The input data filetype",
+        choices=["parquet", "feather"],
+        default="parquet",
+    )
+
+    args = parser.parse_args()
+
+    main(args)

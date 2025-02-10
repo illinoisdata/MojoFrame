@@ -15,7 +15,8 @@ INCLUDE_IO: bool = bool(os.environ.get("INCLUDE_IO", False))
 # Whether to record the RAM usage as well
 INCLUDE_RAM: bool = bool(os.environ.get("INCLUDE_RAM", False))
 # The dictionary with the RAM values
-RAM_USAGE: dict[str, int] = {}
+if INCLUDE_RAM:
+    RAM_USAGE: dict[str, int] = {}
 # The filetype of the input data
 FILE_TYPE: str = os.environ.get("FILE_TYPE", "parquet")
 # Dataset directory
