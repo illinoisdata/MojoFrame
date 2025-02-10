@@ -1,9 +1,6 @@
 import datetime
 import os
-import signal
-import sys
 import tracemalloc
-from types import FrameType
 
 import matplotlib.pyplot as plt
 import polars as pl
@@ -27,8 +24,6 @@ CWD: str = os.path.dirname(os.path.realpath(__file__))
 SHOW_RESULTS: bool = bool(os.environ.get("SHOW_RESULTS", False))
 # Whether to save the query results to a file
 SAVE_RESULTS: bool = bool(os.environ.get("SAVE_RESULTS", False))
-# Whether to delete all output files on a keyboard interrupt
-INTERRUPT_CLEANUP: bool = bool(os.environ.get("INTERRUPT_CLEANUP", default=False))
 # Whether to log the query timings
 LOG_TIMINGS: bool = bool(os.environ.get("LOG_TIMINGS", False))
 # Whether to write the TPC-H query timings graph
@@ -55,26 +50,6 @@ if not os.path.exists(OUTPUT_BASE_DIR):
 TIMINGS_FILE: str = os.path.join(CWD, f"{OUTPUT_BASE_DIR}/timings.csv")
 # Plots directory
 DEFAULT_PLOTS_DIR: str = os.path.join(CWD, f"{OUTPUT_BASE_DIR}/plots")
-
-
-def keyboard_interrupt_handler(signal_num: int, stack_frame: FrameType):
-    """A handler function used to handle a SIGINT signal
-    with the signal.signal() function. If INTERRUPT_CLEANUP
-    env variable is True, it will clean all outputted directories
-    and files.
-
-    Args:
-        signal_num (int): the system signal int
-        stack_frame (FrameType): the current execution frame
-    """
-    # TODO: Implement file cleanup
-    if INTERRUPT_CLEANUP:
-        print("Cleaning files...")
-
-    sys.exit(130)
-
-
-signal.signal(signal.SIGINT, keyboard_interrupt_handler)
 
 
 def fetch_dataset(path: str) -> pl.LazyFrame:

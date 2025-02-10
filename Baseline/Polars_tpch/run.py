@@ -1,4 +1,23 @@
 import argparse
+import signal
+import sys
+from types import FrameType
+
+
+def keyboard_interrupt_handler(signal_num: int, stack_frame: FrameType):
+    """A handler function used to nicely handle a
+    Ctrl-C input
+
+    Args:
+        signal_num (int): the system signal int
+        stack_frame (FrameType): the current execution frame
+    """
+    # TODO: Implement file cleanup
+
+    sys.exit(130)
+
+
+signal.signal(signal.SIGINT, keyboard_interrupt_handler)
 
 
 def main(args):
