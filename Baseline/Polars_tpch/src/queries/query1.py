@@ -10,7 +10,7 @@ Q_NUM = 1
 
 def q():
     VAR1 = datetime(1998, 9, 2)
-    with TPCHTimer("Data load time for Query 1"):
+    with TPCHTimer(f"Data load time for Query {Q_NUM}"):
         q = utils.get_line_item_ds()
     q_final = (
         q.filter(pl.col("l_shipdate") <= VAR1)
