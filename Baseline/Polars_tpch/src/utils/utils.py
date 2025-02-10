@@ -1,9 +1,11 @@
+import datetime
 import os
 import signal
 import sys
 import tracemalloc
 from types import FrameType
 
+import matplotlib.pyplot as plt
 import polars as pl
 
 from utils.timerutil import TPCHTimer
@@ -281,8 +283,8 @@ def run_query(query_num: int, lp: pl.LazyFrame):
             _, peak = (
                 tracemalloc.get_traced_memory() - tracemalloc.get_tracemalloc_memory()
             )
-            RAM_USAGE[f"Query {query_num} peak RAM"] = peak
             tracemalloc.stop()
+            RAM_USAGE[f"Query {query_num} peak RAM"] = peak
 
         fetch_time: float = TPCHTimer.times[f"Query {query_num} execution"]
         if INCLUDE_IO:
@@ -303,3 +305,37 @@ def run_query(query_num: int, lp: pl.LazyFrame):
 
         if SAVE_RESULTS:
             result.write_csv(f"{OUTPUT_BASE_DIR}/q{query_num}.csv")
+
+
+def generate_query_plot():
+    """Generate a bar plot of the query timings
+    and output it to the plots directory inside
+    the output directory
+    """
+    num_queries = 22
+    data_load_time = []
+    execution_time = []
+    for query_num in range(1, 23):
+        if f"Query {query_num} execution" in TPCHTimer.times:
+            execution_time.append(TPCHTimer.times[f"Query {query_num} execution"])
+            data_load_time.append(
+                TPCHTimer.times[f"Data load time for Query {query_num}"]
+            )
+        else:
+            num_queries = query_num
+            break
+
+    plt.bar(range(1, num_queries + 1), data_load_time, color="red")
+    plt.bar(
+        range(1, num_queries + 1), execution_time, bottom=data_load_time, color="blue"
+    )
+    plt.yscale(
+        [load + execute for load, execute in zip(data_load_time, execution_time)]
+    )
+    plt.xlabel("TPC-H Query")
+    plt.ylabel("Execution Time (s)")
+    plt.title("TPC-H Query Execution Time for Polars")
+    plt.legend(["Data Loading Time", "Query Execution Time"])
+    plt.savefig(
+        os.path.join(DEFAULT_PLOTS_DIR, datetime.now().strftime("%m/%d/%y_%H:%S"))
+    )
