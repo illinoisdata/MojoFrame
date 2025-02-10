@@ -6,7 +6,7 @@ from utils.timerutil import TPCHTimer
 Q_NUM = 2
 
 
-def q():
+def q2():
     var1 = 15
     var2 = "BRASS"
     var3 = "EUROPE"
@@ -57,7 +57,3 @@ def q():
     )
 
     utils.run_query(Q_NUM, q_final)
-
-
-if __name__ == "__main__":
-    q()

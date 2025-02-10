@@ -13,7 +13,7 @@ def keyboard_interrupt_handler(signal_num: int, stack_frame: FrameType):
         stack_frame (FrameType): the current execution frame
     """
     # TODO: Implement file cleanup
-
+    print("Interrupted. Performing file cleanup...")
     sys.exit(130)
 
 

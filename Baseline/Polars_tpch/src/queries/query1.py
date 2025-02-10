@@ -8,7 +8,7 @@ from utils.timerutil import TPCHTimer
 Q_NUM = 1
 
 
-def q():
+def q1():
     VAR1 = datetime(1998, 9, 2)
     with TPCHTimer(f"Data load time for Query {Q_NUM}"):
         q = utils.get_line_item_ds()
@@ -39,7 +39,3 @@ def q():
     )
 
     utils.run_query(Q_NUM, q_final)
-
-
-if __name__ == "__main__":
-    q()

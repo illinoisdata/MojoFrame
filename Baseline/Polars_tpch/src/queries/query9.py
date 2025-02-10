@@ -6,7 +6,7 @@ from utils.timerutil import TPCHTimer
 Q_NUM = 9
 
 
-def q():
+def q9():
     var_color = "green"  # LIKE GREEN
 
     with TPCHTimer(f"Data load time for Query {Q_NUM}"):
@@ -50,7 +50,3 @@ def q():
     )
 
     utils.run_query(Q_NUM, q_final)
-
-
-if __name__ == "__main__":
-    q()

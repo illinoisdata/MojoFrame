@@ -8,7 +8,7 @@ from utils.timerutil import TPCHTimer
 Q_NUM = 5
 
 
-def q():
+def q5():
     var1 = "ASIA"
     var2 = datetime(1994, 1, 1)
     var3 = datetime(1995, 1, 1)
@@ -43,7 +43,3 @@ def q():
     )
 
     utils.run_query(Q_NUM, q_final)
-
-
-if __name__ == "__main__":
-    q()

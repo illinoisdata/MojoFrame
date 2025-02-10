@@ -8,7 +8,7 @@ from utils.timerutil import TPCHTimer
 Q_NUM = 8
 
 
-def q():
+def q8():
     with TPCHTimer(f"Data load time for Query {Q_NUM}"):
         nation_ds = utils.get_nation_ds()
         customer_ds = utils.get_customer_ds()
@@ -78,7 +78,3 @@ def q():
     )
 
     utils.run_query(Q_NUM, q_final)
-
-
-if __name__ == "__main__":
-    q()
