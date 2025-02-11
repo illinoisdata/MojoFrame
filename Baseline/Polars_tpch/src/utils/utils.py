@@ -1,6 +1,6 @@
-import datetime
 import os
 import tracemalloc
+from datetime import datetime
 
 import matplotlib.pyplot as plt
 import polars as pl
@@ -31,8 +31,6 @@ SHOW_RESULTS: bool = bool(os.environ.get("SHOW_RESULTS", False))
 SAVE_RESULTS: bool = bool(os.environ.get("SAVE_RESULTS", False))
 # Whether to log the query timings
 LOG_TIMINGS: bool = bool(os.environ.get("LOG_TIMINGS", False))
-# Whether to write the TPC-H query timings graph
-WRITE_PLOT: bool = bool(os.environ.get("WRITE_PLOT", False))
 # Whether to test the results of the queries for accuracy
 TEST_RESULTS: bool = bool(os.environ.get("TEST_RESULTS", False))
 # Absolute path to the data directory
@@ -46,7 +44,7 @@ if not os.path.exists(OUTPUT_BASE_DIR):
 # Timings CSV output directory
 TIMINGS_FILE: str = os.path.join(CWD, f"{OUTPUT_BASE_DIR}/timings.csv")
 # Plots directory
-DEFAULT_PLOTS_DIR: str = os.path.join(CWD, f"{OUTPUT_BASE_DIR}/plots")
+DEFAULT_PLOTS_DIR: str = os.path.join(CWD, f"{OUTPUT_BASE_DIR}/plots/", DATA_FILE[:-1])
 
 
 def fetch_dataset(path: str) -> pl.LazyFrame:
@@ -255,9 +253,8 @@ def run_query(query_num: int, lp: pl.LazyFrame):
             result: pl.DataFrame = lp.collect()
 
         if INCLUDE_RAM:
-            _, peak = (
-                tracemalloc.get_traced_memory() - tracemalloc.get_tracemalloc_memory()
-            )
+            _, peak = tracemalloc.get_traced_memory()
+            peak -= tracemalloc.get_tracemalloc_memory()
             tracemalloc.stop()
             RAM_USAGE[f"Query {query_num} peak RAM"] = peak
 
@@ -287,8 +284,8 @@ def generate_query_plot():
     and output it to the plots directory inside
     the output directory
     """
-    data_load_time = []
-    execution_time = []
+    data_load_time: list[float] = []
+    execution_time: list[float] = []
     for query_num in range(START_QUERY, END_QUERY + 1):
         if f"Query {query_num} execution" in TPCHTimer.times:
             execution_time.append(TPCHTimer.times[f"Query {query_num} execution"])
@@ -314,8 +311,14 @@ def generate_query_plot():
             bottom=data_load_time,
             color="blue",
         )
-        plt.yscale(
-            [load + execute for load, execute in zip(data_load_time, execution_time)]
+        plt.ylim(
+            0,
+            max(
+                [
+                    load + execute
+                    for load, execute in zip(data_load_time, execution_time)
+                ]
+            ),
         )
         plt.legend(["Data Loading Time", "Query Execution Time"])
 
@@ -323,5 +326,8 @@ def generate_query_plot():
     plt.ylabel("Execution Time (s)")
     plt.title("TPC-H Query Execution Time for Polars")
     plt.savefig(
-        os.path.join(DEFAULT_PLOTS_DIR, datetime.now().strftime("%m/%d/%y_%H:%S"))
+        os.path.join(
+            DEFAULT_PLOTS_DIR,
+            datetime.now().strftime("%m/%d/%y_%H:%S"),
+        )
     )
