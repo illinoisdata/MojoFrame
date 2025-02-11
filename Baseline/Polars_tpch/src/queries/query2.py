@@ -7,9 +7,9 @@ Q_NUM = 2
 
 
 def q():
-    var1 = 15
+    var1 = 15.0
     var2 = "BRASS"
-    var3 = "EUROPE"
+    var3 = 35796.0
 
     with TPCHTimer(f"Data load time for Query {Q_NUM}"):
         region_ds = utils.get_region_ds()
