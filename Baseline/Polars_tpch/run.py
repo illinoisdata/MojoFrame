@@ -87,62 +87,6 @@ if __name__ == "__main__":
         default="tiny_tpch/",
     )
     parser.add_argument(
-        "-i",
-        "--include_io",
-        help="Whether to include data fetching time in the query duration result",
-        nargs=1,
-        type=bool,
-        default=False,
-    )
-    parser.add_argument(
-        "-t",
-        "--test_results",
-        help="Whether to test the query results against the correct answers",
-        nargs=1,
-        type=bool,
-        default=False,
-    )
-    parser.add_argument(
-        "-r",
-        "--include_ram",
-        help="Whether to record ram usage during queries",
-        nargs=1,
-        type=bool,
-        default=False,
-    )
-    parser.add_argument(
-        "-sr",
-        "--show_results",
-        help="Whether to print the query results to standard output",
-        nargs=1,
-        type=bool,
-        default=False,
-    )
-    parser.add_argument(
-        "-svr",
-        "--save_results",
-        help="Whether to save the results to output_dir",
-        nargs=1,
-        type=bool,
-        default=False,
-    )
-    parser.add_argument(
-        "-l",
-        "--log_timings",
-        help="Whether to save the timing results to output_dir",
-        nargs=1,
-        type=bool,
-        default=False,
-    )
-    parser.add_argument(
-        "-pl",
-        "--write_plot",
-        help="Whether to save a timings plot to output_dir",
-        nargs=1,
-        type=bool,
-        default=False,
-    )
-    parser.add_argument(
         "-ft",
         "--file_type",
         help="The input data filetype",
@@ -150,6 +94,48 @@ if __name__ == "__main__":
         nargs=1,
         type=str,
         default="csv",
+    )
+    parser.add_argument(
+        "-i",
+        "--include_io",
+        help="Whether to include data fetching time in the query duration result",
+        action="store_true",
+    )
+    parser.add_argument(
+        "-t",
+        "--test_results",
+        help="Whether to test the query results against the correct answers",
+        action="store_true",
+    )
+    parser.add_argument(
+        "-r",
+        "--include_ram",
+        help="Whether to record ram usage during queries",
+        action="store_true",
+    )
+    parser.add_argument(
+        "-sr",
+        "--show_results",
+        help="Whether to print the query results to standard output",
+        action="store_true",
+    )
+    parser.add_argument(
+        "-svr",
+        "--save_results",
+        help="Whether to save the results to output_dir",
+        action="store_true",
+    )
+    parser.add_argument(
+        "-l",
+        "--log_timings",
+        help="Whether to save the timing results to output_dir",
+        action="store_true",
+    )
+    parser.add_argument(
+        "-pl",
+        "--write_plot",
+        help="Whether to save a timings plot to output_dir",
+        action="store_true",
     )
 
     args = parser.parse_args()
