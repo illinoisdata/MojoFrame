@@ -24,7 +24,7 @@ DATA_DIR: str = os.environ.get("DATA_DIR", "data/")
 # The subdirectory of the data file holding the parquet/feather
 DATA_FILE: str = os.environ.get("DATA_FILE", "tiny_tpch/")
 # Current directory
-CWD: str = os.path.dirname(os.path.realpath(__file__))
+CWD: str = os.environ.get("CWD", os.path.dirname(os.path.realpath(__file__)))
 # Whether to print the query results while running
 SHOW_RESULTS: bool = bool(os.environ.get("SHOW_RESULTS", False))
 # Whether to save the query results to a file
@@ -38,13 +38,13 @@ DATASET_BASE_DIR: str = os.path.join(DATA_DIR, DATA_FILE)
 # Absolute path to the expected TPC-H query answers
 ANSWERS_BASE_DIR: str = os.path.join(DATASET_BASE_DIR, "answers/")
 # Output directory
-OUTPUT_BASE_DIR: str = os.path.join(CWD, "outputs/", DATA_DIR)
+OUTPUT_BASE_DIR: str = os.path.join(CWD, "outputs/", DATA_FILE)
 if not os.path.exists(OUTPUT_BASE_DIR):
     os.makedirs(OUTPUT_BASE_DIR, exist_ok=True)
 # Timings CSV output directory
 TIMINGS_FILE: str = os.path.join(CWD, f"{OUTPUT_BASE_DIR}/timings.csv")
 # Plots directory
-DEFAULT_PLOTS_DIR: str = os.path.join(CWD, f"{OUTPUT_BASE_DIR}/plots/", DATA_FILE[:-1])
+DEFAULT_PLOTS_DIR: str = os.path.join(CWD, f"{OUTPUT_BASE_DIR}/plots/", DATA_FILE)
 
 
 def fetch_dataset(path: str) -> pl.LazyFrame:

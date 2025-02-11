@@ -1,11 +1,9 @@
 import argparse
+import os
 import signal
 import sys
 from subprocess import run
 from types import FrameType
-
-from src.utils.timerutil import TPCHTimer
-from src.utils.utils import generate_query_plot
 
 
 def keyboard_interrupt_handler(signal_num: int, stack_frame: FrameType):
@@ -34,10 +32,16 @@ class DefaultsAndTypesFormatter(
 
 
 def main(args):
+    os.environ["CWD"] = os.path.dirname(os.path.realpath(__file__))
+    for key, value in vars(args).items():
+        os.environ[key.upper()] = str(value)
+
+    # Import here so that the local environment variables are
+    # made AFTER we set them here.
+    from src.utils.utils import generate_query_plot
+
     for i in range(args.start_query, args.end_query + 1):
         run([sys.executable, "-m", f"src.queries.query{i}"])
-
-    print(TPCHTimer.times)
 
     if args.write_plot:
         generate_query_plot()
@@ -66,6 +70,7 @@ if __name__ == "__main__":
         help="the directory (relative to the project root) with the input data",
         nargs=1,
         type=str,
+        default="/data",
     )
     parser.add_argument(
         "-f",
@@ -74,14 +79,6 @@ if __name__ == "__main__":
         nargs=1,
         type=str,
         default="tiny_tpch/",
-    )
-    parser.add_argument(
-        "-o",
-        "--output_dir",
-        help="the directory (relative to the project root) for file output",
-        nargs=1,
-        type=str,
-        default="output/",
     )
     parser.add_argument(
         "-i",
@@ -101,7 +98,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "-r",
-        "--record_ram",
+        "--include_ram",
         help="Whether to record ram usage during queries",
         nargs=1,
         type=bool,
