@@ -34,7 +34,9 @@ class DefaultsAndTypesFormatter(
 def main(args):
     os.environ["CWD"] = os.path.dirname(os.path.realpath(__file__))
     for key, value in vars(args).items():
-        os.environ[key.upper()] = str(value)
+        os.environ[key.upper()] = (
+            str(value) if not isinstance(value, list) else value[0]
+        )
 
     # Import here so that the local environment variables are
     # made AFTER we set them here.
@@ -70,7 +72,7 @@ if __name__ == "__main__":
         help="the directory (relative to the project root) with the input data",
         nargs=1,
         type=str,
-        default="/data",
+        default="data/",
     )
     parser.add_argument(
         "-f",

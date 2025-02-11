@@ -34,9 +34,9 @@ LOG_TIMINGS: bool = bool(os.environ.get("LOG_TIMINGS", False))
 # Whether to test the results of the queries for accuracy
 TEST_RESULTS: bool = bool(os.environ.get("TEST_RESULTS", False))
 # Absolute path to the data directory
-DATASET_BASE_DIR: str = os.path.join(DATA_DIR, DATA_FILE)
+DATASET_BASE_DIR: str = os.path.join(CWD, DATA_DIR, DATA_FILE)
 # Absolute path to the expected TPC-H query answers
-ANSWERS_BASE_DIR: str = os.path.join(DATASET_BASE_DIR, "answers/")
+ANSWERS_BASE_DIR: str = os.path.join(CWD, DATASET_BASE_DIR, "answers/")
 # Output directory
 OUTPUT_BASE_DIR: str = os.path.join(CWD, "outputs/", DATA_FILE)
 if not os.path.exists(OUTPUT_BASE_DIR):
@@ -44,7 +44,7 @@ if not os.path.exists(OUTPUT_BASE_DIR):
 # Timings CSV output directory
 TIMINGS_FILE: str = os.path.join(CWD, f"{OUTPUT_BASE_DIR}/timings.csv")
 # Plots directory
-DEFAULT_PLOTS_DIR: str = os.path.join(CWD, f"{OUTPUT_BASE_DIR}/plots/", DATA_FILE)
+DEFAULT_PLOTS_DIR: str = os.path.join(CWD, f"{OUTPUT_BASE_DIR}/plots", DATA_FILE)
 
 
 def fetch_dataset(path: str) -> pl.LazyFrame:
@@ -60,6 +60,7 @@ def fetch_dataset(path: str) -> pl.LazyFrame:
     path = f"{path}.{FILE_TYPE}*"
     match FILE_TYPE:
         case "csv":
+            print(f"reading {path}...")
             scan: pl.LazyFrame = pl.scan_csv(path)
         case "parquet":
             scan: pl.LazyFrame = pl.scan_parquet(path)
