@@ -316,6 +316,8 @@ def generate_query_plot():
     ]
     if INCLUDE_IO:
         ax.bar(range(START_QUERY, END_QUERY + 1), concatenated_times)
+        for i, height in zip(range(START_QUERY, END_QUERY + 1), concatenated_times):
+            ax.text(i, height * 1.05, f"{height:.2f}", ha="center", fontsize=10)
     else:
         ax.bar(range(START_QUERY, END_QUERY + 1), data_load_time)
         ax.bar(
@@ -324,9 +326,17 @@ def generate_query_plot():
             bottom=data_load_time,
         )
         ax.legend(["Data Loading Time", "Query Execution Time"])
-
-    for i, height in enumerate(concatenated_times):
-        ax.text(i + 1, height * 1.05, f"{height:.2f}", ha="center", fontsize=10)
+        for i, height_load, height_exec in zip(
+            range(START_QUERY, END_QUERY + 1), data_load_time, execution_time
+        ):
+            ax.text(i, height_load / 2, f"{height_load:.2f}", ha="center", fontsize=10)
+            ax.text(
+                i,
+                height_load + height_exec / 2,
+                f"{height_exec:.2f}",
+                ha="center",
+                fontsize=10,
+            )
 
     ax.set_ylim(
         0,
