@@ -23,6 +23,15 @@ def keyboard_interrupt_handler(signal_num: int, stack_frame: FrameType):
 signal.signal(signal.SIGINT, keyboard_interrupt_handler)
 
 
+class DefaultsAndTypesFormatter(
+    argparse.ArgumentDefaultsHelpFormatter, argparse.MetavarTypeHelpFormatter
+):
+    """Custom formatter inheriting from both the ArgumentDefaultsHelpFormatter
+    and the MetavarTypeHelpFormatter of the argparse module to display both type
+    and default information in the help message
+    """
+
+
 def main(args):
     for i in range(args.start_query, args.end_query + 1):
         run([sys.executable, "-m", f"src.queries.query{i}"])
@@ -30,7 +39,10 @@ def main(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser("polars_tpch")
+    parser = argparse.ArgumentParser(
+        prog="python ./run.py",
+        formatter_class=DefaultsAndTypesFormatter,
+    )
     parser.add_argument(
         "start_query",
         help="The TPC-H query to start with (inclusive)",
@@ -46,65 +58,90 @@ if __name__ == "__main__":
     parser.add_argument(
         "-d",
         "--data_dir",
-        nargs=1,
         help="the directory (relative to the project root) with the input data",
-        type=int,
+        nargs=1,
+        type=str,
+    )
+    parser.add_argument(
+        "-f",
+        "--data_file",
+        help="Subdirectory within data_dir which hold the actual data files",
+        nargs=1,
+        type=str,
+        default="tiny_tpch/",
     )
     parser.add_argument(
         "-o",
         "--output_dir",
-        nargs=1,
         help="the directory (relative to the project root) for file output",
-        type=int,
+        nargs=1,
+        type=str,
+        default="output/",
     )
     parser.add_argument(
         "-i",
         "--include_io",
         help="Whether to include data fetching time in the query duration result",
-        action="store_true",
+        nargs=1,
+        type=bool,
+        default=False,
     )
     parser.add_argument(
         "-t",
         "--test_results",
         help="Whether to test the query results against the correct answers",
-        action="store_true",
+        nargs=1,
+        type=bool,
+        default=False,
     )
     parser.add_argument(
         "-r",
         "--record_ram",
         help="Whether to record ram usage during queries",
-        action="store_true",
+        nargs=1,
+        type=bool,
+        default=False,
     )
     parser.add_argument(
         "-sr",
         "--show_results",
         help="Whether to print the query results to standard output",
-        action="store_true",
+        nargs=1,
+        type=bool,
+        default=False,
     )
     parser.add_argument(
         "-svr",
         "--save_results",
         help="Whether to save the results to output_dir",
-        action="store_true",
+        nargs=1,
+        type=bool,
+        default=False,
     )
     parser.add_argument(
         "-l",
         "--log_timings",
         help="Whether to save the timing results to output_dir",
-        action="store_true",
+        nargs=1,
+        type=bool,
+        default=False,
     )
     parser.add_argument(
         "-pl",
         "--write_plot",
         help="Whether to save a timings plot to output_dir",
-        action="store_true",
+        nargs=1,
+        type=bool,
+        default=False,
     )
     parser.add_argument(
-        "-f",
+        "-ft",
         "--file_type",
         help="The input data filetype",
-        choices=["parquet", "feather"],
-        default="parquet",
+        choices=["csv", "parquet", "feather"],
+        nargs=1,
+        type=str,
+        default="csv",
     )
 
     args = parser.parse_args()
