@@ -1,7 +1,10 @@
 import argparse
 import signal
 import sys
+from subprocess import run
 from types import FrameType
+
+from src.utils.timerutil import TPCHTimer
 
 
 def keyboard_interrupt_handler(signal_num: int, stack_frame: FrameType):
@@ -21,11 +24,25 @@ signal.signal(signal.SIGINT, keyboard_interrupt_handler)
 
 
 def main(args):
-    print("hello")
+    for i in range(args.start_query, args.end_query + 1):
+        run([sys.executable, "-m", f"src.queries.query{i}"])
+    print(TPCHTimer.times)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser("polars_tpch")
+    parser.add_argument(
+        "start_query",
+        help="The TPC-H query to start with (inclusive)",
+        type=int,
+        default=1,
+    )
+    parser.add_argument(
+        "end_query",
+        help="The TPC-H query to end with (inclusive)",
+        type=int,
+        default=22,
+    )
     parser.add_argument(
         "-d",
         "--data_dir",
