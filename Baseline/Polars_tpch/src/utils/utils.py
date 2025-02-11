@@ -290,8 +290,14 @@ def generate_query_plot():
     data_load_time = []
     execution_time = []
     for query_num in range(START_QUERY, END_QUERY + 1):
-        execution_time.append(TPCHTimer.times[f"Query {query_num} execution"])
-        data_load_time.append(TPCHTimer.times[f"Data load time for Query {query_num}"])
+        if f"Query {query_num} execution" in TPCHTimer.times:
+            execution_time.append(TPCHTimer.times[f"Query {query_num} execution"])
+            data_load_time.append(
+                TPCHTimer.times[f"Data load time for Query {query_num}"]
+            )
+        else:
+            execution_time.append(0)
+            data_load_time.append(0)
 
     # If INCLUDE_IO is set, concatenate the data load times and query
     # execution times into one, otherwise have the bar graphs stacked
