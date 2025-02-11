@@ -2,13 +2,13 @@ from datetime import datetime
 
 import polars as pl
 
-from utils import utils
-from utils.timerutil import TPCHTimer
+from src.utils import utils
+from src.utils.timerutil import TPCHTimer
 
 Q_NUM = 1
 
 
-def q1():
+def q():
     VAR1 = datetime(1998, 9, 2)
     with TPCHTimer(f"Data load time for Query {Q_NUM}"):
         q = utils.get_line_item_ds()
@@ -39,3 +39,7 @@ def q1():
     )
 
     utils.run_query(Q_NUM, q_final)
+
+
+if __name__ == "__main__":
+    q()

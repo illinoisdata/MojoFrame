@@ -2,13 +2,13 @@ from datetime import datetime
 
 import polars as pl
 
-from utils import utils
-from utils.timerutil import TPCHTimer
+from src.utils import utils
+from src.utils.timerutil import TPCHTimer
 
 Q_NUM = 6
 
 
-def q6():
+def q():
     var1 = datetime(1994, 1, 1)
     var2 = datetime(1995, 1, 1)
     var3 = 24
@@ -28,3 +28,7 @@ def q6():
     )
 
     utils.run_query(Q_NUM, q_final)
+
+
+if __name__ == "__main__":
+    q()

@@ -5,7 +5,7 @@ import tracemalloc
 import matplotlib.pyplot as plt
 import polars as pl
 
-from utils.timerutil import TPCHTimer
+from src.utils.timerutil import TPCHTimer
 
 # Whether to include data fetching time in the query duration result
 INCLUDE_IO: bool = bool(os.environ.get("INCLUDE_IO", False))

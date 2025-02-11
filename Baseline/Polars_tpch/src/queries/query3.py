@@ -2,13 +2,13 @@ from datetime import datetime
 
 import polars as pl
 
-from utils import utils
-from utils.timerutil import TPCHTimer
+from src.utils import utils
+from src.utils.timerutil import TPCHTimer
 
 Q_NUM = 3
 
 
-def q3():
+def q():
     var1 = var2 = datetime(1995, 3, 15)
     var3 = "BUILDING"
 
@@ -40,3 +40,7 @@ def q3():
     )
 
     utils.run_query(Q_NUM, q_final)
+
+
+if __name__ == "__main__":
+    q()

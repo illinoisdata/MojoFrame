@@ -1,12 +1,12 @@
 import polars as pl
 
-from utils import utils
-from utils.timerutil import TPCHTimer
+from src.utils import utils
+from src.utils.timerutil import TPCHTimer
 
 Q_NUM = 9
 
 
-def q9():
+def q():
     var_color = "green"  # LIKE GREEN
 
     with TPCHTimer(f"Data load time for Query {Q_NUM}"):
@@ -50,3 +50,7 @@ def q9():
     )
 
     utils.run_query(Q_NUM, q_final)
+
+
+if __name__ == "__main__":
+    q()

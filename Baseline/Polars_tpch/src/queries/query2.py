@@ -1,12 +1,12 @@
 import polars as pl
 
-from utils import utils
-from utils.timerutil import TPCHTimer
+from src.utils import utils
+from src.utils.timerutil import TPCHTimer
 
 Q_NUM = 2
 
 
-def q2():
+def q():
     var1 = 15
     var2 = "BRASS"
     var3 = "EUROPE"
@@ -57,3 +57,7 @@ def q2():
     )
 
     utils.run_query(Q_NUM, q_final)
+
+
+if __name__ == "__main__":
+    q()
