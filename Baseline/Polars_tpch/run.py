@@ -5,6 +5,7 @@ from subprocess import run
 from types import FrameType
 
 from src.utils.timerutil import TPCHTimer
+from src.utils.utils import generate_query_plot
 
 
 def keyboard_interrupt_handler(signal_num: int, stack_frame: FrameType):
@@ -20,7 +21,7 @@ def keyboard_interrupt_handler(signal_num: int, stack_frame: FrameType):
     sys.exit(130)
 
 
-signal.signal(signal.SIGINT, keyboard_interrupt_handler)
+signal.signal(signal.SIGINT, keyboard_interrupt_handler)  # type: ignore
 
 
 class DefaultsAndTypesFormatter(
@@ -35,7 +36,11 @@ class DefaultsAndTypesFormatter(
 def main(args):
     for i in range(args.start_query, args.end_query + 1):
         run([sys.executable, "-m", f"src.queries.query{i}"])
+
     print(TPCHTimer.times)
+
+    if args.write_plot:
+        generate_query_plot()
 
 
 if __name__ == "__main__":

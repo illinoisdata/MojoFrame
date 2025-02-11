@@ -221,21 +221,28 @@ def get_part_supp_ds(base_dir: str = DATASET_BASE_DIR) -> pl.LazyFrame:
     return fetch_dataset(os.path.join(base_dir, "partsupp"))
 
 
-def write_row(query_num: str, time: float, version: str, success: bool = True) -> None:
+def write_row(
+    query_num: str,
+    load_time: float,
+    exec_time: float,
+    version: str,
+    success: bool = True,
+) -> None:
     """Write the timings results for TPC-H query number query_num
     to the TIMINGS_FILE in a CSV format.
 
     Args:
         query_num (str): the TPC-H query number
-        time (float): The execution time for the query
+        load_time (float): The data loading time for the query
+        exec_time (float): The query execution time
         version (str): The polars version
         success (bool, optional): Whether the query was a success or not.
         Defaults to True.
     """
     with open(TIMINGS_FILE, "a") as f:
         if f.tell() == 0:
-            f.write("version,query_number,duration,include_io,success\n")
-        f.write(f"{version},{query_num},{time},{INCLUDE_IO},{success}")
+            f.write("version,query_number,load_time,exec_time,include_io,success\n")
+        f.write(f"{version},{query_num},{load_time},{exec_time},{INCLUDE_IO},{success}")
 
 
 def run_query(query_num: int, lp: pl.LazyFrame):
@@ -258,16 +265,19 @@ def run_query(query_num: int, lp: pl.LazyFrame):
             tracemalloc.stop()
             RAM_USAGE[f"Query {query_num} peak RAM"] = peak
 
-        fetch_time: float = TPCHTimer.times[f"Query {query_num} execution"]
+        load_time: float = TPCHTimer.times[f"Data load time for Query {query_num}"]
+        exec_time: float = TPCHTimer.times[f"Query {query_num} execution"]
         if INCLUDE_IO:
-            fetch_time += TPCHTimer.times[f"Data load time for Query {query_num}"]
+            exec_time += load_time
+            load_time = 0.0
 
         success: bool = test_results(query_num, result) if TEST_RESULTS else True
 
         if LOG_TIMINGS:
             write_row(
                 query_num=str(query_num),
-                time=fetch_time,
+                load_time=load_time,
+                exec_time=exec_time,
                 version=pl.__version__,
                 success=success,
             )
