@@ -44,8 +44,10 @@ def main(args):
     from src.utils.utils import generate_query_plot
 
     for i in range(args.start_query, args.end_query + 1):
+        print(f"Starting query {i}...")
         query = importlib.import_module(f"src.queries.query{i}")
         query.q()
+        print(f"Query {i} finished.")
 
     if args.write_plot:
         generate_query_plot()

@@ -62,12 +62,11 @@ def fetch_dataset(path: str) -> pl.LazyFrame:
     path = f"{path}.{FILE_TYPE}*"
     match FILE_TYPE:
         case "csv":
-            print(f"reading {path}...")
-            scan: pl.LazyFrame = pl.scan_csv(path)
+            scan: pl.LazyFrame = pl.scan_csv(path, cache=False)
         case "parquet":
-            scan: pl.LazyFrame = pl.scan_parquet(path)
+            scan: pl.LazyFrame = pl.scan_parquet(path, cache=False)
         case "feather":
-            scan: pl.LazyFrame = pl.scan_ipc(path)
+            scan: pl.LazyFrame = pl.scan_ipc(path, cache=False)
         case _:
             raise IOError(f"File type: {FILE_TYPE} not expected")
 
