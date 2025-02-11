@@ -308,34 +308,46 @@ def generate_query_plot():
             execution_time.append(0)
             data_load_time.append(0)
 
+    fig, ax = plt.subplots()
+
     # If INCLUDE_IO is set, concatenate the data load times and query
     # execution times into one, otherwise have the bar graphs stacked
     concatenated_times: list[float] = [
         load + execute for load, execute in zip(data_load_time, execution_time)
     ]
     if INCLUDE_IO:
-        plt.bar(range(START_QUERY, END_QUERY + 1), concatenated_times, color="red")
+        ax.bar(range(START_QUERY, END_QUERY + 1), concatenated_times)
     else:
-        plt.bar(range(START_QUERY, END_QUERY + 1), data_load_time, color="red")
-        plt.bar(
+        ax.bar(range(START_QUERY, END_QUERY + 1), data_load_time)
+        ax.bar(
             range(START_QUERY, END_QUERY + 1),
             execution_time,
             bottom=data_load_time,
-            color="blue",
         )
-        plt.legend(["Data Loading Time", "Query Execution Time"])
+        ax.legend(["Data Loading Time", "Query Execution Time"])
 
-    plt.ylim(
+    for i, height in enumerate(concatenated_times):
+        ax.text(i + 1, height * 1.05, f"{height:.2f}", ha="center", fontsize=10)
+
+    ax.set_ylim(
         0,
-        max(concatenated_times),
+        max(concatenated_times) * 1.1,
     )
 
-    plt.xlabel("TPC-H Query")
-    plt.ylabel("Execution Time (s)")
-    plt.title("TPC-H Query Execution Time for Polars")
-    plt.savefig(
+    ax.set_xlabel("TPC-H Query")
+    ax.set_ylabel("Execution Time (s)")
+    ax.set_xticks(range(START_QUERY, END_QUERY + 1))
+    ax.tick_params(bottom=False, left=False)
+    ax.spines[["left", "right", "top"]].set_visible(False)
+    ax.spines["bottom"].set_color("lightgray")
+    ax.set_axisbelow(True)
+    ax.yaxis.grid(True, color="lightgray")
+    ax.xaxis.grid(False)
+    ax.set_title("TPC-H Query Execution Time for Polars")
+    fig.savefig(
         os.path.join(
             DEFAULT_PLOTS_DIR,
-            datetime.now().strftime("%m-%d-%y_%H:%S"),
-        )
+            datetime.now().strftime("%m-%d-%y_%H:%M"),
+        ),
+        dpi=200,
     )
