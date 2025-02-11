@@ -13,7 +13,7 @@ def q():
         q = utils.get_line_item_ds()
     q_final = (
         q.filter(pl.col("l_shipdate") <= VAR1)
-        .groupby(["l_returnflag", "l_linestatus"])
+        .group_by(["l_returnflag", "l_linestatus"])
         .agg(
             [
                 pl.sum("l_quantity").alias("sum_qty"),
@@ -31,14 +31,10 @@ def q():
                 pl.mean("l_quantity").alias("avg_qty"),
                 pl.mean("l_extendedprice").alias("avg_price"),
                 pl.mean("l_discount").alias("avg_disc"),
-                pl.count().alias("count_order"),
+                pl.len().alias("count_order"),
             ],
         )
         .sort(["l_returnflag", "l_linestatus"])
     )
 
     utils.run_query(Q_NUM, q_final)
-
-
-if __name__ == "__main__":
-    q()

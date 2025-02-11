@@ -21,10 +21,10 @@ def q():
         .join(line_item_ds, left_on="o_orderkey", right_on="l_orderkey")
         .filter(pl.col("o_orderdate") < var2)
         .filter(pl.col("l_shipdate") > var1)
-        .with_column(
+        .with_columns(
             (pl.col("l_extendedprice") * (1 - pl.col("l_discount"))).alias("revenue")
         )
-        .groupby(["o_orderkey", "o_orderdate", "o_shippriority"])
+        .group_by(["o_orderkey", "o_orderdate", "o_shippriority"])
         .agg([pl.sum("revenue")])
         .select(
             [
@@ -34,11 +34,7 @@ def q():
                 "o_shippriority",
             ]
         )
-        .sort(by=["revenue", "o_orderdate"], reverse=[True, False])
+        .sort(by=["revenue", "o_orderdate"], descending=[True, False])
     )
 
     utils.run_query(Q_NUM, q_final)
-
-
-if __name__ == "__main__":
-    q()

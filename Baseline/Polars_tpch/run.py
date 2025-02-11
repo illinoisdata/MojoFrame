@@ -1,8 +1,8 @@
 import argparse
+import importlib
 import os
 import signal
 import sys
-from subprocess import run
 from types import FrameType
 
 
@@ -34,8 +34,9 @@ class DefaultsAndTypesFormatter(
 def main(args):
     os.environ["CWD"] = os.path.dirname(os.path.realpath(__file__))
     for key, value in vars(args).items():
+        unpacked = value if not isinstance(value, list) else value[0]
         os.environ[key.upper()] = (
-            str(value) if not isinstance(value, list) else value[0]
+            str(unpacked) if not isinstance(unpacked, str) else unpacked
         )
 
     # Import here so that the local environment variables are
@@ -43,7 +44,8 @@ def main(args):
     from src.utils.utils import generate_query_plot
 
     for i in range(args.start_query, args.end_query + 1):
-        run([sys.executable, "-m", f"src.queries.query{i}"])
+        query = importlib.import_module(f"src.queries.query{i}")
+        query.q()
 
     if args.write_plot:
         generate_query_plot()

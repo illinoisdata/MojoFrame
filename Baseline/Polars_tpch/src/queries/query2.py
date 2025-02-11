@@ -37,7 +37,7 @@ def q():
         .filter(pl.col("r_name") == var3)
     ).cache()
 
-    result2 = result_q1.groupby("p_partkey").agg(
+    result2 = result_q1.group_by("p_partkey").agg(
         pl.min("ps_supplycost").alias("ps_supplycost_min")
     )
 
@@ -50,14 +50,10 @@ def q():
         .select(final_cols)
         .sort(
             by=["s_acctbal", "n_name", "s_name", "p_partkey"],
-            reverse=[True, False, False, False],
+            descending=[True, False, False, False],
         )
         .limit(100)
-        .with_column(pl.col(pl.datatypes.Utf8).str.strip().keep_name())
+        .with_columns(pl.col(pl.datatypes.Utf8).str.strip_chars().name.keep())
     )
 
     utils.run_query(Q_NUM, q_final)
-
-
-if __name__ == "__main__":
-    q()

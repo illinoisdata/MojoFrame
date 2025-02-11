@@ -11,9 +11,9 @@ from src.utils.timerutil import TPCHTimer
 START_QUERY: int = int(os.environ.get("START_QUERY", 1))
 END_QUERY: int = int(os.environ.get("END_QUERY", 22))
 # Whether to include data fetching time in the query duration result
-INCLUDE_IO: bool = bool(os.environ.get("INCLUDE_IO", False))
+INCLUDE_IO: bool = os.environ.get("INCLUDE_IO", False) == "True"
 # Whether to record the RAM usage as well
-INCLUDE_RAM: bool = bool(os.environ.get("INCLUDE_RAM", False))
+INCLUDE_RAM: bool = os.environ.get("INCLUDE_RAM", False) == "True"
 if INCLUDE_RAM:
     # The dictionary with the RAM values
     RAM_USAGE: dict[str, int] = {}
@@ -26,13 +26,13 @@ DATA_FILE: str = os.environ.get("DATA_FILE", "tiny_tpch/")
 # Current directory
 CWD: str = os.environ.get("CWD", os.path.dirname(os.path.realpath(__file__)))
 # Whether to print the query results while running
-SHOW_RESULTS: bool = bool(os.environ.get("SHOW_RESULTS", False))
+SHOW_RESULTS: bool = os.environ.get("SHOW_RESULTS", False) == "True"
 # Whether to save the query results to a file
-SAVE_RESULTS: bool = bool(os.environ.get("SAVE_RESULTS", False))
+SAVE_RESULTS: bool = os.environ.get("SAVE_RESULTS", False) == "True"
 # Whether to log the query timings
-LOG_TIMINGS: bool = bool(os.environ.get("LOG_TIMINGS", False))
+LOG_TIMINGS: bool = os.environ.get("LOG_TIMINGS", False) == "True"
 # Whether to test the results of the queries for accuracy
-TEST_RESULTS: bool = bool(os.environ.get("TEST_RESULTS", False))
+TEST_RESULTS: bool = os.environ.get("TEST_RESULTS", False) == "True"
 # Absolute path to the data directory
 DATASET_BASE_DIR: str = os.path.join(CWD, DATA_DIR, DATA_FILE)
 # Absolute path to the expected TPC-H query answers
@@ -44,7 +44,9 @@ if not os.path.exists(OUTPUT_BASE_DIR):
 # Timings CSV output directory
 TIMINGS_FILE: str = os.path.join(CWD, f"{OUTPUT_BASE_DIR}/timings.csv")
 # Plots directory
-DEFAULT_PLOTS_DIR: str = os.path.join(CWD, f"{OUTPUT_BASE_DIR}/plots", DATA_FILE)
+DEFAULT_PLOTS_DIR: str = os.path.join(CWD, f"{OUTPUT_BASE_DIR}/plots")
+if not os.path.exists(DEFAULT_PLOTS_DIR):
+    os.makedirs(DEFAULT_PLOTS_DIR, exist_ok=True)
 
 
 def fetch_dataset(path: str) -> pl.LazyFrame:
@@ -253,41 +255,40 @@ def run_query(query_num: int, lp: pl.LazyFrame):
         query_num (int): query number (1-22)
         lp (pl.LazyFrame): polars lazyframe for processing
     """
-    with TPCHTimer(name=f"Overall execution time for Query {query_num}", logging=False):
-        if INCLUDE_RAM:
-            tracemalloc.start()
+    if INCLUDE_RAM:
+        tracemalloc.start()
 
-        with TPCHTimer(name=f"Query {query_num} execution", logging=False):
-            result: pl.DataFrame = lp.collect()
+    with TPCHTimer(name=f"Query {query_num} execution", logging=False):
+        result: pl.DataFrame = lp.collect()
 
-        if INCLUDE_RAM:
-            _, peak = tracemalloc.get_traced_memory()
-            peak -= tracemalloc.get_tracemalloc_memory()
-            tracemalloc.stop()
-            RAM_USAGE[f"Query {query_num} peak RAM"] = peak
+    if INCLUDE_RAM:
+        _, peak = tracemalloc.get_traced_memory()
+        peak -= tracemalloc.get_tracemalloc_memory()
+        tracemalloc.stop()
+        RAM_USAGE[f"Query {query_num} peak RAM"] = peak
 
-        load_time: float = TPCHTimer.times[f"Data load time for Query {query_num}"]
-        exec_time: float = TPCHTimer.times[f"Query {query_num} execution"]
-        if INCLUDE_IO:
-            exec_time += load_time
-            load_time = 0.0
+    load_time: float = TPCHTimer.times[f"Data load time for Query {query_num}"]
+    exec_time: float = TPCHTimer.times[f"Query {query_num} execution"]
+    if INCLUDE_IO:
+        exec_time += load_time
+        load_time = 0.0
 
-        success: bool = test_results(query_num, result) if TEST_RESULTS else True
+    success: bool = test_results(query_num, result) if TEST_RESULTS else True
 
-        if LOG_TIMINGS:
-            write_row(
-                query_num=str(query_num),
-                load_time=load_time,
-                exec_time=exec_time,
-                version=pl.__version__,
-                success=success,
-            )
+    if LOG_TIMINGS:
+        write_row(
+            query_num=str(query_num),
+            load_time=load_time,
+            exec_time=exec_time,
+            version=pl.__version__,
+            success=success,
+        )
 
-        if SHOW_RESULTS:
-            print(result)
+    if SHOW_RESULTS:
+        print(result)
 
-        if SAVE_RESULTS:
-            result.write_csv(f"{OUTPUT_BASE_DIR}/query{query_num}.csv")
+    if SAVE_RESULTS:
+        result.write_csv(f"{OUTPUT_BASE_DIR}/query{query_num}.csv")
 
 
 def generate_query_plot():
@@ -322,16 +323,12 @@ def generate_query_plot():
             bottom=data_load_time,
             color="blue",
         )
-        plt.ylim(
-            0,
-            max(
-                [
-                    load + execute
-                    for load, execute in zip(data_load_time, execution_time)
-                ]
-            ),
-        )
         plt.legend(["Data Loading Time", "Query Execution Time"])
+
+    plt.ylim(
+        0,
+        max(concatenated_times),
+    )
 
     plt.xlabel("TPC-H Query")
     plt.ylabel("Execution Time (s)")
@@ -339,6 +336,6 @@ def generate_query_plot():
     plt.savefig(
         os.path.join(
             DEFAULT_PLOTS_DIR,
-            datetime.now().strftime("%m/%d/%y_%H:%S"),
+            datetime.now().strftime("%m-%d-%y_%H:%S"),
         )
     )
