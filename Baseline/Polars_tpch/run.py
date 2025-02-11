@@ -58,20 +58,6 @@ if __name__ == "__main__":
         type=int,
     )
     parser.add_argument(
-        "-s",
-        "--scale",
-        nargs=1,
-        help="The scale factor of the data, used for locating input data.",
-        type=int,
-    )
-    parser.add_argument(
-        "-p",
-        "--partition",
-        nargs=1,
-        help="The partition of the data, used for locating input data.",
-        type=int,
-    )
-    parser.add_argument(
         "-i",
         "--include_io",
         help="Whether to include data fetching time in the query duration result",

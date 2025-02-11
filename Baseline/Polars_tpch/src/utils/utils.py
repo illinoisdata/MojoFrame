@@ -7,17 +7,22 @@ import polars as pl
 
 from src.utils.timerutil import TPCHTimer
 
+# The TPC-H queries to execute, in range [START_QUERY, END_QUERY]
+START_QUERY: int = int(os.environ.get("START_QUERY", 1))
+END_QUERY: int = int(os.environ.get("END_QUERY", 22))
 # Whether to include data fetching time in the query duration result
 INCLUDE_IO: bool = bool(os.environ.get("INCLUDE_IO", False))
 # Whether to record the RAM usage as well
 INCLUDE_RAM: bool = bool(os.environ.get("INCLUDE_RAM", False))
-# The dictionary with the RAM values
 if INCLUDE_RAM:
+    # The dictionary with the RAM values
     RAM_USAGE: dict[str, int] = {}
 # The filetype of the input data
-FILE_TYPE: str = os.environ.get("FILE_TYPE", "parquet")
+FILE_TYPE: str = os.environ.get("FILE_TYPE", "csv")
 # Dataset directory
 DATA_DIR: str = os.environ.get("DATA_DIR", "data/")
+# The subdirectory of the data file holding the parquet/feather
+DATA_FILE: str = os.environ.get("DATA_FILE", "tiny_tpch/")
 # Current directory
 CWD: str = os.path.dirname(os.path.realpath(__file__))
 # Whether to print the query results while running
@@ -30,20 +35,12 @@ LOG_TIMINGS: bool = bool(os.environ.get("LOG_TIMINGS", False))
 WRITE_PLOT: bool = bool(os.environ.get("WRITE_PLOT", False))
 # Whether to test the results of the queries for accuracy
 TEST_RESULTS: bool = bool(os.environ.get("TEST_RESULTS", False))
-# Data scale
-SCALE_FACTOR: str = os.environ.get("SCALE_FACTOR", "1")
-# Data partition
-PARTITION: str = os.environ.get("PARTITION", "1")
-# Directory to the specific scale/partition dataset
-DATASET_BASE_DIR: str = os.path.join(
-    DATA_DIR, f"scale={SCALE_FACTOR}/partition={PARTITION}/parquet/"
-)
-# Directory for the specific scale/partition answers
-ANSWERS_BASE_DIR: str = os.path.join(DATA_DIR, f"scale={SCALE_FACTOR}/original/")
+# Absolute path to the data directory
+DATASET_BASE_DIR: str = os.path.join(DATA_DIR, DATA_FILE)
+# Absolute path to the expected TPC-H query answers
+ANSWERS_BASE_DIR: str = os.path.join(DATASET_BASE_DIR, "answers/")
 # Output directory
-OUTPUT_BASE_DIR: str = os.path.join(
-    CWD, f"outputs/scale={SCALE_FACTOR}/partition={PARTITION}"
-)
+OUTPUT_BASE_DIR: str = os.path.join(CWD, "outputs/", DATA_DIR)
 if not os.path.exists(OUTPUT_BASE_DIR):
     os.makedirs(OUTPUT_BASE_DIR, exist_ok=True)
 # Timings CSV output directory
@@ -64,6 +61,8 @@ def fetch_dataset(path: str) -> pl.LazyFrame:
     """
     path = f"{path}.{FILE_TYPE}*"
     match FILE_TYPE:
+        case "csv":
+            scan: pl.LazyFrame = pl.scan_csv(path)
         case "parquet":
             scan: pl.LazyFrame = pl.scan_parquet(path)
         case "feather":
@@ -280,7 +279,7 @@ def run_query(query_num: int, lp: pl.LazyFrame):
             print(result)
 
         if SAVE_RESULTS:
-            result.write_csv(f"{OUTPUT_BASE_DIR}/q{query_num}.csv")
+            result.write_csv(f"{OUTPUT_BASE_DIR}/query{query_num}.csv")
 
 
 def generate_query_plot():
@@ -288,30 +287,35 @@ def generate_query_plot():
     and output it to the plots directory inside
     the output directory
     """
-    num_queries = 22
     data_load_time = []
     execution_time = []
-    for query_num in range(1, 23):
-        if f"Query {query_num} execution" in TPCHTimer.times:
-            execution_time.append(TPCHTimer.times[f"Query {query_num} execution"])
-            data_load_time.append(
-                TPCHTimer.times[f"Data load time for Query {query_num}"]
-            )
-        else:
-            num_queries = query_num
-            break
+    for query_num in range(START_QUERY, END_QUERY + 1):
+        execution_time.append(TPCHTimer.times[f"Query {query_num} execution"])
+        data_load_time.append(TPCHTimer.times[f"Data load time for Query {query_num}"])
 
-    plt.bar(range(1, num_queries + 1), data_load_time, color="red")
-    plt.bar(
-        range(1, num_queries + 1), execution_time, bottom=data_load_time, color="blue"
-    )
-    plt.yscale(
-        [load + execute for load, execute in zip(data_load_time, execution_time)]
-    )
+    # If INCLUDE_IO is set, concatenate the data load times and query
+    # execution times into one, otherwise have the bar graphs stacked
+    concatenated_times: list[float] = [
+        load + execute for load, execute in zip(data_load_time, execution_time)
+    ]
+    if INCLUDE_IO:
+        plt.bar(range(START_QUERY, END_QUERY + 1), concatenated_times, color="red")
+    else:
+        plt.bar(range(START_QUERY, END_QUERY + 1), data_load_time, color="red")
+        plt.bar(
+            range(START_QUERY, END_QUERY + 1),
+            execution_time,
+            bottom=data_load_time,
+            color="blue",
+        )
+        plt.yscale(
+            [load + execute for load, execute in zip(data_load_time, execution_time)]
+        )
+        plt.legend(["Data Loading Time", "Query Execution Time"])
+
     plt.xlabel("TPC-H Query")
     plt.ylabel("Execution Time (s)")
     plt.title("TPC-H Query Execution Time for Polars")
-    plt.legend(["Data Loading Time", "Query Execution Time"])
     plt.savefig(
         os.path.join(DEFAULT_PLOTS_DIR, datetime.now().strftime("%m/%d/%y_%H:%S"))
     )
