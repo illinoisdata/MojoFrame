@@ -3,7 +3,7 @@ import polars as pl
 from src.utils import utils
 from src.utils.timerutil import TPCHTimer
 
-Q_NUM = 3
+Q_NUM = 4
 
 
 def q():
