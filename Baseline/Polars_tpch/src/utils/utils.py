@@ -43,6 +43,7 @@ if not os.path.exists(OUTPUT_BASE_DIR):
     os.makedirs(OUTPUT_BASE_DIR, exist_ok=True)
 # Timings CSV output directory
 TIMINGS_FILE: str = os.path.join(CWD, f"{OUTPUT_BASE_DIR}/timings.csv")
+RAM_FILE: str = os.path.join(CWD, "ram_usage.csv")
 # Plots directory
 DEFAULT_PLOTS_DIR: str = os.path.join(CWD, f"{OUTPUT_BASE_DIR}/plots")
 if not os.path.exists(DEFAULT_PLOTS_DIR):
@@ -225,26 +226,26 @@ def get_part_supp_ds(base_dir: str = DATASET_BASE_DIR) -> pl.LazyFrame:
 
 def write_row(
     query_num: str,
-    load_time: float,
-    exec_time: float,
+    load: float,
+    exec: float,
     version: str,
     success: bool = True,
 ) -> None:
-    """Write the timings results for TPC-H query number query_num
-    to the TIMINGS_FILE in a CSV format.
+    """Write the timings/RAM results for TPC-H query number query_num
+    to the TIMINGS_FILE/RAM_FILE in a CSV format.
 
     Args:
         query_num (str): the TPC-H query number
-        load_time (float): The data loading time for the query
-        exec_time (float): The query execution time
+        load (float): The data loading time/RAM
+        exec (float): The query execution time/RAM
         version (str): The polars version
         success (bool, optional): Whether the query was a success or not.
         Defaults to True.
     """
-    with open(TIMINGS_FILE, "a") as f:
+    with open(TIMINGS_FILE if not INCLUDE_RAM else RAM_FILE, "a") as f:
         if f.tell() == 0:
             f.write("version,query_number,load_time,exec_time,include_io,success\n")
-        f.write(f"{version},{query_num},{load_time},{exec_time},{INCLUDE_IO},{success}")
+        f.write(f"{version},{query_num},{load},{exec},{INCLUDE_IO},{success}")
 
 
 def run_query(query_num: int, lp: pl.LazyFrame):
