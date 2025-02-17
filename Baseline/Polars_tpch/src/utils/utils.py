@@ -278,7 +278,7 @@ def run_query(query_num: int, lp: pl.LazyFrame):
     if INCLUDE_RAM:
         write_row(
             query_num=str(query_num),
-            load=RAM_USAGE[f"Query {query_num} data load peak RAM"],
+            load=0,
             exec=RAM_USAGE[f"Query {query_num} peak RAM"],
             version=pl.__version__,
             success=success,
@@ -365,39 +365,30 @@ def generate_query_plot():
     fig.savefig(
         os.path.join(
             DEFAULT_PLOTS_DIR,
-            datetime.now().strftime("%m-%d-%y_%H:%M"),
+            "TIMINGS" + datetime.now().strftime("%m-%d-%y_%H:%M"),
         ),
         dpi=200,
     )
 
 
-def ram_plot():
+def generate_ram_plot():
     """Generate a query peak RAM usage
     and output it to the plots directory
     """
-    data_load_ram: list[float] = []
     execution_ram: list[float] = []
     for query_num in range(START_QUERY, END_QUERY + 1):
         if f"Query {query_num} peak RAM" in RAM_USAGE:
             execution_ram.append(RAM_USAGE[f"Query {query_num} peak RAM"])
-            data_load_ram.append(RAM_USAGE[f"Query {query_num} data load peak RAM"])
         else:
             execution_ram.append(0)
-            data_load_ram.append(0)
 
     fig, ax = plt.subplots()
 
-    ax.bar(
-        [x - 0.1 for x in range(START_QUERY, END_QUERY + 1)], data_load_ram, width=0.2
-    )
-    ax.bar(
-        [x + 0.1 for x in range(START_QUERY, END_QUERY + 1)], execution_ram, width=0.2
-    )
-    ax.legend(["Data Loading RAM", "Query Execution RAM"])
+    ax.bar(range(START_QUERY, END_QUERY + 1), execution_ram, width=0.2)
 
     ax.set_ylim(
         0,
-        max(max(data_load_ram), max(execution_ram)) * 1.1,
+        max(execution_ram) * 1.1,
     )
 
     ax.set_xlabel("TPC-H Query")
@@ -413,7 +404,7 @@ def ram_plot():
     fig.savefig(
         os.path.join(
             DEFAULT_PLOTS_DIR,
-            datetime.now().strftime("%m-%d-%y_%H:%M"),
+            "RAM" + datetime.now().strftime("%m-%d-%y_%H:%M"),
         ),
         dpi=200,
     )

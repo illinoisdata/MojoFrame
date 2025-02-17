@@ -41,7 +41,7 @@ def main(args):
 
     # Import here so that the local environment variables are
     # made AFTER we set them here.
-    from src.utils.utils import generate_query_plot
+    from src.utils.utils import generate_query_plot, generate_ram_plot
 
     for i in range(args.start_query, args.end_query + 1):
         print(f"Starting query {i}...")
@@ -50,7 +50,10 @@ def main(args):
         print(f"Query {i} finished.")
 
     if args.write_plot:
-        generate_query_plot()
+        if args.include_ram:
+            generate_ram_plot()
+        else:
+            generate_query_plot()
 
 
 if __name__ == "__main__":
