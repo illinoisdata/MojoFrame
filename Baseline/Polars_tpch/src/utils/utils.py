@@ -275,11 +275,19 @@ def run_query(query_num: int, lp: pl.LazyFrame):
 
     success: bool = test_results(query_num, result) if TEST_RESULTS else True
 
-    if LOG_TIMINGS:
+    if INCLUDE_RAM:
         write_row(
             query_num=str(query_num),
-            load_time=load_time,
-            exec_time=exec_time,
+            load=RAM_USAGE[f"Query {query_num} data load peak RAM"],
+            exec=RAM_USAGE[f"Query {query_num} peak RAM"],
+            version=pl.__version__,
+            success=success,
+        )
+    elif LOG_TIMINGS:
+        write_row(
+            query_num=str(query_num),
+            load=load_time,
+            exec=exec_time,
             version=pl.__version__,
             success=success,
         )
@@ -370,11 +378,9 @@ def ram_plot():
     data_load_ram: list[float] = []
     execution_ram: list[float] = []
     for query_num in range(START_QUERY, END_QUERY + 1):
-        if f"Query {query_num} peak RAM" in TPCHTimer.times:
-            execution_ram.append(TPCHTimer.times[f"Query {query_num} peak RAM"])
-            data_load_ram.append(
-                TPCHTimer.times[f"Query {query_num} data load peak RAM"]
-            )
+        if f"Query {query_num} peak RAM" in RAM_USAGE:
+            execution_ram.append(RAM_USAGE[f"Query {query_num} peak RAM"])
+            data_load_ram.append(RAM_USAGE[f"Query {query_num} data load peak RAM"])
         else:
             execution_ram.append(0)
             data_load_ram.append(0)
