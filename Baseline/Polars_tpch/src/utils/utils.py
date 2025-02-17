@@ -360,3 +360,53 @@ def generate_query_plot():
         ),
         dpi=200,
     )
+
+
+def ram_plot():
+    """Generate a query peak RAM usage
+    and output it to the plots directory
+    """
+    data_load_ram: list[float] = []
+    execution_ram: list[float] = []
+    for query_num in range(START_QUERY, END_QUERY + 1):
+        if f"Query {query_num} peak RAM" in TPCHTimer.times:
+            execution_ram.append(TPCHTimer.times[f"Query {query_num} peak RAM"])
+            data_load_ram.append(
+                TPCHTimer.times[f"Query {query_num} data load peak RAM"]
+            )
+        else:
+            execution_ram.append(0)
+            data_load_ram.append(0)
+
+    fig, ax = plt.subplots()
+
+    ax.bar(
+        [x - 0.1 for x in range(START_QUERY, END_QUERY + 1)], data_load_ram, width=0.2
+    )
+    ax.bar(
+        [x + 0.1 for x in range(START_QUERY, END_QUERY + 1)], execution_ram, width=0.2
+    )
+    ax.legend(["Data Loading RAM", "Query Execution RAM"])
+
+    ax.set_ylim(
+        0,
+        max(max(data_load_ram), max(execution_ram)) * 1.1,
+    )
+
+    ax.set_xlabel("TPC-H Query")
+    ax.set_ylabel("Number of Allocations")
+    ax.set_xticks(range(START_QUERY, END_QUERY + 1))
+    ax.tick_params(bottom=False, left=False)
+    ax.spines[["left", "right", "top"]].set_visible(False)
+    ax.spines["bottom"].set_color("lightgray")
+    ax.set_axisbelow(True)
+    ax.yaxis.grid(True, color="lightgray")
+    ax.xaxis.grid(False)
+    ax.set_title("TPC-H Query RAM Usage for Polars")
+    fig.savefig(
+        os.path.join(
+            DEFAULT_PLOTS_DIR,
+            datetime.now().strftime("%m-%d-%y_%H:%M"),
+        ),
+        dpi=200,
+    )
