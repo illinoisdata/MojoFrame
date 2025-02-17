@@ -365,7 +365,7 @@ def generate_query_plot():
     fig.savefig(
         os.path.join(
             DEFAULT_PLOTS_DIR,
-            "TIMINGS" + datetime.now().strftime("%m-%d-%y_%H:%M"),
+            "TIMINGS-" + datetime.now().strftime("%m-%d-%y_%H:%M"),
         ),
         dpi=200,
     )
@@ -404,7 +404,7 @@ def generate_ram_plot():
     fig.savefig(
         os.path.join(
             DEFAULT_PLOTS_DIR,
-            "RAM" + datetime.now().strftime("%m-%d-%y_%H:%M"),
+            "RAM-" + datetime.now().strftime("%m-%d-%y_%H:%M"),
         ),
         dpi=200,
     )

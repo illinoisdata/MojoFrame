@@ -1,9 +1,20 @@
 import argparse
 import importlib
 import os
+import shutil
 import signal
 import sys
 from types import FrameType
+
+
+def clear_cache():
+    """Clear __pycache__ files for fair benchmarking"""
+
+    print("Clearing caches...")
+    if os.path.exists("./src/queries/__pycache__"):
+        shutil.rmtree("./src/queries/__pycache__")
+    if os.path.exists("./src/utils/__pycache__"):
+        shutil.rmtree("./src/utils/__pycache__")
 
 
 def keyboard_interrupt_handler(signal_num: int, stack_frame: FrameType):
@@ -16,6 +27,7 @@ def keyboard_interrupt_handler(signal_num: int, stack_frame: FrameType):
     """
     # TODO: Implement file cleanup
     print("Interrupted. Performing file cleanup...")
+    clear_cache()
     sys.exit(130)
 
 
@@ -32,6 +44,7 @@ class DefaultsAndTypesFormatter(
 
 
 def main(args):
+    clear_cache()
     os.environ["CWD"] = os.path.dirname(os.path.realpath(__file__))
     for key, value in vars(args).items():
         unpacked = value if not isinstance(value, list) else value[0]
@@ -48,6 +61,7 @@ def main(args):
         query = importlib.import_module(f"src.queries.query{i}")
         query.q()
         print(f"Query {i} finished.")
+        clear_cache()
 
     if args.write_plot:
         if args.include_ram:
