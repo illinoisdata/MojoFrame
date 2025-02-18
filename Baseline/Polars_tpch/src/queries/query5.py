@@ -11,7 +11,7 @@ def q():
     var2 = 757382400.0
     var3 = 788918400.0
 
-    with TPCHTimer("Data load time for Query {Q_NUM}"):
+    with TPCHTimer(f"Data load time for Query {Q_NUM}"):
         region_ds = utils.get_region_ds()
         nation_ds = utils.get_nation_ds()
         customer_ds = utils.get_customer_ds()

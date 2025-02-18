@@ -11,7 +11,7 @@ def q():
     var2 = 788918400.0
     var3 = 24.0
 
-    with TPCHTimer("Data load time for Query {Q_NUM}"):
+    with TPCHTimer(f"Data load time for Query {Q_NUM}"):
         line_item_ds = utils.get_line_item_ds()
 
     q_final = (

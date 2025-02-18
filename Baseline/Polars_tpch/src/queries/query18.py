@@ -9,7 +9,7 @@ Q_NUM = 18
 def q():
     var_quantity = 300
 
-    with TPCHTimer("Data load time for Query {Q_NUM}"):
+    with TPCHTimer(f"Data load time for Query {Q_NUM}"):
         line_item_ds = utils.get_line_item_ds()
         orders_ds = utils.get_orders_ds()
         customer_ds = utils.get_customer_ds()

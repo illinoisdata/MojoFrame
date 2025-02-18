@@ -10,7 +10,7 @@ def q():
     var1 = 741484800
     var2 = 749433600
 
-    with TPCHTimer("Data load time for Query {Q_NUM}"):
+    with TPCHTimer(f"Data load time for Query {Q_NUM}"):
         line_item_ds = utils.get_line_item_ds()
         orders_ds = utils.get_orders_ds()
 

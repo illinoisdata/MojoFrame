@@ -7,7 +7,7 @@ Q_NUM = 13
 
 
 def q():
-    with TPCHTimer("Data load time for Query {Q_NUM}"):
+    with TPCHTimer(f"Data load time for Query {Q_NUM}"):
         orders_ds = utils.get_orders_ds()
         customer_ds = utils.get_customer_ds()
 

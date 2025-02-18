@@ -12,7 +12,7 @@ def q():
     VAR1 = datetime(1994, 1, 1)
     VAR2 = datetime(1995, 1, 1)
 
-    with TPCHTimer("Data load time for Query {Q_NUM}"):
+    with TPCHTimer(f"Data load time for Query {Q_NUM}"):
         line_item_ds = utils.get_line_item_ds()
         part_ds = utils.get_part_ds()
         part_supp_ds = utils.get_part_supp_ds()

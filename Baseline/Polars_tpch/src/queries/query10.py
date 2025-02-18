@@ -13,7 +13,7 @@ def q():
     var2 = datetime(1994, 1, 1)
     var3 = "R"
 
-    with TPCHTimer("Data load time for Query {Q_NUM}"):
+    with TPCHTimer(f"Data load time for Query {Q_NUM}"):
         customer_ds = utils.get_customer_ds()
         line_item_ds = utils.get_line_item_ds()
         orders_ds = utils.get_orders_ds()

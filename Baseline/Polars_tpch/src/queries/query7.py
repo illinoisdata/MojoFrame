@@ -7,7 +7,7 @@ Q_NUM = 7
 
 
 def q():
-    with TPCHTimer("Data load time for Query {Q_NUM}"):
+    with TPCHTimer(f"Data load time for Query {Q_NUM}"):
         nation_ds = utils.get_nation_ds()
         customer_ds = utils.get_customer_ds()
         line_item_ds = utils.get_line_item_ds()

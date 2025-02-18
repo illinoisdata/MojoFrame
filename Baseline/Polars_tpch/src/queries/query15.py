@@ -12,7 +12,7 @@ def q():
     var_date = datetime(1996, 1, 1)
     var_date_interval_3mon = datetime(1996, 4, 1)
 
-    with TPCHTimer("Data load time for Query {Q_NUM}"):
+    with TPCHTimer(f"Data load time for Query {Q_NUM}"):
         supplier_ds = utils.get_supplier_ds()
         line_item_ds = utils.get_line_item_ds()
 

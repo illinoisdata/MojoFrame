@@ -9,7 +9,7 @@ Q_NUM = 11
 def q():
     var_n_name = "GERMANY"
 
-    with TPCHTimer("Data load time for Query {Q_NUM}"):
+    with TPCHTimer(f"Data load time for Query {Q_NUM}"):
         partsupp_ds = utils.get_part_supp_ds()
         supplier_ds = utils.get_supplier_ds()
         nation_ds = utils.get_nation_ds()

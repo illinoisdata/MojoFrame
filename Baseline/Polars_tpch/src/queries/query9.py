@@ -9,7 +9,7 @@ Q_NUM = 9
 def q():
     var_color = "green"  # LIKE GREEN
 
-    with TPCHTimer("Data load time for Query {Q_NUM}"):
+    with TPCHTimer(f"Data load time for Query {Q_NUM}"):
         part_ds = utils.get_part_ds()
         supplier_ds = utils.get_supplier_ds()
         line_item_ds = utils.get_line_item_ds()

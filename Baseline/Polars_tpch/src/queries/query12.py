@@ -14,7 +14,7 @@ def q():
     var_date = datetime(1994, 1, 1)
     var_date_interval_1yr = datetime(1995, 1, 1)
 
-    with TPCHTimer("Data load time for Query {Q_NUM}"):
+    with TPCHTimer(f"Data load time for Query {Q_NUM}"):
         line_item_ds = utils.get_line_item_ds()
         orders_ds = utils.get_orders_ds()
 

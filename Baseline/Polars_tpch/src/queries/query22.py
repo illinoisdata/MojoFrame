@@ -9,7 +9,7 @@ Q_NUM = 22
 def q():
     var_list = [13, 31, 23, 29, 30, 18, 17]
 
-    with TPCHTimer("Data load time for Query {Q_NUM}"):
+    with TPCHTimer(f"Data load time for Query {Q_NUM}"):
         customer_ds = utils.get_customer_ds()
         orders_ds = utils.get_orders_ds()
 
