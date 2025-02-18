@@ -10,6 +10,8 @@ from src.utils.timerutil import TPCHTimer
 # The TPC-H queries to execute, in range [START_QUERY, END_QUERY]
 START_QUERY: int = int(os.environ.get("START_QUERY", 1))
 END_QUERY: int = int(os.environ.get("END_QUERY", 22))
+# The number of times to run each query, values are then averaged
+NUM_TRIALS: int = int(os.environ.get("NUM_TRIALS", 5))
 # Whether to include data fetching time in the query duration result
 INCLUDE_IO: bool = os.environ.get("INCLUDE_IO", False) == "True"
 # Whether to record the RAM usage as well
@@ -265,7 +267,10 @@ def run_query(query_num: int, lp: pl.LazyFrame):
         _, peak = tracemalloc.get_traced_memory()
         peak -= tracemalloc.get_tracemalloc_memory()
         tracemalloc.stop()
-        RAM_USAGE[f"Query {query_num} peak RAM"] = peak
+        if f"Query {query_num} peak RAM" in RAM_USAGE:
+            RAM_USAGE[f"Query {query_num} peak RAM"] += peak
+        else:
+            RAM_USAGE[f"Query {query_num} peak RAM"] = peak
 
     load_time: float = TPCHTimer.times[f"Data load time for Query {query_num}"]
     exec_time: float = TPCHTimer.times[f"Query {query_num} execution"]
@@ -308,9 +313,11 @@ def generate_query_plot():
     execution_time: list[float] = []
     for query_num in range(START_QUERY, END_QUERY + 1):
         if f"Query {query_num} execution" in TPCHTimer.times:
-            execution_time.append(TPCHTimer.times[f"Query {query_num} execution"])
+            execution_time.append(
+                TPCHTimer.times[f"Query {query_num} execution"] / NUM_TRIALS
+            )
             data_load_time.append(
-                TPCHTimer.times[f"Data load time for Query {query_num}"]
+                TPCHTimer.times[f"Data load time for Query {query_num}"] / NUM_TRIALS
             )
         else:
             execution_time.append(0)
@@ -378,7 +385,7 @@ def generate_ram_plot():
     execution_ram: list[float] = []
     for query_num in range(START_QUERY, END_QUERY + 1):
         if f"Query {query_num} peak RAM" in RAM_USAGE:
-            execution_ram.append(RAM_USAGE[f"Query {query_num} peak RAM"])
+            execution_ram.append(RAM_USAGE[f"Query {query_num} peak RAM"] / NUM_TRIALS)
         else:
             execution_ram.append(0)
 

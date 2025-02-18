@@ -57,11 +57,15 @@ def main(args):
     from src.utils.utils import generate_query_plot, generate_ram_plot
 
     for i in range(args.start_query, args.end_query + 1):
-        print(f"Starting query {i}...")
-        query = importlib.import_module(f"src.queries.query{i}")
-        query.q()
-        print(f"Query {i} finished.")
-        clear_cache()
+        for trial in range(args.num_trials):
+            print(f"Starting query {i} Trial {trial}...")
+            # Dynamically import module
+            query = importlib.import_module(f"src.queries.query{i}")
+            query.q()
+            # Unimport module so all trials are fair
+            del query
+            print(f"Query {i} Trial {trial} finished.")
+            clear_cache()
 
     if args.write_plot:
         if args.include_ram:
@@ -86,6 +90,13 @@ if __name__ == "__main__":
         help="The TPC-H query to end with (inclusive)",
         type=int,
         default=22,
+    )
+    parser.add_argument(
+        "-n",
+        "--num_trials",
+        help="The number of times to run each individual query",
+        type=int,
+        default=5,
     )
     parser.add_argument(
         "-d",
