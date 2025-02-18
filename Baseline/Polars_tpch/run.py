@@ -97,6 +97,7 @@ if __name__ == "__main__":
         help="The number of times to run each individual query",
         type=int,
         default=5,
+        choices=[i for i in range(1, 21)],
     )
     parser.add_argument(
         "-d",

@@ -12,6 +12,10 @@ START_QUERY: int = int(os.environ.get("START_QUERY", 1))
 END_QUERY: int = int(os.environ.get("END_QUERY", 22))
 # The number of times to run each query, values are then averaged
 NUM_TRIALS: int = int(os.environ.get("NUM_TRIALS", 5))
+# Table to track the number of calls for each query to ensure proper logging
+CALL_TABLE: dict[int, int] = {
+    qnum: NUM_TRIALS for qnum in range(START_QUERY, END_QUERY + 1)
+}
 # Whether to include data fetching time in the query duration result
 INCLUDE_IO: bool = os.environ.get("INCLUDE_IO", False) == "True"
 # Whether to record the RAM usage as well
@@ -45,7 +49,7 @@ if not os.path.exists(OUTPUT_BASE_DIR):
     os.makedirs(OUTPUT_BASE_DIR, exist_ok=True)
 # Timings CSV output directory
 TIMINGS_FILE: str = os.path.join(CWD, f"{OUTPUT_BASE_DIR}/timings.csv")
-RAM_FILE: str = os.path.join(CWD, "ram_usage.csv")
+RAM_FILE: str = os.path.join(CWD, f"{OUTPUT_BASE_DIR}/ram_usage.csv")
 # Plots directory
 DEFAULT_PLOTS_DIR: str = os.path.join(CWD, f"{OUTPUT_BASE_DIR}/plots")
 if not os.path.exists(DEFAULT_PLOTS_DIR):
@@ -244,10 +248,13 @@ def write_row(
         success (bool, optional): Whether the query was a success or not.
         Defaults to True.
     """
+    print(TPCHTimer.times)
     with open(TIMINGS_FILE if not INCLUDE_RAM else RAM_FILE, "a") as f:
         if f.tell() == 0:
             f.write("version,query_number,load_time,exec_time,include_io,success\n")
-        f.write(f"{version},{query_num},{load},{exec},{INCLUDE_IO},{success}")
+        f.write(
+            f"{version},{query_num},{load / NUM_TRIALS},{exec / NUM_TRIALS},{INCLUDE_IO},{success}\n"
+        )
 
 
 def run_query(query_num: int, lp: pl.LazyFrame):
@@ -257,6 +264,7 @@ def run_query(query_num: int, lp: pl.LazyFrame):
         query_num (int): query number (1-22)
         lp (pl.LazyFrame): polars lazyframe for processing
     """
+    CALL_TABLE[query_num] -= 1
     if INCLUDE_RAM:
         tracemalloc.start()
 
@@ -280,7 +288,7 @@ def run_query(query_num: int, lp: pl.LazyFrame):
 
     success: bool = test_results(query_num, result) if TEST_RESULTS else True
 
-    if INCLUDE_RAM:
+    if INCLUDE_RAM and not CALL_TABLE[query_num]:
         write_row(
             query_num=str(query_num),
             load=0,
@@ -288,7 +296,7 @@ def run_query(query_num: int, lp: pl.LazyFrame):
             version=pl.__version__,
             success=success,
         )
-    elif LOG_TIMINGS:
+    elif LOG_TIMINGS and not CALL_TABLE[query_num]:
         write_row(
             query_num=str(query_num),
             load=load_time,
@@ -309,6 +317,7 @@ def generate_query_plot():
     and output it to the plots directory inside
     the output directory
     """
+    print(TPCHTimer.times)
     data_load_time: list[float] = []
     execution_time: list[float] = []
     for query_num in range(START_QUERY, END_QUERY + 1):
