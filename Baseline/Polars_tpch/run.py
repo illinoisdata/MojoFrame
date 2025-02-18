@@ -47,7 +47,6 @@ class DefaultsAndTypesFormatter(
 
 
 def main(args):
-    clear_cache()
     os.environ["CWD"] = os.path.dirname(os.path.realpath(__file__))
     for key, value in vars(args).items():
         unpacked = value if not isinstance(value, list) else value[0]
@@ -59,6 +58,7 @@ def main(args):
     # made AFTER we set them here.
     from src.utils.utils import generate_query_plot, generate_ram_plot
 
+    clear_cache()
     for i in range(args.start_query, args.end_query + 1):
         for trial in range(args.num_trials):
             print(f">> Starting query {i} Trial {trial}...")
