@@ -128,8 +128,10 @@ def test_results(query_num: int, result_df: pl.DataFrame) -> bool:
         )
         correct = result_df.equals(answer)
 
-        if correct:
-            print(f"QUERY {query_num} FAILED")
+        if not correct:
+            print(
+                f"   >> QUERY FAILED << {datetime.now().strftime('(%d-%m-%Y : %H:%M)')} - Query {query_num} did not produce the correct answer."
+            )
 
         return correct
 
@@ -248,7 +250,6 @@ def write_row(
         success (bool, optional): Whether the query was a success or not.
         Defaults to True.
     """
-    print(TPCHTimer.times)
     with open(TIMINGS_FILE if not INCLUDE_RAM else RAM_FILE, "a") as f:
         if f.tell() == 0:
             f.write("version,query_number,load_time,exec_time,include_io,success\n")
@@ -306,7 +307,9 @@ def run_query(query_num: int, lp: pl.LazyFrame):
         )
 
     if SHOW_RESULTS:
+        print(f">>> SHOWING RESULTS FOR QUERY {query_num}\n")
         print(result)
+        print(f">>> END OF RESULTS FOR QUERY {query_num}\n")
 
     if SAVE_RESULTS:
         result.write_csv(f"{OUTPUT_BASE_DIR}/query{query_num}.csv")
@@ -317,7 +320,6 @@ def generate_query_plot():
     and output it to the plots directory inside
     the output directory
     """
-    print(TPCHTimer.times)
     data_load_time: list[float] = []
     execution_time: list[float] = []
     for query_num in range(START_QUERY, END_QUERY + 1):

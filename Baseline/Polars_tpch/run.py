@@ -4,13 +4,14 @@ import os
 import shutil
 import signal
 import sys
+from datetime import datetime
 from types import FrameType
 
 
 def clear_cache():
     """Clear __pycache__ files for fair benchmarking"""
 
-    print("Clearing caches...")
+    print("> Clearing caches...")
     if os.path.exists("./src/queries/__pycache__"):
         shutil.rmtree("./src/queries/__pycache__")
     if os.path.exists("./src/utils/__pycache__"):
@@ -26,7 +27,9 @@ def keyboard_interrupt_handler(signal_num: int, stack_frame: FrameType):
         stack_frame (FrameType): the current execution frame
     """
     # TODO: Implement file cleanup
-    print("Interrupted. Performing file cleanup...")
+    print(
+        f">> Interrupted << {datetime.now().strftime('(%d-%m-%Y : %H:%M)')} Performing file cleanup..."
+    )
     clear_cache()
     sys.exit(130)
 
@@ -58,14 +61,15 @@ def main(args):
 
     for i in range(args.start_query, args.end_query + 1):
         for trial in range(args.num_trials):
-            print(f"Starting query {i} Trial {trial}...")
+            print(f">> Starting query {i} Trial {trial}...")
             # Dynamically import module
             query = importlib.import_module(f"src.queries.query{i}")
             query.q()
             # Unimport module so all trials are fair
             del query
-            print(f"Query {i} Trial {trial} finished.")
+            print(f">> Query {i} Trial {trial} finished.")
             clear_cache()
+        print()
 
     if args.write_plot:
         if args.include_ram:
