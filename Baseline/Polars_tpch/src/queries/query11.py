@@ -7,7 +7,7 @@ Q_NUM = 11
 
 
 def q():
-    var_n_name = "GERMANY"
+    var_n_name = 52342.0
 
     with TPCHTimer(f"Data load time for Query {Q_NUM}"):
         partsupp_ds = utils.get_part_supp_ds()
