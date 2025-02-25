@@ -1,5 +1,3 @@
-from datetime import datetime
-
 import polars as pl
 
 from src.utils import utils
@@ -9,8 +7,8 @@ Q_NUM = 20
 
 
 def q():
-    VAR1 = datetime(1994, 1, 1)
-    VAR2 = datetime(1995, 1, 1)
+    VAR1 = 757382400.0
+    VAR2 = 788918400.0
 
     with TPCHTimer(f"Data load time for Query {Q_NUM}"):
         line_item_ds = utils.get_line_item_ds()
@@ -44,7 +42,7 @@ def q():
 
     q_final = (
         supp_ds.join(
-            nation_ds.filter(pl.col("n_name") == "CANADA"),
+            nation_ds.filter(pl.col("n_name") == 35480.0),
             left_on="s_nationkey",
             right_on="n_nationkey",
         )
