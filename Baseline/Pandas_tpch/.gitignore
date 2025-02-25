@@ -1,0 +1,9 @@
+# Python Files
+.venv/
+__pycache__/
+.pytest_cache/
+data/
+outputs/
+
+# Mac Files
+.DS_Store
