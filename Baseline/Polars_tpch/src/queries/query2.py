@@ -17,6 +17,7 @@ def q():
         supplier_ds = utils.get_supplier_ds()
         part_ds = utils.get_part_ds()
         part_supp_ds = utils.get_part_supp_ds()
+
     final_cols = [
         "s_acctbal",
         "s_name",
@@ -35,7 +36,7 @@ def q():
         .filter(pl.col("p_size") == var1)
         .filter(pl.col("p_type").str.ends_with(var2))
         .filter(pl.col("r_name") == var3)
-    ).cache()
+    )
 
     result2 = result_q1.group_by("p_partkey").agg(
         pl.min("ps_supplycost").alias("ps_supplycost_min")

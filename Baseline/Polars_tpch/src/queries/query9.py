@@ -35,7 +35,7 @@ def q():
         .filter(pl.col("p_name").str.contains(var_color))
         .rename({"n_name": "nation"})
         .with_columns(
-            pl.col("o_orderdate").dt.year().alias("o_year")
+            (1970 + pl.col("o_orderdate") / 31536000.0).round().alias("o_year")
         )  # extract year from orderdate
         .with_columns(
             (
