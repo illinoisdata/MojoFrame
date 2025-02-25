@@ -7,7 +7,7 @@ Q_NUM = 21
 
 
 def q():
-    var_nation = "SAUDI ARABIA"
+    var_nation = 54189.0
 
     with TPCHTimer(f"Data load time for Query {Q_NUM}"):
         supplier_ds = utils.get_supplier_ds()
@@ -16,7 +16,7 @@ def q():
         nation_ds = utils.get_nation_ds()
 
     line_item_order_ds = line_item_ds.join(
-        orders_ds.filter(pl.col("o_orderstatus") == "F"),
+        orders_ds.filter(pl.col("o_orderstatus") == 70.0),
         left_on="l_orderkey",
         right_on="o_orderkey",
     )
