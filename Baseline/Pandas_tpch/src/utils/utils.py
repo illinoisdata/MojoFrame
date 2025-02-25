@@ -20,9 +20,8 @@ CALL_TABLE: dict[int, int] = {
 INCLUDE_IO: bool = os.environ.get("INCLUDE_IO", False) == "True"
 # Whether to record the RAM usage as well
 INCLUDE_RAM: bool = os.environ.get("INCLUDE_RAM", False) == "True"
-if INCLUDE_RAM:
-    # The dictionary with the RAM values
-    RAM_USAGE: dict[str, int] = {}
+# The dictionary with the RAM values
+RAM_USAGE: dict[str, int] = {}
 # The filetype of the input data
 FILE_TYPE: str = os.environ.get("FILE_TYPE", "csv")
 # Dataset directory
@@ -66,7 +65,7 @@ def fetch_dataset(path: str) -> pd.DataFrame:
         pd.DataFrame: the dataset placed in a pandas
         dataframe
     """
-    path = f"{path}.{FILE_TYPE}*"
+    path = f"{path}.{FILE_TYPE}"
     match FILE_TYPE:
         case "csv":
             scan = pd.read_csv(path)
