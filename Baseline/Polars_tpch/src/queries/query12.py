@@ -1,5 +1,3 @@
-from datetime import datetime
-
 import polars as pl
 
 from src.utils import utils
@@ -9,10 +7,10 @@ Q_NUM = 12
 
 
 def q():
-    var_ship_mode1 = "MAIL"
-    var_ship_mode2 = "SHIP"
-    var_date = datetime(1994, 1, 1)
-    var_date_interval_1yr = datetime(1995, 1, 1)
+    var_ship_mode1 = 5.0
+    var_ship_mode2 = 6.0
+    var_date = 757382400.0
+    var_date_interval_1yr = 788918400.0
 
     with TPCHTimer(f"Data load time for Query {Q_NUM}"):
         line_item_ds = utils.get_line_item_ds()
@@ -32,14 +30,14 @@ def q():
         .agg(
             [
                 (
-                    (pl.col("o_orderpriority") == "1-URGENT")
-                    | (pl.col("o_orderpriority") == "2-HIGH")
+                    (pl.col("o_orderpriority") == 1.0)
+                    | (pl.col("o_orderpriority") == 2.0)
                 )
                 .sum()
                 .alias("high_line_count"),
                 (
-                    (pl.col("o_orderpriority") != "1-URGENT")
-                    & (pl.col("o_orderpriority") != "2-HIGH")
+                    (pl.col("o_orderpriority") != 1.0)
+                    & (pl.col("o_orderpriority") != 2.0)
                 )
                 .sum()
                 .alias("low_line_count"),
