@@ -13,7 +13,7 @@ def q():
 
     q_final = (
         line_item_ds.filter(
-            (pl.col("l_shipmode").is_in(pl.lit(pl.Series(["AIR", "AIR REG"]))))
+            (pl.col("l_shipmode").is_in(pl.lit(pl.Series([2.0, 4.0]))))
             & (pl.col("l_shipinstruct") == "DELIVER IN PERSON")
         )
         .join(part_ds, left_on="l_partkey", right_on="p_partkey")
@@ -27,7 +27,7 @@ def q():
                 )
                 & (pl.col("l_quantity").is_between(1, 11, "none"))
                 & (pl.col("p_size").is_between(1, 5, "none"))
-                & (pl.col("l_shipmode").is_in(pl.lit(pl.Series(["AIR", "AIR REG"]))))
+                & (pl.col("l_shipmode").is_in(pl.lit(pl.Series([2.0, 4.0]))))
                 & (pl.col("l_shipinstruct") == "DELIVER IN PERSON")
             )
             | (
