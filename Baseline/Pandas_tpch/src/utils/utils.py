@@ -1,3 +1,4 @@
+import importlib
 import os
 from datetime import datetime
 
@@ -256,6 +257,10 @@ def run_query(query_num: int, result: pd.DataFrame):
         result (pd.DataFrame): pandas dataframe for processing
     """
     CALL_TABLE[query_num] -= 1
+
+    query = importlib.import_module(f"src.queries.query{query_num}")
+    query.q(INCLUDE_RAM, RAM_USAGE)
+    del query
 
     load_time: float = TPCHTimer.times[f"Data load time for Query {query_num}"]
     exec_time: float = TPCHTimer.times[f"Query {query_num} execution"]
