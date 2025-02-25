@@ -1,5 +1,3 @@
-from datetime import datetime
-
 import polars as pl
 
 from src.utils import utils
@@ -9,9 +7,9 @@ Q_NUM = 10
 
 
 def q():
-    var1 = datetime(1993, 10, 1)
-    var2 = datetime(1994, 1, 1)
-    var3 = "R"
+    var1 = 750643200.0
+    var2 = 757382400.0
+    var3 = 82.0
 
     with TPCHTimer(f"Data load time for Query {Q_NUM}"):
         customer_ds = utils.get_customer_ds()
