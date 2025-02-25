@@ -1,5 +1,3 @@
-from datetime import datetime
-
 import polars as pl
 
 from src.utils import utils
@@ -9,8 +7,8 @@ Q_NUM = 15
 
 
 def q():
-    var_date = datetime(1996, 1, 1)
-    var_date_interval_3mon = datetime(1996, 4, 1)
+    var_date = 820454400.0
+    var_date_interval_3mon = 828230400.0
 
     with TPCHTimer(f"Data load time for Query {Q_NUM}"):
         supplier_ds = utils.get_supplier_ds()
