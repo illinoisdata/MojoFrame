@@ -249,17 +249,16 @@ def write_row(
         )
 
 
-def run_query(query_num: int, result: pd.DataFrame):
+def run_query(query_num: int):
     """Execute TPC-H query number query_num
 
     Args:
         query_num (int): query number (1-22)
-        result (pd.DataFrame): pandas dataframe for processing
     """
     CALL_TABLE[query_num] -= 1
 
     query = importlib.import_module(f"src.queries.query{query_num}")
-    query.q(INCLUDE_RAM, RAM_USAGE)
+    result = query.q(INCLUDE_RAM, RAM_USAGE)
     del query
 
     load_time: float = TPCHTimer.times[f"Data load time for Query {query_num}"]

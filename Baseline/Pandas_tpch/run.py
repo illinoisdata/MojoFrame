@@ -1,5 +1,4 @@
 import argparse
-import importlib
 import os
 import shutil
 import signal
@@ -56,17 +55,13 @@ def main(args):
 
     # Import here so that the local environment variables are
     # made AFTER we set them here.
-    from src.utils.utils import generate_query_plot, generate_ram_plot
+    from src.utils.utils import generate_query_plot, generate_ram_plot, run_query
 
     clear_cache()
     for i in range(args.start_query, args.end_query + 1):
         for trial in range(args.num_trials):
             print(f">> Starting query {i} Trial {trial}...")
-            # Dynamically import module
-            query = importlib.import_module(f"src.queries.query{i}")
-            query.q()
-            # Unimport module so all trials are fair
-            del query
+            run_query(i)
             print(f">> Query {i} Trial {trial} finished.")
             clear_cache()
         print()
