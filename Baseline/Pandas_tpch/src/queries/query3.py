@@ -12,6 +12,9 @@ def q(INCLUDE_RAM: bool, RAM_USAGE: dict[str, float]):
     with TPCHTimer(f"Data load time for Query {Q_NUM}"):
         customer_ds = utils.get_customer_ds()
         line_item_ds = utils.get_line_item_ds()
+        line_item_ds["revenue"] = line_item_ds["l_extendedprice"] * (
+            1 - line_item_ds["l_discount"]
+        )
         orders_ds = utils.get_orders_ds()
 
     if INCLUDE_RAM:
