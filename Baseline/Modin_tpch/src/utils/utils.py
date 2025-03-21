@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 
 import matplotlib.pyplot as plt
-import pandas as pd
+import modin.pandas as pd
 
 from src.utils.timerutil import TPCHTimer
 

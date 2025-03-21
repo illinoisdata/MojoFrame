@@ -91,6 +91,14 @@ if __name__ == "__main__":
         default=22,
     )
     parser.add_argument(
+        "-e",
+        "--modin_engine",
+        help="The modin backend engine to use",
+        type=str,
+        default="ray",
+        choices=["ray", "dask", "mpi"],
+    )
+    parser.add_argument(
         "-n",
         "--num_trials",
         help="The number of times to run each individual query",

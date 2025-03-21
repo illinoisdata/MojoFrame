@@ -1,6 +1,6 @@
 import tracemalloc
 
-import pandas as pd
+import modin.pandas as pd
 
 from src.utils import utils
 from src.utils.timerutil import TPCHTimer
