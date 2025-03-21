@@ -9,10 +9,6 @@ Q_NUM = 2
 
 
 def q(INCLUDE_RAM: bool, RAM_USAGE: dict[str, float]):
-    var1 = 15.0
-    var2 = "BRASS"
-    var3 = 35796.0
-
     with TPCHTimer(f"Data load time for Query {Q_NUM}"):
         df_region = utils.get_region_ds()
         df_nation = utils.get_nation_ds()

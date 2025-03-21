@@ -53,13 +53,11 @@ def q(INCLUDE_RAM: bool, RAM_USAGE: dict[str, float]):
         tracemalloc.start()
 
     with TPCHTimer(name=f"Query {Q_NUM} execution", logging=False):
-        # Filter orders between 1994-01-01 and 1995-01-01 using float Unix time
         df_lineitem = df_lineitem[
             (df_lineitem["l_shipdate"] >= 788918400.0)
             & (df_lineitem["l_shipdate"] <= 852076800.0)
         ]
 
-        # Perform the joins with filtered DataFrames
         df_joined_ls = pd.merge(
             df_supp, df_lineitem, left_on="s_suppkey", right_on="l_suppkey", how="inner"
         )
