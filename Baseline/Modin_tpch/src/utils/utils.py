@@ -62,7 +62,7 @@ def fetch_dataset(path: str) -> pd.DataFrame:
         path (str): the path to the dataset
 
     Returns:
-        pd.DataFrame: the dataset placed in a pandas
+        pd.DataFrame: the dataset placed in a modin.pandas
         dataframe
     """
     path = f"{path}.{FILE_TYPE}"
@@ -81,14 +81,14 @@ def fetch_dataset(path: str) -> pd.DataFrame:
 
 def get_query_answer(query_num: int, base_dir: str = ANSWERS_BASE_DIR) -> pd.DataFrame:
     """Retrieve the answer to TPC-H query number query_num
-    in the form of a pandas dataframe
+    in the form of modin.pandas dataframe
 
     Args:
         query (int): the TPC-H query number
         base_dir (str, optional): the answers directory. Defaults to ANSWERS_BASE_DIR.
 
     Returns:
-        pd.DataFrame: the answer to query in a pandas
+        pd.DataFrame: the answer to query in a modin.pandas
         dataframe
     """
     answer_df = pd.read_csv(
@@ -133,7 +133,7 @@ def get_line_item_ds(base_dir: str = DATASET_BASE_DIR) -> pd.DataFrame:
         base_dir (str, optional): base dataset directory. Defaults to DATASET_BASE_DIR.
 
     Returns:
-        pd.DataFrame: pandas dataframe containing the fetched data
+        pd.DataFrame: modin.pandas dataframe containing the fetched data
     """
     return fetch_dataset(os.path.join(base_dir, "lineitem"))
 
@@ -145,7 +145,7 @@ def get_orders_ds(base_dir: str = DATASET_BASE_DIR) -> pd.DataFrame:
         base_dir (str, optional): base dataset directory. Defaults to DATASET_BASE_DIR.
 
     Returns:
-        pd.DataFrame: pandas dataframe containing the fetched data
+        pd.DataFrame: modin.pandas dataframe containing the fetched data
     """
     return fetch_dataset(os.path.join(base_dir, "orders"))
 
@@ -157,7 +157,7 @@ def get_customer_ds(base_dir: str = DATASET_BASE_DIR) -> pd.DataFrame:
         base_dir (str, optional): base dataset directory. Defaults to DATASET_BASE_DIR.
 
     Returns:
-        pd.DataFrame: pandas dataframe containing the fetched data
+        pd.DataFrame: modin.pandas dataframe containing the fetched data
     """
     return fetch_dataset(os.path.join(base_dir, "customer"))
 
@@ -169,7 +169,7 @@ def get_region_ds(base_dir: str = DATASET_BASE_DIR) -> pd.DataFrame:
         base_dir (str, optional): base dataset directory. Defaults to DATASET_BASE_DIR.
 
     Returns:
-        pd.DataFrame: pandas dataframe containing the fetched data
+        pd.DataFrame: modin.pandas dataframe containing the fetched data
     """
     return fetch_dataset(os.path.join(base_dir, "region"))
 
@@ -181,7 +181,7 @@ def get_nation_ds(base_dir: str = DATASET_BASE_DIR) -> pd.DataFrame:
         base_dir (str, optional): base dataset directory. Defaults to DATASET_BASE_DIR.
 
     Returns:
-        pd.DataFrame: pandas dataframe containing the fetched data
+        pd.DataFrame: modin.pandas dataframe containing the fetched data
     """
     return fetch_dataset(os.path.join(base_dir, "nation"))
 
@@ -193,7 +193,7 @@ def get_supplier_ds(base_dir: str = DATASET_BASE_DIR) -> pd.DataFrame:
         base_dir (str, optional): base dataset directory. Defaults to DATASET_BASE_DIR.
 
     Returns:
-        pd.DataFrame: pandas dataframe containing the fetched data
+        pd.DataFrame: modin.pandas dataframe containing the fetched data
     """
     return fetch_dataset(os.path.join(base_dir, "supplier"))
 
@@ -205,7 +205,7 @@ def get_part_ds(base_dir: str = DATASET_BASE_DIR) -> pd.DataFrame:
         base_dir (str, optional): base dataset directory. Defaults to DATASET_BASE_DIR.
 
     Returns:
-        pd.DataFrame: pandas dataframe containing the fetched data
+        pd.DataFrame: modin.pandas dataframe containing the fetched data
     """
     return fetch_dataset(os.path.join(base_dir, "part"))
 
@@ -217,7 +217,7 @@ def get_part_supp_ds(base_dir: str = DATASET_BASE_DIR) -> pd.DataFrame:
         base_dir (str, optional): base dataset directory. Defaults to DATASET_BASE_DIR.
 
     Returns:
-        pd.DataFrame: pandas dataframe containing the fetched data
+        pd.DataFrame: modin.pandas dataframe containing the fetched data
     """
     return fetch_dataset(os.path.join(base_dir, "partsupp"))
 
@@ -236,7 +236,7 @@ def write_row(
         query_num (str): the TPC-H query number
         load (float): The data loading time/RAM
         exec (float): The query execution time/RAM
-        version (str): The pandas version
+        version (str): The modin.pandas version
         success (bool, optional): Whether the query was a success or not.
         Defaults to True.
     """
@@ -358,7 +358,7 @@ def generate_query_plot():
     ax.set_axisbelow(True)
     ax.yaxis.grid(True, color="lightgray")
     ax.xaxis.grid(False)
-    ax.set_title("TPC-H Query Execution Time for Pandas")
+    ax.set_title("TPC-H Query Execution Time for Modin")
     fig.savefig(
         os.path.join(
             DEFAULT_PLOTS_DIR,
@@ -397,7 +397,7 @@ def generate_ram_plot():
     ax.set_axisbelow(True)
     ax.yaxis.grid(True, color="lightgray")
     ax.xaxis.grid(False)
-    ax.set_title("TPC-H Query RAM Usage for Pandas")
+    ax.set_title("TPC-H Query RAM Usage for Modin")
     fig.savefig(
         os.path.join(
             DEFAULT_PLOTS_DIR,
