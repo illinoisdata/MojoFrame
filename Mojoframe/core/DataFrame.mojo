@@ -1,6 +1,8 @@
 from collections.dict import Dict, KeyElement
 from core.Calculations import mergesort, FloatKey
 from collections import Set
+from algorithm import parallelize
+from time import monotonic, perf_counter
 
 struct DataFrameF64:
     var columns: List[Float64Array]
@@ -9,7 +11,7 @@ struct DataFrameF64:
     var index_axis: Int
     var column_axis: Int
 
-    fn __init__(inout self, columns: List[Float64Array], column_names: List[String]) raises:
+    fn __init__(mut self, columns: List[Float64Array], column_names: List[String]) raises:
         # Columns contains a vector of SIMD vectors
         self.columns = List[Float64Array]()
         self.column_names = List[String]()
@@ -26,28 +28,29 @@ struct DataFrameF64:
         return self.columns[i]
     
     fn __getitem__(self, column_name: String) raises -> Float64Array:
-        var column_index = int((self.col_name_to_idx[column_name]))
+        var column_index = Int((self.col_name_to_idx[column_name]))
         return self.columns[column_index]
 
-    fn __setitem__(inout self, i: Int, value: Float64Array):
+    fn __setitem__(mut self, i: Int, value: Float64Array):
         self.columns[i] = value
     
-    fn append_column(inout self, owned new_column: Float64Array, new_column_name: String):
+    fn append_column(mut self, owned new_column: Float64Array, new_column_name: String):
         self.columns.append(new_column)
         self.column_names.append(new_column_name)
         self.col_name_to_idx[new_column_name] = (self.columns.size - 1)
 
-    fn sum(inout self, axis: Int) raises -> Float64Array:
+    fn sum(mut self, axis: Int) raises -> Float64Array:
         var sums = Float64Array(self.columns.__len__())
         if axis == self.index_axis:
             for i in range(self.columns.__len__()):
                 sums[i] = pairwise_sum_f64(self.columns[i], self.columns[i].size, 0, self.columns[i].size)
         return sums
 
-    fn groupby(inout self, column: String, aggregation: String, aggregated_col_names: List[String]) raises:
+    fn groupby(mut self, column: String, aggregation: String, aggregated_col_names: List[String]) raises:
         if aggregation == "sum":
             # Pass in columns for groupby without making copies
             self.columns = aggregation_sum_f64(self.columns, self.column_names, self.col_name_to_idx[column])
+            # self.columns = aggregation_sum_f64_parallel(self.columns, self.column_names, self.col_name_to_idx[column])
         elif aggregation == "mean":
             self.columns = aggregation_mean_f64(self.columns, self.column_names, self.col_name_to_idx[column])
         elif aggregation == "count":
@@ -70,18 +73,18 @@ struct DataFrameF64:
         for i in range(self.columns.size):
             self.col_name_to_idx[aggregated_col_names[i]] = i
     
-    # fn groupby_conditional(inout self, column: String, aggregation: String, borrowed mask: List[Bool], aggregated_col_names: List[String]) raises:
-    #     if aggregation == "sum":
-    #         # Pass in columns for groupby without making copies
-    #         self.columns = aggregation_sum_conditional_f64(self.columns, self.column_names, mask, self.col_name_to_idx[column])
+    fn groupby_conditional(mut self, column: String, aggregation: String, read mask: List[Bool], aggregated_col_names: List[String]) raises:
+        if aggregation == "sum":
+            # Pass in columns for groupby without making copies
+            self.columns = aggregation_sum_conditional_f64(self.columns, self.column_names, mask, self.col_name_to_idx[column])
         
-    #     self.column_names = aggregated_col_names
-    #     self.col_name_to_idx.clear()
-    #     # re-map column names to data
-    #     for i in range(self.columns.size):
-    #         self.col_name_to_idx[aggregated_col_names[i]] = i
+        self.column_names = aggregated_col_names
+        self.col_name_to_idx.clear()
+        # re-map column names to data
+        for i in range(self.columns.size):
+            self.col_name_to_idx[aggregated_col_names[i]] = i
     
-    fn groupby_multicol(inout self, col_names: List[String], aggregation: String, aggregated_col_names: List[String]) raises:
+    fn groupby_multicol(mut self, col_names: List[String], aggregation: String, aggregated_col_names: List[String]) raises:
         if aggregation == "sum":
             # Pass in columns for groupby without making copies
             self.columns = aggregation_sum_f64_multicol(self, col_names)
@@ -115,7 +118,7 @@ struct DataFrameF64:
     
     # select_mask -> [0, 1, 0, 0]
     # select_complex(List[List[Int]], logical_operator)
-    fn select_complex(inout self, borrowed masks: List[List[Bool]], logical_operator: String) raises:
+    fn select_complex(mut self, read masks: List[List[Bool]], logical_operator: String) raises:
         var filtered_mask = masks[0]
         var mask_len = filtered_mask.size
 
@@ -147,7 +150,7 @@ struct DataFrameF64:
         
         self.columns = filtered_data
     
-    fn select_mask[T: PredicateF64, T2: PredicateF64](inout self, column_1: String, column_2: String,
+    fn select_mask[T: PredicateF64, T2: PredicateF64](mut self, column_1: String, column_2: String,
                     predicate_1: T, predicate_2: T2,
                     value_cmp_1: SIMD[DType.float64, 1], value_cmp_2: SIMD[DType.float64, 1],
                     logical_operator: String) raises -> List[Bool]:
@@ -158,12 +161,18 @@ struct DataFrameF64:
                                             value_cmp_1, value_cmp_2, logical_operator)
         return selected_mask
 
-    fn select[T: PredicateF64, T2: PredicateF64](inout self, column_1: String, column_2: String,
+    fn select[T: PredicateF64, T2: PredicateF64](mut self, column_1: String, column_2: String,
                     predicate_1: T, predicate_2: T2,
                     value_cmp_1: SIMD[DType.float64, 1], value_cmp_2: SIMD[DType.float64, 1],
                     logical_operator: String) raises:
 
-        var selected_indices = evaluate_f64(self.columns[self.col_name_to_idx[column_1]],
+        # var selected_indices = evaluate_f64(self.columns[self.col_name_to_idx[column_1]],
+        #                                     self.columns[self.col_name_to_idx[column_2]],
+        #                                     predicate_1, predicate_2,
+        #                                     value_cmp_1, value_cmp_2, logical_operator)
+        
+
+        var selected_indices = evaluate_f64_alt(self.columns[self.col_name_to_idx[column_1]],
                                             self.columns[self.col_name_to_idx[column_2]],
                                             predicate_1, predicate_2,
                                             value_cmp_1, value_cmp_2, logical_operator)
@@ -175,20 +184,49 @@ struct DataFrameF64:
         #         print("broke here:",selected_indices[i])
         #         break
 
-        var filtered_rows_N = selected_indices.__len__()
+        var filtered_rows_N = selected_indices.size
+
         var filtered_data = List[Float64Array]()
+        var chunk_size = 6400
+        var n_chunks = (filtered_rows_N + chunk_size - 1) // chunk_size
         # for i in range(114160-300, 114160-200):
         #     print((self.columns[self.col_name_to_idx[column_1]])[selected_indices[i]])
         for col_i in range(self.columns.size):
             var col_to_fill = Float64Array(filtered_rows_N)
-            var original_col = self.columns[col_i]
-            for row_i in range(filtered_rows_N):
-                col_to_fill[row_i] = original_col[selected_indices[row_i]]
+            # for row_i in range(filtered_rows_N):
+            #     col_to_fill[row_i] = self.columns[col_i][selected_indices[row_i]]
+
+            @parameter
+            fn fill_data_worker(chunk_id: Int):
+                var start_i = chunk_id * chunk_size
+                var end_i = min(start_i + chunk_size, filtered_rows_N)
+                var limit = ((end_i - start_i) // 8) * 8 + start_i
+            
+                # Copy a slice of rows
+                for row_i in range(start_i, limit, 8):
+                    var filtered_idxs = selected_indices.data.load[width=8](row_i)
+                    col_to_fill.data.store[width=8](row_i, SIMD[DType.float64, 8](
+                                                    self.columns[col_i][filtered_idxs[0].__int__()],
+                                                    self.columns[col_i][filtered_idxs[1].__int__()],
+                                                    self.columns[col_i][filtered_idxs[2].__int__()],
+                                                    self.columns[col_i][filtered_idxs[3].__int__()],
+                                                    self.columns[col_i][filtered_idxs[4].__int__()],
+                                                    self.columns[col_i][filtered_idxs[5].__int__()],
+                                                    self.columns[col_i][filtered_idxs[6].__int__()],
+                                                    self.columns[col_i][filtered_idxs[7].__int__()]))
+                
+                for row_i in range(limit, end_i):
+                    var matched_idx = selected_indices[row_i].__int__()
+                    col_to_fill[row_i] = self.columns[col_i][matched_idx]
+
+            # Run parallel workers
+            parallelize[fill_data_worker](n_chunks)
+
             filtered_data.append(col_to_fill)
         
         self.columns = filtered_data
     
-    fn sort_by(inout self, by: List[String]) raises:
+    fn sort_by(mut self, by: List[String]) raises:
         var key0 = self.__getitem__(by[0])
         var sorted_indexer = List[Int](capacity=key0.size)
         for i in range(key0.size):
@@ -229,7 +267,7 @@ struct DataFrameF64:
     
     # fn select[T: PredicateF64, T2: PredicateF64,
     #           T3: PredicateF64, T4: PredicateF64,
-    #           T5: PredicateF64](inout self, column_1: String, column_2: String, column_3: String,
+    #           T5: PredicateF64](mut self, column_1: String, column_2: String, column_3: String,
     #                             predicate_1: T, predicate_2: T2, predicate_3: T3, predicate_4: T4, predicate_5: T5,
     #                             value_cmp_1: SIMD[DType.float64, 1], value_cmp_2: SIMD[DType.float64, 1],
     #                             value_cmp_3: SIMD[DType.float64, 1], value_cmp_4: SIMD[DType.float64, 1],
@@ -254,7 +292,7 @@ struct DataFrameF64:
         
     #     self.columns = filtered_data
 
-    fn rename_column(inout self, original_col_name: String, new_col_name: String) raises:
+    fn rename_column(mut self, original_col_name: String, new_col_name: String) raises:
         var col_index = self.col_name_to_idx[original_col_name]
         self.column_names[col_index] = new_col_name
         self.col_name_to_idx[new_col_name] = col_index
@@ -268,7 +306,7 @@ struct DataFrameF32:
     var index_axis: Int
     var column_axis: Int
 
-    fn __init__(inout self, columns: List[Float32Array], column_names: List[String]) raises:
+    fn __init__(mut self, columns: List[Float32Array], column_names: List[String]) raises:
         # Columns contains a vector of SIMD vectors
         self.columns = List[Float32Array]()
         self.column_names = List[String]()
@@ -288,17 +326,17 @@ struct DataFrameF32:
         var column_index = int((self.col_name_to_idx[column_name]))
         return self.columns[column_index]
 
-    fn __setitem__(inout self, i: Int, value: Float32Array):
+    fn __setitem__(mut self, i: Int, value: Float32Array):
         self.columns[i] = value
 
-    fn sum(inout self, axis: Int) raises -> Float32Array:
+    fn sum(mut self, axis: Int) raises -> Float32Array:
         var sums = Float32Array(self.columns.__len__())
         if axis == self.index_axis:
             for i in range(self.columns.__len__()):
                 sums[i] = pairwise_sum_f32(self.columns[i], self.columns[i].size, 0, self.columns[i].size)
         return sums
 
-    fn select(inout self, column_1: String, column_2: String,
+    fn select(mut self, column_1: String, column_2: String,
                     value_cmp_1: SIMD[DType.float32, 1], value_cmp_2: SIMD[DType.float32, 1]) raises:
 
         var selected_indices = evaluate_f32(self.columns[self.col_name_to_idx[column_1]],
@@ -324,7 +362,7 @@ struct DataFrameI32:
     var index_axis: Int
     var column_axis: Int
     
-    fn __init__(inout self, columns: List[Int32Array], column_names: List[String]) raises:
+    fn __init__(mut self, columns: List[Int32Array], column_names: List[String]) raises:
         # Columns contains a vector of SIMD vectors
         self.columns = List[Int32Array]()
         self.column_names = List[String]()
@@ -344,10 +382,10 @@ struct DataFrameI32:
         var column_index = int((self.col_name_to_idx[column_name]))
         return self.columns[column_index]
 
-    fn __setitem__(inout self, i: Int, value: Int32Array):
+    fn __setitem__(mut self, i: Int, value: Int32Array):
         self.columns[i] = value
     
-    fn sum(inout self, axis: Int) raises -> Int32Array:
+    fn sum(mut self, axis: Int) raises -> Int32Array:
         var sums = Int32Array(self.columns.__len__())
         if axis == self.index_axis:
             for i in range(self.columns.__len__()):
@@ -355,12 +393,12 @@ struct DataFrameI32:
                 sums[i] = pairwise_sum_i32(self.columns[i], self.columns[i].size, 0, self.columns[i].size)
         return sums
 
-    # fn groupby(inout self, column: String, aggregation: String) raises:
+    # fn groupby(mut self, column: String, aggregation: String) raises:
     #     if aggregation == "sum":
     #         # Pass in columns for groupby without making copies
     #         self.columns = aggregation_sum_i32(self.columns, self.column_names, self.col_name_to_idx[column])
 
-    fn select(inout self, column: String, operation: String, value_cmp: SIMD[DType.int32, 1]) raises:
+    fn select(mut self, column: String, operation: String, value_cmp: SIMD[DType.int32, 1]) raises:
         var selected_indices = evaluate_i32(self.columns[self.col_name_to_idx[column]], operation, value_cmp)
         # Construct filtered DataFrame based on selected indices and its dimension(size)
     
@@ -376,7 +414,7 @@ struct DataFrameI32:
         self.columns = filtered_data
 
 
-    # fn test_row_sum(inout self) raises:
+    # fn test_row_sum(mut self) raises:
     #     var sm = SIMD[DType.int32, 1](0)
     #     var cur_col = self.columns[0]
     #     var num_rows = self.columns[0].size
@@ -388,10 +426,10 @@ struct DataFrameI32:
 # struct String(KeyElement):
 #     var s: String
 
-#     fn __init__(inout self, owned s: String):
+#     fn __init__(mut self, owned s: String):
 #         self.s = s ^
 
-#     fn __init__(inout self, s: StringLiteral):
+#     fn __init__(mut self, s: StringLiteral):
 #         self.s = String(s)
 
 #     fn __hash__(self) -> Int:
@@ -405,12 +443,12 @@ struct DataFrameI32:
 struct SetElement(CollectionElement):
     var distinct_elements: Set[FloatKey]
     
-    fn __init__(inout self) raises:
+    fn __init__(mut self) raises:
         self.distinct_elements = Set[FloatKey]()
         
-    fn __moveinit__(inout self, owned existing: Self):
+    fn __moveinit__(mut self, owned existing: Self):
         self.distinct_elements = (existing.distinct_elements)^
         
-    fn __copyinit__(inout self, existing: Self):
+    fn __copyinit__(mut self, existing: Self):
         self.distinct_elements = Set[FloatKey]()
         self.distinct_elements = self.distinct_elements.union(existing.distinct_elements)
