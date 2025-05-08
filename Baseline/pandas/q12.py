@@ -3,16 +3,19 @@ import pandas as pd
 
 # Load the DataFrames
 # Load `lineitem-med.csv` with the required columns
-file_path_lineitem = '/home/shengya4/data/tpch_3gb/lineitem-med.csv'
+load_start = time.perf_counter()
+file_path_lineitem = '/datadrive/tpch_large/lineitem.csv'
 df_lineitem = pd.read_csv(file_path_lineitem, usecols=['l_orderkey', 'l_shipdate', 'l_commitdate', 'l_receiptdate', 'l_shipmode'])
 print(df_lineitem.head())
 print("Shape of df_lineitem:", df_lineitem.shape)
 
 # Load `orders.csv` with the required columns
-file_path_orders = '/home/shengya4/data/tpch_3gb/orders.csv'
+file_path_orders = '/datadrive/tpch_large/orders.csv'
 df_orders = pd.read_csv(file_path_orders, usecols=['o_orderkey', 'o_orderpriority'])
 print(df_orders.head())
 print("Shape of df_orders:", df_orders.shape)
+load_end = time.perf_counter()
+print("Data loading time: ", load_end - load_start)
 
 start_time = time.time()
 

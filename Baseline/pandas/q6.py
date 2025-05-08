@@ -3,8 +3,11 @@ import pandas as pd
 import numpy as np
 
 pd.set_option('display.max_columns', None)
-file_path_new = '/home/shengya4/data/tpch_3gb/lineitem-med.csv'
+start_load = time.perf_counter()
+file_path_new = '/datadrive/tpch_large/lineitem.csv'
 lineitem_df_new = pd.read_csv(file_path_new, usecols=['l_quantity', 'l_extendedprice', 'l_discount', 'l_shipdate'])
+end_load = time.perf_counter()
+print("Data loading time: ", end_load - start_load)
 
 print(lineitem_df_new.shape)
 print(lineitem_df_new.head())

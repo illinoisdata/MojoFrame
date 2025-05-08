@@ -2,10 +2,15 @@
 import polars as pl
 import time
 import os
-os.environ["POLARS_MAX_THREADS"] = "2"
+os.environ["POLARS_MAX_THREADS"] = "8"
 
 def q():
-    q = pl.read_csv("/home/shengya4/data/tpch_3gb/lineitem-med.csv", columns=["l_quantity", "l_extendedprice", "l_discount", "l_returnflag", "l_shipdate", "l_linestatus", "l_tax"])
+    start_load = time.perf_counter()
+    q = pl.read_csv("/datadrive/tpch_large/lineitem.csv", columns=["l_quantity", "l_extendedprice", "l_discount", "l_returnflag", "l_shipdate", "l_linestatus", "l_tax"])
+    end_load = time.perf_counter()
+
+    print(f"Elapsed Time (Load): {end_load - start_load} seconds")
+    
     # q = utils.get_line_item_ds()
     #q = q.select(["l_quantity", "l_extendedprice", "l_discount", "l_returnflag", "l_shipdate", "l_linestatus", "l_tax"])
     start = time.monotonic()

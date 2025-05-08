@@ -1,16 +1,20 @@
 import polars as pl
 import time
 import os
-os.environ["POLARS_MAX_THREADS"] = "2"
+os.environ["POLARS_MAX_THREADS"] = "8"
 
 
 def q():
-    line_item_ds = pl.read_csv("/home/shengya4/data/tpch_3gb/lineitem-med.csv", columns=['l_partkey', 'l_suppkey', 'l_shipdate', 'l_quantity'])
-    part_ds = pl.read_csv("/home/shengya4/data/tpch_3gb/part.csv", columns=['p_partkey', 'p_name'])
-    part_supp_ds = pl.read_csv("/home/shengya4/data/tpch_3gb/partsupp.csv", columns=['ps_suppkey', 'ps_partkey', 'ps_availqty'])
-    supp_ds = pl.read_csv("/home/shengya4/data/tpch_3gb/supplier.csv", columns=['s_suppkey', 's_nationkey', 's_name'])
-    nation_ds = pl.read_csv("/home/shengya4/data/tpch_3gb/nation.csv", columns=['n_nationkey', 'n_name'])
+    start_load = time.perf_counter()
 
+    line_item_ds = pl.read_csv("/datadrive/tpch_large/lineitem.csv", columns=['l_partkey', 'l_suppkey', 'l_shipdate', 'l_quantity'])
+    part_ds = pl.read_csv("/datadrive/tpch_large/part.csv", columns=['p_partkey', 'p_name'])
+    part_supp_ds = pl.read_csv("/datadrive/tpch_large/partsupp.csv", columns=['ps_suppkey', 'ps_partkey', 'ps_availqty'])
+    supp_ds = pl.read_csv("/datadrive/tpch_large/supplier.csv", columns=['s_suppkey', 's_nationkey', 's_name'])
+    nation_ds = pl.read_csv("/datadrive/tpch_large/nation.csv", columns=['n_nationkey', 'n_name'])
+    end_load = time.perf_counter()
+    print(f"Elapsed Time (Load): {end_load - start_load} seconds")
+    
     start = time.monotonic()
     
     VAR1 = 757382400.0

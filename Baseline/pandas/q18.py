@@ -2,9 +2,12 @@ import pandas as pd
 import time
 
 # Step 1: Load only necessary columns from the CSV files
-df_customer = pd.read_csv('/home/shengya4/data/tpch_3gb/customer.csv', usecols=['c_custkey'])
-df_orders = pd.read_csv('/home/shengya4/data/tpch_3gb/orders.csv', usecols=['o_orderkey', 'o_custkey', 'o_orderdate', 'o_totalprice'])
-df_lineitem = pd.read_csv('/home/shengya4/data/tpch_3gb/lineitem-med.csv', usecols=['l_orderkey', 'l_quantity'])
+read_start = time.perf_counter()
+df_customer = pd.read_csv('/datadrive/tpch_large/customer.csv', usecols=['c_custkey'])
+df_orders = pd.read_csv('/datadrive/tpch_large/orders.csv', usecols=['o_orderkey', 'o_custkey', 'o_orderdate', 'o_totalprice'])
+df_lineitem = pd.read_csv('/datadrive/tpch_large/lineitem.csv', usecols=['l_orderkey', 'l_quantity'])
+read_end = time.perf_counter()
+print("Data loading time: ", read_end - read_start)
 
 start_time = time.time()
 

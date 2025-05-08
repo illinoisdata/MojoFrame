@@ -3,12 +3,15 @@ import pandas as pd
 
 pd.set_option('display.max_columns', None)
 
+start_load = time.perf_counter()
 # Load orders and lineitem datasets
-file_path_orders = '/home/shengya4/data/tpch_3gb/orders.csv'
+file_path_orders = '/datadrive/tpch_large/orders.csv'
 df_orders = pd.read_csv(file_path_orders, usecols=['o_orderkey', 'o_custkey', 'o_orderdate', 'o_shippriority', 'o_orderpriority'])
 
-file_path_lineitem = '/home/shengya4/data/tpch_3gb/lineitem-med.csv'
+file_path_lineitem = '/datadrive/tpch_large/lineitem.csv'
 df_lineitem = pd.read_csv(file_path_lineitem, usecols=['l_orderkey', 'l_quantity', 'l_extendedprice', 'l_shipdate', "l_commitdate", "l_receiptdate"])
+end_load = time.perf_counter()
+print("Data loading time: ", end_load - start_load)
 
 print("Original orders shape:", df_orders.shape)
 print("Original lineitem shape:", df_lineitem.shape)

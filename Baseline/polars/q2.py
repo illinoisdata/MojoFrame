@@ -1,20 +1,22 @@
 import polars as pl
 import time
 import os
-os.environ["POLARS_MAX_THREADS"] = "2"
+os.environ["POLARS_MAX_THREADS"] = "8"
 
 
 def q():
-    part_supp_ds = pl.read_csv("/home/shengya4/data/tpch_3gb/partsupp.csv", columns=['ps_partkey', 'ps_suppkey', 'ps_supplycost'])
+    start_load = time.perf_counter()
+    part_supp_ds = pl.read_csv("/datadrive/tpch_large/partsupp.csv", columns=['ps_partkey', 'ps_suppkey', 'ps_supplycost'])
+    end_load = time.perf_counter()
+    print(f"Load Time PSUPP: {end_load - start_load} seconds")
+    part_ds = pl.read_csv("/datadrive/tpch_large/part.csv", columns=['p_partkey', 'p_size', 'p_type'])
 
-    part_ds = pl.read_csv("/home/shengya4/data/tpch_3gb/part.csv", columns=['p_partkey', 'p_size', 'p_type'])
-
-    supplier_ds = pl.read_csv("/home/shengya4/data/tpch_3gb/supplier.csv", columns=['s_suppkey', 's_nationkey', 's_acctbal', 's_name'])
+    supplier_ds = pl.read_csv("/datadrive/tpch_large/supplier.csv", columns=['s_suppkey', 's_nationkey', 's_acctbal', 's_name'])
     
-    nation_ds = pl.read_csv("/home/shengya4/data/tpch_3gb/nation.csv", columns=['n_nationkey', 'n_regionkey', 'n_name'])
+    nation_ds = pl.read_csv("/datadrive/tpch_large/nation.csv", columns=['n_nationkey', 'n_regionkey', 'n_name'])
 
-    region_ds = pl.read_csv("/home/shengya4/data/tpch_3gb/region.csv", columns=['r_regionkey', 'r_name'])
-
+    region_ds = pl.read_csv("/datadrive/tpch_large/region.csv", columns=['r_regionkey', 'r_name'])
+    
     start = time.monotonic()
     
     var1 = 15.0

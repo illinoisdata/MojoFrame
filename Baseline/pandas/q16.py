@@ -1,10 +1,12 @@
 import pandas as pd
 import time
 # Load only the necessary columns from each CSV
-df_supplier = pd.read_csv('/home/shengya4/data/tpch_3gb/supplier.csv', usecols=['s_suppkey', 's_comment'])
-df_part = pd.read_csv('/home/shengya4/data/tpch_3gb/part.csv', usecols=['p_partkey', 'p_brand', 'p_type', 'p_size'])
-df_partsupp = pd.read_csv('/home/shengya4/data/tpch_3gb/partsupp.csv', usecols=['ps_partkey', 'ps_suppkey'])
-
+start_load = time.perf_counter()
+df_supplier = pd.read_csv('/datadrive/tpch_large/supplier.csv', usecols=['s_suppkey', 's_comment'])
+df_part = pd.read_csv('/datadrive/tpch_large/part.csv', usecols=['p_partkey', 'p_brand', 'p_type', 'p_size'])
+df_partsupp = pd.read_csv('/datadrive/tpch_large/partsupp.csv', usecols=['ps_partkey', 'ps_suppkey'])
+end_load = time.perf_counter()
+print("Data loading time: ", end_load - start_load)
 
 def filter_not_string_exists_before(comment, filter_str1, filter_str2):
     # Find the index of the first occurrence of `filter_str1`

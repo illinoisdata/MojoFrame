@@ -1,13 +1,16 @@
 import polars as pl
 import time
 import os
-os.environ["POLARS_MAX_THREADS"] = "2"
+os.environ["POLARS_MAX_THREADS"] = "8"
 
 def q():
-    part_ds = pl.read_csv("/home/shengya4/data/tpch_3gb/part.csv",columns=['p_partkey', 'p_brand', 'p_type', 'p_size'])
-    part_supp_ds = pl.read_csv("/home/shengya4/data/tpch_3gb/partsupp.csv",columns=['ps_partkey', 'ps_suppkey'])
-    supp_ds = pl.read_csv("/home/shengya4/data/tpch_3gb/supplier.csv",columns=['s_suppkey', 's_comment'])
-
+    start_load = time.perf_counter()
+    part_ds = pl.read_csv("/datadrive/tpch_large/part.csv",columns=['p_partkey', 'p_brand', 'p_type', 'p_size'])
+    part_supp_ds = pl.read_csv("/datadrive/tpch_large/partsupp.csv",columns=['ps_partkey', 'ps_suppkey'])
+    supp_ds = pl.read_csv("/datadrive/tpch_large/supplier.csv",columns=['s_suppkey', 's_comment'])
+    end_load = time.perf_counter()
+    print(f"Elapsed Time (Load): {end_load - start_load} seconds")
+    
     filter_str1 = "Customer"
     filter_str2 = "Complaints"
 

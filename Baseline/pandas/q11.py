@@ -2,10 +2,12 @@ import time
 import pandas as pd
 
 # Load the DataFrames
-df_partsupp = pd.read_csv('/home/shengya4/data/tpch_3gb/partsupp.csv', usecols=['ps_partkey', 'ps_suppkey', 'ps_supplycost', 'ps_availqty'])
-df_supplier = pd.read_csv('/home/shengya4/data/tpch_3gb/supplier.csv', usecols=['s_suppkey', 's_nationkey'])
-df_nation = pd.read_csv('/home/shengya4/data/tpch_3gb/nation.csv', usecols=['n_nationkey', 'n_name'])
-
+load_start = time.perf_counter()
+df_partsupp = pd.read_csv('/datadrive/tpch_large/partsupp.csv', usecols=['ps_partkey', 'ps_suppkey', 'ps_supplycost', 'ps_availqty'])
+df_supplier = pd.read_csv('/datadrive/tpch_large/supplier.csv', usecols=['s_suppkey', 's_nationkey'])
+df_nation = pd.read_csv('/datadrive/tpch_large/nation.csv', usecols=['n_nationkey', 'n_name'])
+load_end = time.perf_counter()
+print("Data loading time: ", load_end - load_start)
 start_time = time.time()
 
 # Step 2: Filter rows where `n_name` is 'GERMANY'

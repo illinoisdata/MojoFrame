@@ -6,15 +6,15 @@ pd.set_option('display.max_columns', None)
 start_time = time.perf_counter()
 
 # Load and filter customer data
-file_path_customer = '/home/shengya4/data/tpch_3gb/customer.csv'
+file_path_customer = '/datadrive/tpch_large/customer.csv'
 df_customer = pd.read_csv(file_path_customer, usecols=['c_custkey', 'c_mktsegment'])
 
 # Load and filter orders data
-file_path_orders = '/home/shengya4/data/tpch_3gb/orders.csv'
+file_path_orders = '/datadrive/tpch_large/orders.csv'
 df_orders = pd.read_csv(file_path_orders, usecols=['o_custkey', 'o_orderkey', 'o_orderdate', 'o_shippriority'])
 
 # Load and calculate revenue in lineitem data
-file_path_lineitem = '/home/shengya4/data/tpch_3gb/lineitem-med.csv'
+file_path_lineitem = '/datadrive/tpch_large/lineitem.csv'
 df_lineitem = pd.read_csv(file_path_lineitem, usecols=['l_orderkey', 'l_quantity', 'l_extendedprice', 'l_discount', 'l_returnflag', 'l_shipdate'])
 df_lineitem['revenue'] = df_lineitem['l_extendedprice'] * (1 - df_lineitem['l_discount'])
 
@@ -53,8 +53,11 @@ df_orders_filtered = df_orders[df_orders['o_orderdate'] < 794880000.0]
 # Step 3: Filter lineitem where l_shipdate > 794880000.0 before joining
 df_lineitem_filtered = df_lineitem[df_lineitem['l_shipdate'] > 794880000.0]
 
+start_final_marge = time.perf_counter()
 # Step 4: Perform the join between filtered customer and orders
 df_merged = pd.merge(df_customer_filtered, df_orders_filtered, left_on='c_custkey', right_on='o_custkey', how='inner')
+end_final_marge = time.perf_counter()
+print("MERGE MICRO time: ", end_final_marge - start_final_marge)
 
 # Step 5: Perform the join with lineitem after filtering
 df_final = pd.merge(df_lineitem_filtered, df_merged, left_on='l_orderkey', right_on='o_orderkey', how='inner')
@@ -67,10 +70,13 @@ df_final = pd.merge(df_lineitem_filtered, df_merged, left_on='l_orderkey', right
 # print("joined final shape", df_final.shape)
 # print(df_final)
 # print(df_final['l_orderkey_unique'].cat.codes)
+start_agg = time.perf_counter()
 agg_funcs = {col: 'sum' for col in df_final.columns if col not in ['l_orderkey', 'o_orderdate', 'o_shippriority', 'c_custkey_unique', 'o_custkey_unique', 'o_orderkey_unique', 'l_orderkey_unique']}
 result = df_final.groupby(['l_orderkey', 'o_orderdate', 'o_shippriority']).agg(
     agg_funcs
 ).reset_index().sort_values(by=['revenue', 'o_orderdate'])
+end_agg = time.perf_counter()
+print("Aggregation time: ", end_agg - start_agg)
 
 # End timing
 end_time = time.perf_counter()

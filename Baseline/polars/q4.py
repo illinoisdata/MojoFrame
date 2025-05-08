@@ -1,13 +1,19 @@
 import polars as pl
 import time
 import os
-os.environ["POLARS_MAX_THREADS"] = "2"
+os.environ["POLARS_MAX_THREADS"] = "8"
 
 def q():
-    line_item_ds = pl.read_csv("/home/shengya4/data/tpch_3gb/lineitem-med.csv", columns=['l_orderkey', 'l_quantity', 'l_extendedprice', 'l_shipdate', 'l_commitdate', 'l_receiptdate'])
+    start_load = time.perf_counter()
 
-    orders_ds = pl.read_csv("/home/shengya4/data/tpch_3gb/orders.csv", columns=['o_orderkey', 'o_custkey', 'o_orderdate', 'o_shippriority', 'o_orderpriority'])
+    line_item_ds = pl.read_csv("/datadrive/tpch_large/lineitem.csv", columns=['l_orderkey', 'l_quantity', 'l_extendedprice', 'l_shipdate', 'l_commitdate', 'l_receiptdate'])
 
+    orders_ds = pl.read_csv("/datadrive/tpch_large/orders.csv", columns=['o_orderkey', 'o_custkey', 'o_orderdate', 'o_shippriority', 'o_orderpriority'])
+
+    end_load = time.perf_counter()
+
+    print(f"Elapsed Time (Load): {end_load - start_load} seconds")
+    
     start = time.monotonic()
 
     var1 = 741484800.0

@@ -3,28 +3,31 @@ import time
 import pandas as pd
 
 # Load `lineitem-med.csv` with selected columns
-file_path = '/home/shengya4/data/tpch_3gb/lineitem-med.csv'
+start_load = time.perf_counter()
+file_path = '/datadrive/tpch_large/lineitem.csv'
 df_lineitem = pd.read_csv(file_path, usecols=['l_orderkey', 'l_extendedprice', 'l_discount', 'l_returnflag'])
 print(df_lineitem.head())
 print("Shape of df_lineitem:", df_lineitem.shape)
 
 # Load `nation.csv` with selected columns
-file_path_nation = '/home/shengya4/data/tpch_3gb/nation.csv'
+file_path_nation = '/datadrive/tpch_large/nation.csv'
 df_nation = pd.read_csv(file_path_nation, usecols=['n_nationkey', 'n_name'])
 print(df_nation.head())
 print("Shape of df_nation:", df_nation.shape)
 
 # Load `orders.csv` with selected columns
-file_path_orders = '/home/shengya4/data/tpch_3gb/orders.csv'
+file_path_orders = '/datadrive/tpch_large/orders.csv'
 df_orders = pd.read_csv(file_path_orders, usecols=['o_orderkey', 'o_custkey', 'o_orderdate'])
 print(df_orders.head())
 print("Shape of df_orders:", df_orders.shape)
 
 # Load `customer.csv` with selected columns
-file_path_customer = '/home/shengya4/data/tpch_3gb/customer.csv'
+file_path_customer = '/datadrive/tpch_large/customer.csv'
 df_customer = pd.read_csv(file_path_customer, usecols=['c_custkey', 'c_nationkey', 'c_acctbal'])
 print(df_customer.head())
 print("Shape of df_customer:", df_customer.shape)
+end_load = time.perf_counter()
+print("Data loading time: ", end_load - start_load)
 
 start_time = time.time()
 

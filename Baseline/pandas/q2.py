@@ -3,20 +3,27 @@ import pandas as pd
 
 pd.set_option('display.max_columns', None)
 
-file_path_partsupp = '/home/shengya4/data/tpch_3gb/partsupp.csv'
-df_partsupp = pd.read_csv(file_path_partsupp, usecols=['ps_partkey', 'ps_suppkey', 'ps_supplycost'])
 
-file_path_part = '/home/shengya4/data/tpch_3gb/part.csv'
+start_load = time.perf_counter()
+file_path_partsupp = '/datadrive/tpch_large/partsupp.csv'
+df_partsupp = pd.read_csv(file_path_partsupp, usecols=['ps_partkey', 'ps_suppkey', 'ps_supplycost'])
+end_load = time.perf_counter()
+print("Data loading time PARTSUPP: ", end_load - start_load)
+
+file_path_part = '/datadrive/tpch_large/part.csv'
 df_part = pd.read_csv(file_path_part, usecols=['p_partkey', 'p_size', 'p_type'])
 
-file_path_supp = '/home/shengya4/data/tpch_3gb/supplier.csv'
+
+file_path_supp = '/datadrive/tpch_large/supplier.csv'
 df_supp = pd.read_csv(file_path_supp, usecols=['s_suppkey', 's_nationkey', 's_acctbal', 's_name'])
 
-file_path_nation = '/home/shengya4/data/tpch_3gb/nation.csv'
+file_path_nation = '/datadrive/tpch_large/nation.csv'
 df_nation = pd.read_csv(file_path_nation, usecols=['n_nationkey', 'n_regionkey', 'n_name'])
 
-file_path_region = '/home/shengya4/data/tpch_3gb/region.csv'
+file_path_region = '/datadrive/tpch_large/region.csv'
 df_region = pd.read_csv(file_path_region, usecols=['r_regionkey', 'r_name'])
+
+
 
 print(df_partsupp.shape)
 print(df_part.shape)

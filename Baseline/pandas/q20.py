@@ -4,11 +4,14 @@ import pandas as pd
 import time
 
 # Step 1: Load only necessary columns from the CSV files
-df_lineitem = pd.read_csv('/home/shengya4/data/tpch_3gb/lineitem-med.csv', usecols=['l_partkey', 'l_suppkey', 'l_shipdate', 'l_quantity'])
-df_part = pd.read_csv('/home/shengya4/data/tpch_3gb/part.csv', usecols=['p_partkey', 'p_name'])
-df_supplier = pd.read_csv('/home/shengya4/data/tpch_3gb/supplier.csv', usecols=['s_suppkey', 's_nationkey', 's_name'])
-df_nation = pd.read_csv('/home/shengya4/data/tpch_3gb/nation.csv', usecols=['n_nationkey', 'n_name'])
-df_partsupp = pd.read_csv('/home/shengya4/data/tpch_3gb/partsupp.csv', usecols=['ps_suppkey', 'ps_partkey', 'ps_availqty'])
+start_load = time.perf_counter()
+df_lineitem = pd.read_csv('/datadrive/tpch_large/lineitem.csv', usecols=['l_partkey', 'l_suppkey', 'l_shipdate', 'l_quantity'])
+df_part = pd.read_csv('/datadrive/tpch_large/part.csv', usecols=['p_partkey', 'p_name'])
+df_supplier = pd.read_csv('/datadrive/tpch_large/supplier.csv', usecols=['s_suppkey', 's_nationkey', 's_name'])
+df_nation = pd.read_csv('/datadrive/tpch_large/nation.csv', usecols=['n_nationkey', 'n_name'])
+df_partsupp = pd.read_csv('/datadrive/tpch_large/partsupp.csv', usecols=['ps_suppkey', 'ps_partkey', 'ps_availqty'])
+end_load = time.perf_counter()
+print("Data loading time: ", end_load - start_load)
 
 start_time = time.time()
 

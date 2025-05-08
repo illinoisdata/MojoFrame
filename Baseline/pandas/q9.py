@@ -2,40 +2,45 @@ import time
 import pandas as pd
 
 # Load `part.csv` with selected columns
-file_path_part = '/home/shengya4/data/tpch_3gb/part.csv'
+start_load  = time.perf_counter()
+
+file_path_part = '/datadrive/tpch_large/part.csv'
 df_part = pd.read_csv(file_path_part, usecols=['p_partkey', 'p_name'])
 print(df_part.head())
 print("Shape of df_pt:", df_part.shape)
 
 # Load `lineitem-med.csv` with selected columns
-file_path = '/home/shengya4/data/tpch_3gb/lineitem-med.csv'
+file_path = '/datadrive/tpch_large/lineitem.csv'
 df_lineitem = pd.read_csv(file_path, usecols=['l_orderkey', 'l_extendedprice', 'l_discount', 'l_quantity', 'l_suppkey', 'l_partkey'])
 print(df_lineitem.head())
 print("Shape of df_lineitem:", df_lineitem.shape)
 
 # Load `partsupp.csv` with selected columns
-file_path_psupp = '/home/shengya4/data/tpch_3gb/partsupp.csv'
+file_path_psupp = '/datadrive/tpch_large/partsupp.csv'
 df_partsupp = pd.read_csv(file_path_psupp, usecols=['ps_partkey', 'ps_suppkey', 'ps_supplycost'])
 print(df_partsupp.head())
 print("Shape of df_psupp:", df_partsupp.shape)
 
 # Load `supplier.csv` with selected columns
-file_path_supp = '/home/shengya4/data/tpch_3gb/supplier.csv'
+file_path_supp = '/datadrive/tpch_large/supplier.csv'
 df_supplier = pd.read_csv(file_path_supp, usecols=['s_suppkey', 's_nationkey'])
 print(df_supplier.head())
 print("Shape of df_supp:", df_supplier.shape)
 
 # Load `nation.csv` with selected columns
-file_path_nation = '/home/shengya4/data/tpch_3gb/nation.csv'
+file_path_nation = '/datadrive/tpch_large/nation.csv'
 df_nation = pd.read_csv(file_path_nation, usecols=['n_nationkey', 'n_name'])
 print(df_nation.head())
 print("Shape of df_nat:", df_nation.shape)
 
 # Load `orders.csv` with selected columns
-file_path_orders = '/home/shengya4/data/tpch_3gb/orders.csv'
+file_path_orders = '/datadrive/tpch_large/orders.csv'
 df_orders = pd.read_csv(file_path_orders, usecols=['o_orderkey', 'o_orderdate'])
 print(df_orders.head())
 print("Shape of df_orders:", df_orders.shape)
+
+end_load = time.perf_counter()
+print("Data loading time: ", end_load - start_load)
 
 start_time = time.time()
 
@@ -70,15 +75,27 @@ print("After joining with partsupp and filtering suppkey match:", joined_lps_df.
 joined_final = pd.merge(joined_lps_df, df_orders, left_on='l_orderkey', right_on='o_orderkey', how='inner')
 print("Final joined result:", joined_final.shape)
 
+end_time = time.time()
+
+print(f"Join time: {end_time - start_time} seconds")
 
 joined_final['sum_profit'] = (joined_final['l_extendedprice'] * (1 - joined_final['l_discount'])) - \
                           (joined_final['ps_supplycost'] * joined_final['l_quantity'])
 
 joined_final['o_orderdate'] = (1970.0 + (joined_final['o_orderdate'] / 31536000.0)).round()
 
+end_time = time.time()
+
+print(f"profit and date time: {end_time - start_time} seconds")
+
 result = joined_final.groupby(['n_name', 'o_orderdate']).agg(
     'sum'
 ).reset_index().sort_values(by=['n_name', 'o_orderdate'])
+
+
+end_time = time.time()
+
+print(f"groupby agg time: {end_time - start_time} seconds")
 
 end_time = time.time()
 

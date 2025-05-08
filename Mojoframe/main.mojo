@@ -5,18 +5,18 @@ aggregation_sum_i32, aggregation_mean_f64,aggregation_all_f64,
 filter_string_equal, filter_string_contains, filter_string_endwith, filter_string_startwith, filter_not_string_exists_before, filter_string_equal_mask, filter_string_not_equal_mask, filter_string_not_startwith_mask, filter_f64_IN_mask, filter_string_IN_mask,
 reindex_string_column, combine_masks,
 evaluate_i32, aggregation_sum_f64, evaluate_f64, evaluate_f32, evaluate_query6, cast_as_float64,
-PredicateF64, EQPredF64, NEQPredF64, GTPredF64, GTEPredF64, LEPredF64, LTPredF64, inner_join_i32, left_join_f64, inner_join_f64, inner_join_f64_reindex, element_mult_f64, mergesort, TripleTup, TupleKey
+PredicateF64, EQPredF64, NEQPredF64, GTPredF64, GTEPredF64, LEPredF64, LTPredF64, inner_join_i32, left_join_f64, inner_join_f64, inner_join_f64_reindex, element_mult_f64, mergesort, TripleTup, TupleKey, parallel_argsort_f64, inner_join_sort_merge_f64
 from core.DataFrame import DataFrameF64, DataFrameF32, DataFrameI32, SetElement
 from random import random_si64, random_float64
 from tensor import Tensor
-from python import Python
+from python import Python, PythonObject
 from time import monotonic, perf_counter
 from utils.numerics import neg_inf
 from pathlib import Path
 from sys.info import simdwidthof
-from core.dict import CompactDict
-from core.keys_container import KeysBuilder, KeyRef, Keyable
-from hashlib import _hasher
+# from core.dict import CompactDict
+# from core.keys_container import KeysBuilder, KeyRef, Keyable
+# from hashlib import _hasher
 
 # import numojo as nm
 # from numojo.prelude import *
@@ -61,16 +61,13 @@ fn main() raises:
     # test_sort_by_large()
     # test_lexsort()
     # test_lexsort_large()
-    # var tup = TripleTup(Tuple[SIMD[DType.float64, 1], SIMD[DType.float64, 1], SIMD[DType.float64, 1]](2.4, 2, 3))
-    
-    # print(TupleKey(tup).__hash__())
-    #var group_to_idx = Dict[Tuple, Int]()
-    # print(hash(tup))
+   
+
     # test_query_1()
     # test_query_2()
     # test_query_3()
     # test_query_4()
-    # test_query_5()
+    test_query_5()
     # test_query_6()
     # test_query_7()
     # test_query_8()
@@ -84,7 +81,7 @@ fn main() raises:
     # test_query_16()
     # test_query_17()
     # test_query_18()
-    test_query_19()
+    # test_query_19()
     # test_query_20()
     # test_query_21()
     # test_query_22()
@@ -139,6 +136,348 @@ fn main() raises:
     # var got_val2 = d.get(f5, 0)
     # print(got_val)
     # print(got_val2)
+    # test_parallel_sort()
+    # test_parallel_sort_large()
+
+fn test_parallel_sort() raises:
+    var arr = Float64Array(8)
+    arr[0] = 5.0
+    arr[1] = 2.0
+    arr[2] = 8.0
+    arr[3] = 2.0
+    arr[4] = 6.0
+    arr[5] = 1.0 
+    arr[6] = 9.0
+    arr[7] = 5.0
+
+    var sorted_arg_list = parallel_argsort_f64(arr, 2)
+
+    for i in range(sorted_arg_list.size):
+        print(sorted_arg_list[i])
+
+fn test_parallel_sort_large() raises:
+    # var start_load = perf_counter()
+    # var l_orderkey = Float64Array("/datadrive/tpch_large/l_orderkey_tensor")
+    # var l_quantity = Float64Array("/datadrive/tpch_large/l_quantity_tensor")
+
+    # # for i in range(17996609):
+    # #     l_orderkey[i] = l_orderkey_arr[i].to_float64()
+    # #     l_quantity[i] = l_quantity_arr[i].to_float64()
+
+        
+    # print(l_orderkey.size)
+
+    # var col_data = List[Float64Array](l_orderkey, l_quantity)
+
+    # var col_names = List[String]("orderkey", "l_quantity")
+
+    # var df_lineitem = DataFrameF64(col_data, col_names)
+
+
+    # # var file_path_orders = '../../data/tpch_3gb/orders.csv'
+    # # var df_ord = pd.read_csv(file_path_orders)
+    # # print(df_ord.head())
+    # # print(df_ord.shape)
+
+    # # var o_orderkey_arr = df_ord['o_orderkey'].to_numpy()
+    # # var o_orderdate_arr = df_ord['o_orderdate'].to_numpy()
+    # # var o_totalprice_arr = df_ord['o_totalprice']
+    # # var o_custkey_arr = df_ord['o_custkey'].to_numpy()
+
+    # # var o_orderkey = Float64Array(4500000)
+    # # var o_orderdate = Float64Array(4500000)
+    # # var o_totalprice = Float64Array(4500000)
+    # # var o_custkey = Float64Array(4500000)
+
+    # var o_orderkey = Float64Array("/datadrive/tpch_large/o_orderkey_tensor")
+    # var o_orderdate = Float64Array("/datadrive/tpch_large/o_orderdate_tensor")
+    # var o_totalprice = Float64Array("/datadrive/tpch_large/o_totalprice_tensor")
+    # var o_custkey = Float64Array("/datadrive/tpch_large/o_custkey_tensor")
+
+
+    # # for i in range(4500000):
+    #     #  o_orderkey[i] = o_orderkey_arr[i].to_float64()
+    #     # o_orderdate[i] = o_orderdate_arr[i].to_float64()
+    #     # o_totalprice[i] = o_totalprice_arr[i].to_float64()
+    #     # o_custkey[i] = o_custkey_arr[i].to_float64()
+    
+    # print(o_totalprice.size)
+
+    # # o_totalprice.data.tofile(Path("../Data/tpch_med/o_totalprice_tensor"))
+
+    # var orders_col_data = List[Float64Array](o_orderkey, o_orderdate, o_totalprice, o_custkey)
+    
+    # var orders_col_names = List[String]("orderkey", "o_orderdate", "o_totalprice", "custkey")
+
+    # var df_orders = DataFrameF64(orders_col_data, orders_col_names)
+
+
+    # # var file_path_customer = 'customer.csv'
+    # # var df_cust = pd.read_csv(file_path_customer)
+    # # print(df_cust.head())
+    # # print(df_cust.shape)
+
+    # # var c_custkey_arr = df_cust['c_custkey'].to_numpy()
+
+    # # var c_custkey = Float64Array(450000)
+    # var c_custkey = Float64Array("/datadrive/tpch_large/c_custkey_tensor")
+
+    # # for i in range(450000):
+    # #     c_custkey[i] = c_custkey_arr[i].to_float64()
+    
+    # print(c_custkey.size)
+
+    # var cust_col_data = List[Float64Array](c_custkey)
+    
+    # var cust_col_names = List[String]("custkey")
+
+    # var df_customer = DataFrameF64(cust_col_data, cust_col_names)
+
+    # var end_load = perf_counter()
+    # print("load time: ", end_load - start_load)
+
+    # var start_time = perf_counter()
+    # var joined_lo_df = inner_join_f64(df_lineitem, df_orders, "orderkey")
+    # var end_time = perf_counter()
+    # print("join time: ", end_time - start_time)
+
+    var pd = Python.import_module("pandas")
+    pd.set_option('display.max_columns', None)
+
+    var start_load = perf_counter()
+
+    var file_path_part = '/datadrive/tpch_large/part.csv'
+    var df_pt = pd.read_csv(file_path_part)
+    print(df_pt.head())
+    print(df_pt.shape)
+
+    # var p_partkey_arr = df_pt['p_partkey'].to_numpy()
+    var p_type_arr = df_pt['p_type']
+
+    #var p_partkey = Float64Array(600000)
+    var p_partkey = Float64Array("/datadrive/tpch_large/p_partkey_tensor")
+    var p_type = List[String]()
+    p_type.resize(2000000, "")
+
+    for i in range(2000000):
+        # p_partkey[i] = p_partkey_arr[i].to_float64()
+        p_type[i] = p_type_arr[i].__str__()
+    
+    print(p_partkey.size)
+
+    var part_col_data = List[Float64Array](p_partkey)
+    
+    var part_col_names = List[String]("partkey")
+
+    var df_part = DataFrameF64(part_col_data, part_col_names)
+
+
+    # var file_path = '../../data/tpch_3gb/lineitem-med.csv'
+    # var df = pd.read_csv(file_path)
+    # print(df.head())
+    # print(df.shape)
+
+    # var l_orderkey_arr = df['l_orderkey'].to_numpy()
+    # var l_extendedprice_arr = df['l_extendedprice'].to_numpy()
+    # var l_discount_arr = df['l_discount'].to_numpy()
+    # var l_suppkey_arr = df['l_suppkey'].to_numpy()
+    # var l_partkey_arr = df['l_partkey'].to_numpy()
+
+
+    # var l_orderkey = Float64Array(17996609)
+    # var l_extendedprice = Float64Array(17996609)
+    # var l_discount = Float64Array(17996609)
+    # var l_volume = Float64Array(17996609)
+    # var l_suppkey = Float64Array(17996609)
+    # var l_partkey = Float64Array(17996609)
+
+    var l_orderkey = Float64Array("/datadrive/tpch_large/l_orderkey_tensor")
+    var l_extendedprice = Float64Array("/datadrive/tpch_large/l_extendedprice_tensor")
+    var l_discount = Float64Array("/datadrive/tpch_large/l_discount_tensor")
+    var l_volume = Float64Array("/datadrive/tpch_large/l_discprice_tensor")
+    var l_suppkey = Float64Array("/datadrive/tpch_large/l_suppkey_tensor")
+    var l_partkey = Float64Array("/datadrive/tpch_large/l_partkey_tensor")
+
+    # for i in range(17996609):
+    #     l_orderkey[i] = l_orderkey_arr[i].to_float64()
+    #     l_extendedprice[i] = l_extendedprice_arr[i].to_float64()
+    #     l_discount[i] = l_discount_arr[i].to_float64()
+    #     l_volume[i] = l_extendedprice[i] * (1 - l_discount[i])
+    #     l_suppkey[i] = l_suppkey_arr[i].to_float64()
+    #     l_partkey[i] = l_partkey_arr[i].to_float64()
+        
+    print(l_orderkey.size)
+
+    var col_data = List[Float64Array](l_orderkey, l_extendedprice, l_discount, l_volume, l_suppkey, l_partkey)
+
+    var col_names = List[String]("orderkey", "l_extendedprice", "l_discount", "l_volume", "suppkey", "partkey")
+
+    var df_lineitem = DataFrameF64(col_data, col_names)
+
+    
+
+    # var file_path_supp = '../../data/tpch_3gb/supplier.csv'
+    # var df_supp = pd.read_csv(file_path_supp)
+    # print(df_supp.head())
+    # print(df_supp.shape)
+
+    # var s_suppkey_arr = df_supp['s_suppkey'].to_numpy()
+    # var s_nationkey_arr = df_supp['s_nationkey'].to_numpy()
+
+    # var s_suppkey = Float64Array(30000)
+    # var s_nationkey = Float64Array(30000)
+
+    var s_suppkey = Float64Array("/datadrive/tpch_large/s_suppkey_tensor")
+    var s_nationkey = Float64Array("/datadrive/tpch_large/s_nationkey_tensor")
+
+    # for i in range(30000):
+    #     s_suppkey[i] = s_suppkey_arr[i].to_float64()
+    #     s_nationkey[i] = s_nationkey_arr[i].to_float64()
+
+    
+    print(s_suppkey.size)
+
+    var supp_col_data = List[Float64Array](s_suppkey, s_nationkey)
+     
+    var supp_col_names = List[String]("suppkey", "nationkey2")
+
+    var df_supplier = DataFrameF64(supp_col_data, supp_col_names)
+
+
+    # var file_path_nation = '../../data/tpch_3gb/nation.csv'
+    # var df_nat = pd.read_csv(file_path_nation)
+    # print(df_nat.head())
+    # print(df_nat.shape)
+
+    # var n_nationkey_arr = df_nat['n_nationkey'].to_numpy()
+    # var n_name_arr = df_nat['n_name'].to_numpy()
+    # var n_regionkey_arr = df_nat['n_regionkey'].to_numpy()
+
+    # var n_nationkey = Float64Array(25)
+    # var n_name = Float64Array(25)
+    # var n_regionkey = Float64Array(25)
+
+    var n_nationkey = Float64Array("/datadrive/tpch_large/n_nationkey_tensor")
+    var n_name = Float64Array("/datadrive/tpch_large/n_name_tensor")
+    var n_regionkey = Float64Array("/datadrive/tpch_large/n_regionkey_tensor")
+
+    # for i in range(25):
+    #     n_nationkey[i] = n_nationkey_arr[i].to_float64()
+    #     n_name[i] = n_name_arr[i].to_float64()
+    #     n_regionkey[i] = n_regionkey_arr[i].to_float64()
+    
+    print(n_nationkey.size)
+
+    var nation_col_data = List[Float64Array](n_nationkey, n_name, n_regionkey)
+    
+    var nation_col_names = List[String]("nationkey1", "n_name1", "regionkey1")
+    
+    var nation2_col_names = List[String]("nationkey2", "n_name2", "regionkey2")
+
+    var df_nation1 = DataFrameF64(nation_col_data, nation_col_names)
+    var df_nation2 = DataFrameF64(nation_col_data, nation2_col_names)
+    
+
+    # var file_path_customer = '../../data/tpch_3gb/customer.csv'
+    # var df_cust = pd.read_csv(file_path_customer)
+    # print(df_cust.head())
+    # print(df_cust.shape)
+
+    # var c_custkey_arr = df_cust['c_custkey'].to_numpy()
+    # var c_nationkey_arr = df_cust['c_nationkey'].to_numpy()
+
+    # var c_custkey = Float64Array(450000)
+    # var c_nationkey = Float64Array(450000)
+
+    var c_custkey = Float64Array("/datadrive/tpch_large/c_custkey_tensor")
+    var c_nationkey = Float64Array("/datadrive/tpch_large/c_nationkey_tensor")
+
+    # for i in range(450000):
+    #     c_custkey[i] = c_custkey_arr[i].to_float64()
+    #     c_nationkey[i] = c_nationkey_arr[i].to_float64()
+    
+    print(c_custkey.size)
+
+    var cust_col_data = List[Float64Array](c_custkey, c_nationkey)
+    
+    var cust_col_names = List[String]("custkey", "nationkey1")
+
+    var df_customer = DataFrameF64(cust_col_data, cust_col_names)
+
+
+    # var file_path_orders = '../../data/tpch_3gb/orders.csv'
+    # var df_ord = pd.read_csv(file_path_orders)
+    # print(df_ord.head())
+    # print(df_ord.shape)
+
+    # var o_custkey_arr = df_ord['o_custkey'].to_numpy()
+    # var o_orderkey_arr = df_ord['o_orderkey'].to_numpy()
+    # var o_orderdate_arr = df_ord['o_orderdate'].to_numpy()
+
+    # var o_custkey = Float64Array(4500000)
+    # var o_orderkey = Float64Array(4500000)
+    # var o_orderdate = Float64Array(4500000)
+
+    var o_custkey = Float64Array("/datadrive/tpch_large/o_custkey_tensor")
+    var o_orderkey = Float64Array("/datadrive/tpch_large/o_orderkey_tensor")
+    var o_orderdate = Float64Array("/datadrive/tpch_large/o_orderdate_tensor")
+    
+
+    # for i in range(4500000):
+    #     o_custkey[i] = o_custkey_arr[i].to_float64()
+    #     o_orderkey[i] = o_orderkey_arr[i].to_float64()
+    #     o_orderdate[i] = o_orderdate_arr[i].to_float64()
+       
+    
+    print(o_custkey.size)
+
+    var orders_col_data = List[Float64Array](o_custkey, o_orderkey, o_orderdate)
+    
+    var orders_col_names = List[String]("custkey", "orderkey", "o_orderdate")
+
+    var df_orders = DataFrameF64(orders_col_data, orders_col_names)
+
+
+    # var file_path_region = '../../data/tpch_3gb/region.csv'
+    # var df_reg = pd.read_csv(file_path_region)
+    # print(df_reg.head())
+    # print(df_reg.shape)
+
+    # var r_regionkey_arr = df_reg['r_regionkey'].to_numpy()
+    # var r_name_arr = df_reg['r_name'].to_numpy()
+
+    # var r_regionkey = Float64Array(5)
+    # var r_name = Float64Array(5)
+
+    var r_regionkey = Float64Array("/datadrive/tpch_large/r_regionkey_tensor")
+    var r_name = Float64Array("/datadrive/tpch_large/r_name_tensor")
+
+
+    # for i in range(5):
+    #     r_regionkey[i] = r_regionkey_arr[i].to_float64()
+    #     r_name[i] = r_name_arr[i].to_float64()
+    
+    print(r_regionkey.size)
+
+    var region_col_data = List[Float64Array](r_regionkey, r_name)
+    
+    var region_col_names = List[String]("regionkey1", "r_name")
+
+    var df_region = DataFrameF64(region_col_data, region_col_names)
+
+    var end_load = perf_counter()
+    print("Data loading time:", end_load - start_load)
+
+    var start_time = monotonic()
+    # Subquery to get shipping table
+    df_orders.select("o_orderdate", "o_orderdate", GTEPredF64(), LEPredF64(), 788918400.0, 852076800.0, "AND")
+    filter_string_equal(df_part, p_type, "ECONOMY ANODIZED STEEL")
+    df_region.select("r_name", "r_name", EQPredF64(), EQPredF64(), 3070.0, 3070.0, "")
+
+    
+    # inner query to create all_nations table
+    var joined_pl_df = inner_join_sort_merge_f64(df_part, df_lineitem, "partkey")
+
 
 # fn test_array_creation() raises:
 #     # Creating a small Float64 array with 2 elements
@@ -846,7 +1185,7 @@ fn test_left_join_f64() raises:
 
     # Print the results
     print("Result of LEFT JOIN on 'Employee ID'")
-    for i in range(joined_df.columns.size):
+    for i in range(len(joined_df.columns)):
         print("Column Index:", i, "| Name:", joined_df.column_names[i])
         for j in range(joined_df.columns[i].size):
             print("  Row", j, ":", joined_df.columns[i][j])
@@ -975,7 +1314,7 @@ fn test_inner_join_f64() raises:
 
     var execution_time_seconds = execution_time_nanoseconds / 1000000000
 
-    for i in range(joined_df.columns.size):
+    for i in range(len(joined_df.columns)):
         print("Col: ", i)
         for j in range(joined_df.columns[i].size):
             print(joined_df.columns[i][j])
@@ -1039,7 +1378,7 @@ fn test_inner_join_f64_large() raises:
 
     var end_time = perf_counter()
 
-    var execution_time_nanoseconds = end_time - start_time
+    var execution_time = end_time - start_time
 
     print("Num rows:", joined_df[0].size)
     print("Num cols:", joined_df.columns.__len__())
@@ -1048,8 +1387,7 @@ fn test_inner_join_f64_large() raises:
     print("Second col:", joined_df[1][1000])
     print("Third col:", joined_df[2][1000])
 
-    var execution_time_seconds = execution_time_nanoseconds / 1000000000
-    print("Execution time: ", end_time - start_time)
+    print("Execution time: ", execution_time)
 
 
 # # fn test_merge_sort() raises:
@@ -1212,91 +1550,21 @@ fn test_inner_join_f64_large() raises:
 
 
 fn test_query_1() raises:
-    ### TPC-H Query 1
-
-    # SELECT
-    #     l_returnflag,
-    #     sum(l_quantity) as sum_qty,
-    #     sum(l_extendedprice) as sum_base_price,
-    #     sum(l_discount) as sum_disc,
-    #     avg(l_quantity) as avg_qty,
-    #     avg(l_extendedprice) as avg_price,
-    #     avg(l_discount) as avg_disc,
-    #     count(*) as count_order
-    # FROM
-    #     lineitem
-    # WHERE
-    #     l_shipdate <= 904608000.0
-    # GROUP BY
-    #     l_returnflag;
-
-    # var pd = Python.import_module("pandas")
-    # pd.set_option('display.max_columns', None)
-
-    var start_time = monotonic()
-
-    # var file_path = '../../data/tpch_3gb/lineitem-med.csv'
-    # var df = pd.read_csv(file_path)
-    # print(df.shape)
-    # print(df.head())
-
-    # var l_extendedprice_arr = df['l_extendedprice']
-    # var l_discount_arr = df['l_discount']
-    # var l_linestatus_arr = df['l_linestatus']
-    # var l_returnflag_arr = df['l_returnflag']
-    # var l_tax_arr = df['l_tax']
-    # var l_quantity_arr = df['l_quantity']
-    # var l_shipdate_arr = df['l_shipdate']
-
-    # print("arrays extracted")
+    var start_time = perf_counter()
     
-    var l_extendedprice = Float64Array("../Data/tpch_med/l_extendedprice_tensor")
-    var l_discount = Float64Array("../Data/tpch_med/l_discount_tensor")
-    var l_returnflag = Float64Array("../Data/tpch_med/l_returnflag_tensor")
-    var l_linestatus = Float64Array("../Data/tpch_med/l_linestatus_tensor")
-    var l_tax = Float64Array("../Data/tpch_med/l_tax_tensor")
-    var l_quantity = Float64Array("../Data/tpch_med/l_quantity_tensor")
-    var l_shipdate = Float64Array("../Data/tpch_med/l_shipdate_tensor")
+    var l_extendedprice = Float64Array("/datadrive/tpch_large/l_extendedprice_tensor")
+    var l_discount = Float64Array("/datadrive/tpch_large/l_discount_tensor")
+    var l_returnflag = Float64Array("/datadrive/tpch_large/l_returnflag_tensor")
+    var l_linestatus = Float64Array("/datadrive/tpch_large/l_linestatus_tensor")
+    var l_tax = Float64Array("/datadrive/tpch_large/l_tax_tensor")
+    var l_quantity = Float64Array("/datadrive/tpch_large/l_quantity_tensor")
+    var l_shipdate = Float64Array("/datadrive/tpch_large/l_shipdate_tensor")
 
-    var l_discprice = Float64Array("../Data/tpch_med/l_discprice_tensor")
-    var l_charge = Float64Array("../Data/tpch_med/l_charge_tensor")
-    
-    
-    # var l_extendedprice = Float64Array(17996609)
-    # var l_discount = Float64Array(17996609)
-    # var l_returnflag = Float64Array(17996609)
-    # var l_linestatus = Float64Array(17996609)
-    # var l_tax = Float64Array(17996609)
-    # var l_quantity = Float64Array(17996609)
-    # var l_shipdate = Float64Array(17996609)
+    var l_discprice = Float64Array("/datadrive/tpch_large/l_discprice_tensor")
+    var l_charge = Float64Array("/datadrive/tpch_large/l_charge_tensor")
 
-    # var l_discprice = Float64Array(17996609)
-    # var l_charge = Float64Array(17996609)
-
-    # for i in range(17996609):
-    #     l_extendedprice[i] = Float64(l_extendedprice_arr[i])
-    #     l_discount[i] = Float64(l_discount_arr[i])
-    #     l_linestatus[i] = Float64(l_linestatus_arr[i])
-    #     l_returnflag[i] = Float64(l_returnflag_arr[i])
-    #     l_tax[i] = Float64(l_tax_arr[i])
-    #     l_quantity[i] = Float64(l_quantity_arr[i])
-    #     l_shipdate[i] = Float64(l_shipdate_arr[i])
-    #     # discount price = l_extendedprice * (1 - l_discount)
-    #     l_discprice[i] = l_extendedprice[i] * (1 - l_discount[i])
-    #     # charge = l_extendedprice * (1 - l_discount) * (1 + l_tax)
-    #     l_charge[i] = l_discprice[i] * (1 + l_tax[i])
 
     print(l_linestatus.size)
-
-    # l_extendedprice.data.tofile(Path("../Data/tpch_med/l_extendedprice_tensor"))
-    # l_discount.data.tofile(Path("../Data/tpch_med/l_discount_tensor"))
-    # l_linestatus.data.tofile(Path("../Data/tpch_med/l_linestatus_tensor"))
-    # l_returnflag.data.tofile(Path("../Data/tpch_med/l_returnflag_tensor"))
-    # l_tax.data.tofile(Path("../Data/tpch_med/l_tax_tensor"))
-    # l_quantity.data.tofile(Path("../Data/tpch_med/l_quantity_tensor"))
-    # l_shipdate.data.tofile(Path("../Data/tpch_med/l_shipdate_tensor"))
-    # l_discprice.data.tofile(Path("../Data/tpch_med/l_discprice_tensor"))
-    # l_charge.data.tofile(Path("../Data/tpch_med/l_charge_tensor"))
 
     var col_data = List[Float64Array](l_quantity, l_extendedprice, l_discount, l_returnflag,
                                       l_shipdate, l_linestatus, l_tax, l_discprice, l_charge)
@@ -1306,12 +1574,10 @@ fn test_query_1() raises:
 
     var df_lineitem = DataFrameF64(col_data, col_names)
     
-    var end_time = monotonic()
-    var execution_time_nanoseconds = end_time - start_time
-    var execution_time_seconds = execution_time_nanoseconds / 1000000000
-    print("Data loading time: ", execution_time_seconds, "seconds or ", execution_time_nanoseconds, "nanoseconds")
+    var end_time = perf_counter()
+    print("Data loading time: ", end_time - start_time)
 
-    start_time = monotonic()
+    start_time = perf_counter()
 
     var group_by_cols = List[String]("l_returnflag", "l_linestatus")
     var aggregated_col_names = List[String]("l_returnflag", "l_linestatus", "sum_qty", "sum_base_price",
@@ -1322,19 +1588,17 @@ fn test_query_1() raises:
 
     df_lineitem.select("l_shipdate", "l_shipdate", LEPredF64(), LEPredF64(), 904608000.0, 904608000.0, "")
 
-    end_time = monotonic()
-    print("filter time: ", (end_time - start_time) / 1000000000)
-    # print("filtered")
-    # print(df_lineitem.columns[0].size)
+    end_time = perf_counter()
+    print("filter time: ", end_time - start_time)
+
     df_lineitem.groupby_multicol(group_by_cols, "all", aggregated_col_names)
 
-    end_time = monotonic()
-    execution_time_nanoseconds = end_time - start_time
-    execution_time_seconds = execution_time_nanoseconds / 1000000000
-    print("Execution time: ", execution_time_seconds, "seconds or ", execution_time_nanoseconds, "nanoseconds")
+    end_time = perf_counter()
+
+    print("Execution time: ", end_time - start_time)
 
     print("num groups: ", df_lineitem[0].size)
-    for i in range(df_lineitem.columns.size):
+    for i in range(len(df_lineitem.columns)):
         print(df_lineitem.column_names[i])
         print(df_lineitem[df_lineitem.column_names[i]][0])
 
@@ -1342,56 +1606,16 @@ fn test_query_1() raises:
     
 
 fn test_query_3() raises:
-    ### TPC-H Query 3
-    # SELECT
-    #     sum(l_extendedprice * l_discount) as revenue,
-    #     o_shippriority
-    # FROM
-    #     customer,
-    #     orders,
-    #     lineitem
-    # WHERE
-    #     c_mktsegment = 'BUILDING'
-    #     AND c_custkey = o_custkey
-    #     AND l_orderkey = o_orderkey
-    #     AND o_orderdate < date '1995-03-15'
-    #     AND l_shipdate > date '1995-03-15'
-    # GROUP BY
-    #     o_shippriority
-    # LIMIT 20;
-    
-    # var pd = Python.import_module("pandas")
+    var start_time = perf_counter()
 
-    # pd.set_option('display.max_columns', None)
+    var l_orderkey = Float64Array("/datadrive/tpch_large/l_orderkey_tensor")
+    var l_extendedprice = Float64Array("/datadrive/tpch_large/l_extendedprice_tensor")
+    var l_discount = Float64Array("/datadrive/tpch_large/l_discount_tensor")
+    var l_shipdate = Float64Array("/datadrive/tpch_large/l_shipdate_tensor")
+    var l_quantity = Float64Array("/datadrive/tpch_large/l_quantity_tensor")
+    var l_returnflag = Float64Array("/datadrive/tpch_large/l_returnflag_tensor")
+    var l_revenue = Float64Array("/datadrive/tpch_large/l_discprice_tensor")
 
-    var start_time = monotonic()
-
-    # var file_path = '../../../app/data/tpch_3gb/lineitem-med.csv'
-    # var df = pd.read_csv(file_path)
-    # print(df.head())
-    # print(df.shape)
-
-    #var l_orderkey_arr = df['l_orderkey']
-    #var l_extendedprice_arr = df['l_extendedprice'].to_numpy()
-    # var l_discount_arr = df['l_discount'].to_numpy()
-    # var l_shipdate_arr = df['l_shipdate'].to_numpy()
-    # var l_quantity_arr = df['l_quantity'].to_numpy()
-    # var l_returnflag_arr = df['l_returnflag'].to_numpy()
-
-
-    var l_orderkey = Float64Array("../Data/tpch_med/l_orderkey_tensor")
-    var l_extendedprice = Float64Array("../Data/tpch_med/l_extendedprice_tensor")
-    var l_discount = Float64Array("../Data/tpch_med/l_discount_tensor")
-    var l_shipdate = Float64Array("../Data/tpch_med/l_shipdate_tensor")
-    var l_quantity = Float64Array("../Data/tpch_med/l_quantity_tensor")
-    var l_returnflag = Float64Array("../Data/tpch_med/l_returnflag_tensor")
-    var l_revenue = Float64Array("../Data/tpch_med/l_discprice_tensor")
-
-    # for i in range(17996609):
-    #     #l_orderkey[i] = Float64(l_orderkey_arr[i])
-    #     l_revenue[i] = l_extendedprice[i] * (1.0 - l_discount[i])
-    
-    # l_orderkey.data.tofile(Path("l_orderkey_tensor"))
     print(l_orderkey.size)
 
     var col_data = List[Float64Array](l_orderkey, l_quantity, l_extendedprice,
@@ -1403,22 +1627,10 @@ fn test_query_3() raises:
 
     var df_lineitem = DataFrameF64(col_data, col_names)
 
-    # var file_path_customer = '../../../app/data/tpch_3gb/customer.csv'
-    # var df_cust = pd.read_csv(file_path_customer)
-    # print(df_cust.head())
-    # print(df_cust.shape)
 
-    # var c_custkey_arr = df_cust['c_custkey'].to_numpy()
-    # var c_mktsegment_arr = df_cust['c_mktsegment']
+    var c_custkey = Float64Array("/datadrive/tpch_large/c_custkey_tensor")
+    var c_mktsegment = Float64Array("/datadrive/tpch_large/c_mktsegment_tensor")
 
-    var c_custkey = Float64Array("../Data/tpch_med/c_custkey_tensor")
-    var c_mktsegment = Float64Array("../Data/tpch_med/c_mktsegment_tensor")
-
-    # for i in range(450000):
-    #     # c_custkey[i] = float(c_custkey_arr[i])
-    #     c_mktsegment[i] = Float64(c_mktsegment_arr[i])
-    
-    # c_mktsegment.data.tofile(Path("c_mktsegment_tensor"))
 
     print(c_custkey.size)
 
@@ -1429,34 +1641,11 @@ fn test_query_3() raises:
     var df_customer = DataFrameF64(cust_col_data, cust_col_names)
 
 
-    # var file_path_orders = '../../../app/data/tpch_3gb/orders.csv'
-    # var df_ord = pd.read_csv(file_path_orders)
-    # print(df_ord.head())
-    # print(df_ord.shape)
+    var o_custkey = Float64Array("/datadrive/tpch_large/o_custkey_tensor")
+    var o_orderkey = Float64Array("/datadrive/tpch_large/o_orderkey_tensor")
+    var o_orderdate = Float64Array("/datadrive/tpch_large/o_orderdate_tensor")
+    var o_shippriority = Float64Array("/datadrive/tpch_large/o_shippriority_tensor")
 
-    # var o_custkey_arr = df_ord['o_custkey'].to_numpy()
-    # var o_orderkey_arr = df_ord['o_orderkey'].to_numpy()
-    # var o_orderdate_arr = df_ord['o_orderdate']
-    # var o_shippriority_arr = df_ord['o_shippriority']
-
-    # var o_custkey = Float64Array(4500000)
-    # var o_orderkey = Float64Array(4500000)
-    # var o_orderdate = Float64Array(4500000)
-    # var o_shippriority = Float64Array(4500000)
-
-    var o_custkey = Float64Array("../Data/tpch_med/o_custkey_tensor")
-    var o_orderkey = Float64Array("../Data/tpch_med/o_orderkey_tensor")
-    var o_orderdate = Float64Array("../Data/tpch_med/o_orderdate_tensor")
-    var o_shippriority = Float64Array("../Data/tpch_med/o_shippriority_tensor")
-
-    # for i in range(4500000):
-    #     # o_custkey[i] = float(o_custkey_arr[i])
-    #     # o_orderkey[i] = float(o_orderkey_arr[i])
-    #     o_orderdate[i] = float(o_orderdate_arr[i])
-    #     o_shippriority[i] = float(o_shippriority_arr[i])
-    
-    # o_orderdate.data.tofile(Path("o_orderdate_tensor"))
-    # o_shippriority.data.tofile(Path("o_shippriority_tensor"))
 
     print(o_orderdate.size)
 
@@ -1468,55 +1657,56 @@ fn test_query_3() raises:
 
     var df_orders = DataFrameF64(orders_col_data, orders_col_names)
 
-    var end_time = monotonic()
+    var end_time = perf_counter()
+   
+    print("Data loading time:", end_time - start_time)
 
-    var execution_time_nanoseconds = end_time - start_time
-    var execution_time_seconds = execution_time_nanoseconds / 1000000000
-    #print(joined_df_final[0].size)
-    print("Data loading time:", execution_time_seconds)
-
-
-    start_time = monotonic()
+    start_time = perf_counter()
 
     df_customer.select("c_mktsegment", "c_mktsegment", EQPredF64(), EQPredF64(), 1.0, 1.0, "")
     df_orders.select("o_orderdate", "o_orderdate", LTPredF64(), LTPredF64(), 794880000.0, 794880000.0, "")
     df_lineitem.select("l_shipdate", "l_shipdate", GTPredF64(), GTPredF64(), 794880000.0, 794880000.0, "")
 
+    var start_join_mirco = perf_counter()
     var joined_co_df = inner_join_f64(df_customer, df_orders, "custkey")
+    var end_join_mirco = perf_counter()
+    print("JOIN MICRO: ", end_join_mirco - start_join_mirco)
+
     var joined_df_final = inner_join_f64(df_lineitem, joined_co_df, "orderkey")
 
+    print("joined_df_final size: ", joined_df_final[0].size)
+    
     var aggregated_col_names = List[String]("orderkey", "o_orderdate", "o_shippriority", "quantity", 
                                             "price", "discount", "return_flag", "shipdate", "revenue",
                                             "custkey", "mktsegment")
 
        
     var group_by_cols = List[String]("orderkey", "o_orderdate", "o_shippriority")
+
+    var start_groupby_time = perf_counter()
     joined_df_final.groupby_multicol(group_by_cols, "sum", aggregated_col_names)
-    
+    var end_groupby_time = perf_counter()
+    print("groupby aggregation time: ", end_groupby_time - start_groupby_time)
 
     joined_df_final.sort_by(List[String]("revenue", "o_orderdate"))
 
-    
-    end_time = monotonic()
+    end_time = perf_counter()
 
-    execution_time_nanoseconds = end_time - start_time
-    execution_time_seconds = execution_time_nanoseconds / 1000000000
-    #print(joined_df_final[0].size)
-    print("exec time:", execution_time_seconds)
+    print("exec time:", end_time - start_time)
 
-    for i in range(joined_df_final.columns.size):
+    for i in range(len(joined_df_final.columns)):
         print("Current col :", joined_df_final.column_names[i])
         print("Aggregation for the current group: ", joined_df_final.columns[i][0])
     
     print()
 
-    for i in range(joined_df_final.columns.size):
+    for i in range(len(joined_df_final.columns)):
         print("Current col :", joined_df_final.column_names[i])
         print("Aggregation for the current group: ", joined_df_final.columns[i][joined_df_final.columns[0].size - 1])
 
 
 fn test_query_6() raises:
-    print("Current system time:", monotonic())
+    # print("Current system time:", monotonic())
     ### TPC-H Query 6
     
     # SELECT
@@ -1576,11 +1766,12 @@ fn test_query_6() raises:
     # var l_discount = Float64Array(17996609)
     # var l_shipdate = Float64Array(17996609)
     # var l_quantity = Float64Array(17996609)
+    var start_load = perf_counter()
 
-    var l_extendedprice = Float64Array("../Data/tpch_med/l_extendedprice_tensor")
-    var l_discount = Float64Array("../Data/tpch_med/l_discount_tensor")
-    var l_shipdate = Float64Array("../Data/tpch_med/l_shipdate_tensor")
-    var l_quantity = Float64Array("../Data/tpch_med/l_quantity_tensor")
+    var l_extendedprice = Float64Array("/datadrive/tpch_large/l_extendedprice_tensor")
+    var l_discount = Float64Array("/datadrive/tpch_large/l_discount_tensor")
+    var l_shipdate = Float64Array("/datadrive/tpch_large/l_shipdate_tensor")
+    var l_quantity = Float64Array("/datadrive/tpch_large/l_quantity_tensor")
 
     # for i in range(17996609):
     #     l_extendedprice[i] = float(l_extendedprice_arr[i])
@@ -1599,13 +1790,21 @@ fn test_query_6() raises:
 
     var df_lineitem = DataFrameF64(col_data, col_names)
 
+    var end_load = perf_counter()
+
+    print("Data loading time:", end_load - start_load)
 
     var start_time = monotonic()
+    # var start_filter = perf_counter()
     # df_lineitem.select("l_shipdate", "l_discount", "l_quantity",
     #                     GTEPredF64(), LTPredF64(), GTEPredF64(), LEPredF64(), LTPredF64(),
     #                     757382400.0, 788918400.0, (0.06 - 0.01), (0.06 + 0.01), 24, "AND")
     
     df_lineitem.select("l_shipdate", "l_shipdate", GTEPredF64(), LTPredF64(), 757382400.0, 788918400.0, "AND")
+    # var end_filter = perf_counter()
+    # print("Filter time:", end_filter - start_filter)
+    # print("l_shipdate size:", df_lineitem.columns[0].size)
+
     df_lineitem.select("l_discount", "l_discount", GTEPredF64(), LEPredF64(), (0.06 - 0.01), (0.06 + 0.01), "AND")
     df_lineitem.select("l_quantity", "l_quantity", LTPredF64(), LTPredF64(), 24, 24, "")
 
@@ -1822,53 +2021,14 @@ fn test_query_6() raises:
 
 
 fn test_query_4() raises:
-    # var pd = Python.import_module("pandas")
-    # # var np = Python.import_module("numpy")
+    var start_time = perf_counter()
 
-    # pd.set_option('display.max_columns', None)
-    # var file_path = '../../../app/data/tpch_large/lineitem.csv'
-    # var df = pd.read_csv(file_path)
-    #print(df.head())
-    #print(df.shape)
-
-    # var l_orderkey_arr = df['l_orderkey']
-    # var l_extendedprice_arr = df['l_extendedprice']
-    # var l_shipdate_arr = df['l_shipdate']
-    # var l_commitdate_arr = df['l_commitdate']
-    # var l_receiptdate_arr = df['l_receiptdate']
-    # var l_quantity_arr = df['l_quantity']
-    
-
-    # var l_orderkey = Float64Array(59986052)
-    # var l_extendedprice = Float64Array(59986052)
-    # var l_shipdate = Float64Array(59986052)
-    # var l_commitdate = Float64Array(59986052)
-    # var l_receiptdate = Float64Array(59986052)
-    # var l_quantity = Float64Array(59986052)
-
-    var start_time = monotonic()
-
-    var l_orderkey = Float64Array("../Data/tpch_med/l_orderkey_tensor")
-    var l_extendedprice = Float64Array("../Data/tpch_med/l_extendedprice_tensor")
-    var l_shipdate = Float64Array("../Data/tpch_med/l_shipdate_tensor")
-    var l_commitdate = Float64Array("../Data/tpch_med/l_commitdate_tensor")
-    var l_receiptdate = Float64Array("../Data/tpch_med/l_receiptdate_tensor")
-    var l_quantity = Float64Array("../Data/tpch_med/l_quantity_tensor")
-
-    # for i in range(59986052):
-    #     l_orderkey[i] = l_orderkey_arr[i].to_float64()
-    #     l_quantity[i] = l_quantity_arr[i].to_float64()
-    #     l_extendedprice[i] = l_extendedprice_arr[i].to_float64()
-    #     l_shipdate[i] = l_shipdate_arr[i].to_float64()
-    #     l_commitdate[i] = l_commitdate_arr[i].to_float64()
-    #     l_receiptdate[i] = l_receiptdate_arr[i].to_float64()
-    
-    # l_orderkey.data.tofile(Path("../Data/tpch_large/l_orderkey_tensor"))
-    # l_quantity.data.tofile(Path("../Data/tpch_large/l_quantity_tensor"))
-    # l_extendedprice.data.tofile(Path("../Data/tpch_large/l_extendedprice_tensor"))
-    # l_shipdate.data.tofile(Path("../Data/tpch_large/l_shipdate_tensor"))
-    # l_commitdate.data.tofile(Path("../Data/tpch_large/l_commitdate_tensor"))
-    # l_receiptdate.data.tofile(Path("../Data/tpch_large/l_receiptdate_tensor"))
+    var l_orderkey = Float64Array("/datadrive/tpch_large/l_orderkey_tensor")
+    var l_extendedprice = Float64Array("/datadrive/tpch_large/l_extendedprice_tensor")
+    var l_shipdate = Float64Array("/datadrive/tpch_large/l_shipdate_tensor")
+    var l_commitdate = Float64Array("/datadrive/tpch_large/l_commitdate_tensor")
+    var l_receiptdate = Float64Array("/datadrive/tpch_large/l_receiptdate_tensor")
+    var l_quantity = Float64Array("/datadrive/tpch_large/l_quantity_tensor")
 
     print(l_receiptdate.size)
 
@@ -1881,42 +2041,12 @@ fn test_query_4() raises:
 
     var df_lineitem = DataFrameF64(col_data, col_names)
 
+    var o_custkey = Float64Array("/datadrive/tpch_large/o_custkey_tensor")
+    var o_orderkey = Float64Array("/datadrive/tpch_large/o_orderkey_tensor")
+    var o_orderdate = Float64Array("/datadrive/tpch_large/o_orderdate_tensor")
+    var o_shippriority = Float64Array("/datadrive/tpch_large/o_shippriority_tensor")
+    var o_orderpriority = Float64Array("/datadrive/tpch_large/o_orderpriority_tensor")
 
-    # var file_path_orders = '../../../app/data/tpch_large/orders.csv'
-    # var df_ord = pd.read_csv(file_path_orders)
-    # # print(df_ord.head())
-    # print(df_ord.shape)
-
-    # var o_custkey_arr = df_ord['o_custkey']
-    # var o_orderkey_arr = df_ord['o_orderkey']
-    # var o_orderdate_arr = df_ord['o_orderdate']
-    # var o_shippriority_arr = df_ord['o_shippriority']
-    # var o_orderpriority_arr = df_ord['o_orderpriority']
-
-    # var o_custkey = Float64Array(15000000)
-    # var o_orderkey = Float64Array(15000000)
-    # var o_orderdate = Float64Array(15000000)
-    # var o_shippriority = Float64Array(15000000)
-    # var o_orderpriority = Float64Array(15000000)
-
-    var o_custkey = Float64Array("../Data/tpch_med/o_custkey_tensor")
-    var o_orderkey = Float64Array("../Data/tpch_med/o_orderkey_tensor")
-    var o_orderdate = Float64Array("../Data/tpch_med/o_orderdate_tensor")
-    var o_shippriority = Float64Array("../Data/tpch_med/o_shippriority_tensor")
-    var o_orderpriority = Float64Array("../Data/tpch_med/o_orderpriority_tensor")
-
-    # for i in range(15000000):
-    #     o_custkey[i] = o_custkey_arr[i].to_float64()
-    #     o_orderkey[i] = o_orderkey_arr[i].to_float64()
-    #     o_orderdate[i] = o_orderdate_arr[i].to_float64()
-    #     o_shippriority[i] = o_shippriority_arr[i].to_float64()
-    #     o_orderpriority[i] = o_orderpriority_arr[i].to_float64()
-    
-    # o_custkey.data.tofile(Path("../Data/tpch_large/o_custkey_tensor"))
-    # o_orderkey.data.tofile(Path("../Data/tpch_large/o_orderkey_tensor"))
-    # o_orderdate.data.tofile(Path("../Data/tpch_large/o_orderdate_tensor"))
-    # o_shippriority.data.tofile(Path("../Data/tpch_large/o_shippriority_tensor"))
-    # o_orderpriority.data.tofile(Path("../Data/tpch_large/o_orderpriority_tensor"))
 
     print(o_orderpriority.size)
 
@@ -1926,40 +2056,28 @@ fn test_query_4() raises:
 
     var df_orders = DataFrameF64(orders_col_data, orders_col_names)
 
-    var end_time = monotonic()
-    var execution_time_nanoseconds = end_time - start_time
-    var execution_time_seconds = execution_time_nanoseconds / 1000000000
+    var end_time = perf_counter()
 
-    print("Data loading time:", execution_time_seconds)
+    print("Data loading time:", end_time - start_time)
 
-    # start_time = monotonic()
-    # # exists (
-	# # 	select
-	# # 		*
-	# # 	from
-	# # 		lineitem
-	# # 	where
-	# # 		l_orderkey = o_orderkey
-	# # 		and l_commitdate < l_receiptdate
-	# # )
+    start_time = perf_counter()
 
-    start_time = monotonic()
     var exec_start = perf_counter()
     
     df_lineitem.select("l_commitdate", "l_receiptdate", LTPredF64(), LTPredF64(), 0, 0, "COL")
     df_orders.select("o_orderdate", "o_orderdate", GTEPredF64(), LTPredF64(), 741484800.0, 749433600.0, "AND")
 
-    end_time = monotonic()
+    end_time = perf_counter()
     execution_time_nanoseconds = end_time - start_time
     execution_time_seconds = execution_time_nanoseconds / 1000000000
 
     print("filter time:", execution_time_seconds)
 
-    start_time = monotonic()
+    start_time = perf_counter()
 
     var joined_df = inner_join_f64(df_orders, df_lineitem, "orderkey")
     
-    end_time = monotonic()
+    end_time = perf_counter()
     execution_time_nanoseconds = end_time - start_time
     execution_time_seconds = execution_time_nanoseconds / 1000000000
 
@@ -1971,82 +2089,44 @@ fn test_query_4() raises:
     # print("exec time after join and filter: ", execution_time_seconds)
 
 
-    start_time = monotonic()
+    start_time = perf_counter()
 
     var aggregated_col_names = List[String]("order_priority", "order_count")
-    #joined_df.select("o_orderdate", "o_orderdate", GTEPredF64(), LTPredF64(), 741484800.0, 749433600.0, "AND")
-    # print("complete second filter")
+   
     joined_df.groupby("o_orderpriority", "count", aggregated_col_names)
 
-    end_time = monotonic()
+    end_time = perf_counter()
 
     print("groupby time: ", (end_time - start_time) / 1000000000)
 
-    start_time = monotonic()
+    start_time = perf_counter()
 
     joined_df.sort_by(List[String]("order_priority"))
-    # print("complete groupby count")
-    # joined_df_final.groupby_multicol(group_by_cols, "sum", aggregated_col_names)
-    # joined_df_final.sort_by(List[String]("revenue", "o_orderdate"))
-
-    end_time = monotonic()
+   
+    end_time = perf_counter()
     execution_time_nanoseconds = end_time - start_time
     execution_time_seconds = execution_time_nanoseconds / 1000000000
     print("sort time: ", execution_time_seconds)
 
-    # print("flat keys:", flat_keys.size)
-    #print("compound keys:", groups_vec.size)
-    # for val in group_to_count.values():
-    #     print(val[])
-    #     break
-    
+   
     var exec_end = perf_counter()
     print("exec time: ", exec_end - exec_start)
-    # print("exec time: ", execution_time_seconds)
-    # print("group 34240 summed vals:")
-    # print(joined_df.columns.size)
-    for i in range(joined_df.columns.size):
+   
+    for i in range(len(joined_df.columns)):
         print(joined_df.column_names[i])
         for j in range(joined_df.columns[0].size):
             print(joined_df[joined_df.column_names[i]][j])
 
 
 fn test_query_5() raises:
-    # var pd = Python.import_module("pandas")
+    var start_load = perf_counter()
 
-    # pd.set_option('display.max_columns', None)
-    # var file_path = '../../data/tpch_3gb/lineitem-med.csv'
-    # var df = pd.read_csv(file_path)
-    # print(df.head())
-    # print(df.shape)
+    var l_orderkey = Float64Array("/datadrive/tpch_large/l_orderkey_tensor")
+    var l_extendedprice = Float64Array("/datadrive/tpch_large/l_extendedprice_tensor")
+    var l_discount = Float64Array("/datadrive/tpch_large/l_discount_tensor")
+    var l_discprice = Float64Array("/datadrive/tpch_large/l_discprice_tensor")
+    var l_suppkey = Float64Array("/datadrive/tpch_large/l_suppkey_tensor")
 
-    # var l_orderkey_arr = df['l_orderkey']
-    # var l_extendedprice_arr = df['l_extendedprice'].to_numpy()
-    # var l_discount_arr = df['l_discount'].to_numpy()
-    # var l_suppkey_arr = df['l_suppkey']
-
-
-    # var l_orderkey = Float64Array(17996609)
-    # var l_extendedprice = Float64Array(17996609)
-    # var l_discount = Float64Array(17996609)
-    # var l_discprice = Float64Array(17996609)
-    # var l_suppkey = Float64Array(17996609)
-
-    var l_orderkey = Float64Array("../Data/tpch_med/l_orderkey_tensor")
-    var l_extendedprice = Float64Array("../Data/tpch_med/l_extendedprice_tensor")
-    var l_discount = Float64Array("../Data/tpch_med/l_discount_tensor")
-    var l_discprice = Float64Array("../Data/tpch_med/l_discprice_tensor")
-    var l_suppkey = Float64Array("../Data//tpch_med/l_suppkey_tensor")
-
-    # for i in range(17996609):
-    #     l_orderkey[i] = Float64(l_orderkey_arr[i])
-    #     # l_extendedprice[i] = l_extendedprice_arr[i].to_float64()
-    #     # l_discount[i] = l_discount_arr[i].to_float64()
-    #     # l_discprice[i] = l_extendedprice[i] * (1 - l_discount[i])
-    #     l_suppkey[i] = Float64(l_suppkey_arr[i])
-
-    # l_orderkey.data.tofile(Path("../Data/tpch_med/l_orderkey_tensor"))
-    # l_suppkey.data.tofile(Path("../Data/tpch_med/l_suppkey_tensor"))
         
     print(l_orderkey.size)
 
@@ -2056,23 +2136,9 @@ fn test_query_5() raises:
 
     var df_lineitem = DataFrameF64(col_data, col_names)
 
-    # var file_path_customer = '/app/data/tpch_3gb/customer.csv'
-    # var df_cust = pd.read_csv(file_path_customer)
-    # print(df_cust.head())
-    # print(df_cust.shape)
 
-    # var c_custkey_arr = df_cust['c_custkey'].to_numpy()
-    # var c_nationkey_arr = df_cust['c_nationkey'].to_numpy()
-
-    # var c_custkey = Float64Array(450000)
-    # var c_nationkey = Float64Array(450000)
-
-    var c_custkey = Float64Array("../Data/tpch_med/c_custkey_tensor")
-    var c_nationkey = Float64Array("../Data/tpch_med/c_nationkey_tensor")
-
-    # for i in range(450000):
-    #     c_custkey[i] = c_custkey_arr[i].to_float64()
-    #     c_nationkey[i] = c_nationkey_arr[i].to_float64()
+    var c_custkey = Float64Array("/datadrive/tpch_large/c_custkey_tensor")
+    var c_nationkey = Float64Array("/datadrive/tpch_large/c_nationkey_tensor")
     
     print(c_custkey.size)
 
@@ -2083,29 +2149,11 @@ fn test_query_5() raises:
     var df_customer = DataFrameF64(cust_col_data, cust_col_names)
 
 
-    # var file_path_orders = '../../data/tpch_3gb/orders.csv'
-    # var df_ord = pd.read_csv(file_path_orders)
-    # print(df_ord.head())
-    # print(df_ord.shape)
+    var o_custkey = Float64Array("/datadrive/tpch_large/o_custkey_tensor")
+    var o_orderkey = Float64Array("/datadrive/tpch_large/o_orderkey_tensor")
+    var o_orderdate = Float64Array("/datadrive/tpch_large/o_orderdate_tensor")
 
-    # var o_custkey_arr = df_ord['o_custkey'].to_numpy()
-    # var o_orderkey_arr = df_ord['o_orderkey'].to_numpy()
-    # var o_orderdate_arr = df_ord['o_orderdate']
 
-    # var o_custkey = Float64Array(4500000)
-    # var o_orderkey = Float64Array(4500000)
-    # var o_orderdate = Float64Array(4500000)
-
-    var o_custkey = Float64Array("../Data/tpch_med/o_custkey_tensor")
-    var o_orderkey = Float64Array("../Data/tpch_med/o_orderkey_tensor")
-    var o_orderdate = Float64Array("../Data/tpch_med/o_orderdate_tensor")
-
-    # for i in range(4500000):
-    #     # o_custkey[i] = o_custkey_arr[i].to_float64()
-    #     # o_orderkey[i] = o_orderkey_arr[i].to_float64()
-    #     o_orderdate[i] = Float64(o_orderdate_arr[i])
-    
-    # o_orderdate.data.tofile(Path("../Data/tpch_med/o_orderdate_tensor"))
     print(o_orderdate.size)
     
 
@@ -2116,26 +2164,9 @@ fn test_query_5() raises:
     var df_orders = DataFrameF64(orders_col_data, orders_col_names)
 
 
-    # var file_path_supp = '../../data/tpch_3gb/supplier.csv'
-    # var df_supp = pd.read_csv(file_path_supp)
-    # print(df_supp.head())
-    # print(df_supp.shape)
+    var s_suppkey = Float64Array("/datadrive/tpch_large/s_suppkey_tensor")
+    var s_nationkey = Float64Array("/datadrive/tpch_large/s_nationkey_tensor")
 
-    # var s_suppkey_arr = df_supp['s_suppkey']
-    # var s_nationkey_arr = df_supp['s_nationkey']
-
-    var s_suppkey = Float64Array("../Data/tpch_med/s_suppkey_tensor")
-    var s_nationkey = Float64Array("../Data/tpch_med/s_nationkey_tensor")
-
-    # var s_suppkey = Float64Array(30000)
-    # var s_nationkey = Float64Array(30000)
-
-    # for i in range(30000):
-    #     s_suppkey[i] = Float64(s_suppkey_arr[i])
-    #     s_nationkey[i] = Float64(s_nationkey_arr[i])
-    
-    # s_suppkey.data.tofile(Path("../Data/tpch_med/s_suppkey_tensor"))
-    # s_nationkey.data.tofile(Path("../Data/tpch_med/s_nationkey_tensor"))
     print(s_suppkey.size)
 
     var supp_col_data = List[Float64Array](s_suppkey, s_nationkey)
@@ -2144,31 +2175,12 @@ fn test_query_5() raises:
 
     var df_supplier = DataFrameF64(supp_col_data, supp_col_names)
 
-    # var file_path_nation = '../../data/tpch_3gb/nation.csv'
-    # var df_nat = pd.read_csv(file_path_nation)
-    # print(df_nat.head())
-    # print(df_nat.shape)
 
-    # var n_nationkey_arr = df_nat['n_nationkey']
-    # var n_regionkey_arr = df_nat['n_regionkey']
-    # var n_name_arr = df_nat['n_name']
+    var n_nationkey = Float64Array("/datadrive/tpch_large/n_nationkey_tensor")
+    var n_regionkey = Float64Array("/datadrive/tpch_large/n_regionkey_tensor")
+    var n_name = Float64Array("/datadrive/tpch_large/n_name_tensor")
 
-    # var n_nationkey = Float64Array(25)
-    # var n_regionkey = Float64Array(25)
-    # var n_name = Float64Array(25)
 
-    var n_nationkey = Float64Array("../Data/tpch_med/n_nationkey_tensor")
-    var n_regionkey = Float64Array("../Data/tpch_med/n_regionkey_tensor")
-    var n_name = Float64Array("../Data/tpch_med/n_name_tensor")
-
-    # for i in range(25):
-    #     n_nationkey[i] = Float64(n_nationkey_arr[i])
-    #     n_regionkey[i] = Float64(n_regionkey_arr[i])
-    #     n_name[i] = Float64(n_name_arr[i])
-    
-    # n_nationkey.data.tofile(Path("../Data/tpch_med/n_nationkey_tensor"))
-    # n_regionkey.data.tofile(Path("../Data/tpch_med/n_regionkey_tensor"))
-    # n_name.data.tofile(Path("../Data/tpch_med/n_name_tensor"))
     print(n_nationkey.size)
 
     var nation_col_data = List[Float64Array](n_nationkey, n_regionkey, n_name)
@@ -2178,26 +2190,9 @@ fn test_query_5() raises:
     var df_nation = DataFrameF64(nation_col_data, nation_col_names)
 
 
-    # var file_path_region = '../..//data/tpch_3gb/region.csv'
-    # var df_reg = pd.read_csv(file_path_region)
-    # print(df_reg.head())
-    # print(df_reg.shape)
+    var r_regionkey = Float64Array("/datadrive/tpch_large/r_regionkey_tensor")
+    var r_name = Float64Array("/datadrive/tpch_large/r_name_tensor")
 
-    # var r_regionkey_arr = df_reg['r_regionkey']
-    # var r_name_arr = df_reg['r_name']
-
-    # var r_regionkey = Float64Array(5)
-    # var r_name = Float64Array(5)
-
-    var r_regionkey = Float64Array("../Data/tpch_med/r_regionkey_tensor")
-    var r_name = Float64Array("../Data/tpch_med/r_name_tensor")
-
-    # for i in range(5):
-    #     r_regionkey[i] = Float64(r_regionkey_arr[i])
-    #     r_name[i] = Float64(r_name_arr[i])
-    
-    # r_regionkey.data.tofile(Path("../Data/tpch_med/r_regionkey_tensor"))
-    # r_name.data.tofile(Path("../Data/tpch_med/r_name_tensor"))
 
     print(r_regionkey.size)
 
@@ -2207,30 +2202,20 @@ fn test_query_5() raises:
 
     var df_region = DataFrameF64(region_col_data, region_col_names)
 
+    var end_load = perf_counter()
+    print("Data loading time:", end_load - start_load)
 
-    var start_time = monotonic()
-    # filter first then join
-    # and r_name = 'ASIA'
-	# and o_orderdate >= date '1994-01-01'
-	# and o_orderdate < date '1994-01-01' + interval '1' year
+    var start_time = perf_counter()
 
 
     # 43715.0 is the float representation of ASIA
     df_region.select("r_name", "r_name", EQPredF64(), EQPredF64(), 43715.0, 43715.0, "")
     df_orders.select("o_orderdate", "o_orderdate", GTEPredF64(), LTPredF64(), 757382400.0, 788918400.0, "AND")
 
-    var end_time = monotonic()
-    var execution_time_nanoseconds = end_time - start_time
-    var execution_time_seconds = execution_time_nanoseconds / 1000000000
+    var end_time = perf_counter()
 
-    print("filter time:", execution_time_seconds)
+    print("filter time:", end_time - start_time)
 
-    # c_custkey = o_custkey
-	# and l_orderkey = o_orderkey
-	# and l_suppkey = s_suppkey
-	# and c_nationkey = s_nationkey
-	# and s_nationkey = n_nationkey
-	# and n_regionkey = r_regionkey
     var joined_co_df = inner_join_f64(df_customer, df_orders, "custkey")
     var joined_l_df = inner_join_f64(df_lineitem, joined_co_df, "orderkey")
     var joined_supp_df = inner_join_f64(joined_l_df, df_supplier, "suppkey")
@@ -2239,11 +2224,9 @@ fn test_query_5() raises:
     var joined_nation_df = inner_join_f64(joined_supp_df, df_nation, "nationkey")
     var joined_df_final = inner_join_f64(joined_nation_df, df_region, "regionkey")
     
-    end_time = monotonic()
-    execution_time_nanoseconds = end_time - start_time
-    execution_time_seconds = execution_time_nanoseconds / 1000000000
+    end_time = perf_counter()
 
-    print("join time:", execution_time_seconds)
+    print("join time:", end_time - start_time)
 
     var aggregated_col_names = List[String]("n_name", "orderkey", "extendedprice",
                                             "discount", "revenue", "suppkey", 
@@ -2252,58 +2235,54 @@ fn test_query_5() raises:
     joined_df_final.groupby("n_name", "sum", aggregated_col_names)
     
 
-    end_time = monotonic()
+    end_time = perf_counter()
     execution_time_nanoseconds = end_time - start_time
     execution_time_seconds = execution_time_nanoseconds / 1000000000
 
-    print("aggregation time: ", execution_time_seconds)
+    print("aggregation time: ", end_time - start_time)
 
     joined_df_final.sort_by(List[String]("revenue"))
 
-    end_time = monotonic()
-    execution_time_nanoseconds = end_time - start_time
-    execution_time_seconds = execution_time_nanoseconds / 1000000000
+    end_time = perf_counter()
 
-        
-    print("exec time: ", execution_time_seconds)
+    print("exec time: ", end_time - start_time)
    
-    for i in range(joined_df_final.columns.size):
+    for i in range(len(joined_df_final.columns)):
         print(joined_df_final.column_names[i])
         print(joined_df_final[joined_df_final.column_names[i]][joined_df_final.columns[0].size - 1])
 
     print()
 
-    for i in range(joined_df_final.columns.size):
+    for i in range(len(joined_df_final.columns)):
         print(joined_df_final.column_names[i])
         print(joined_df_final[joined_df_final.column_names[i]][joined_df_final.columns[0].size - 2])
 
     print()
 
-    for i in range(joined_df_final.columns.size):
+    for i in range(len(joined_df_final.columns)):
         print(joined_df_final.column_names[i])
         print(joined_df_final[joined_df_final.column_names[i]][joined_df_final.columns[0].size - 3])
     
 
     print()
 
-    for i in range(joined_df_final.columns.size):
+    for i in range(len(joined_df_final.columns)):
         print(joined_df_final.column_names[i])
         print(joined_df_final[joined_df_final.column_names[i]][joined_df_final.columns[0].size - 4])
 
     print()
-    for i in range(joined_df_final.columns.size):
+    for i in range(len(joined_df_final.columns)):
         print(joined_df_final.column_names[i])
         print(joined_df_final[joined_df_final.column_names[i]][joined_df_final.columns[0].size - 5])
 
 
 fn test_query_2() raises:
     var pd = Python.import_module("pandas")
+    var start_time = perf_counter()
 
-    var start_time = monotonic()
-
-    var ps_partkey = Float64Array("../Data/tpch_med/ps_partkey_tensor")
-    var ps_suppkey = Float64Array("../Data/tpch_med/ps_suppkey_tensor")
-    var ps_supplycost = Float64Array("../Data/tpch_med/ps_supplycost_tensor")
+    var ps_partkey = Float64Array("/datadrive/tpch_large/ps_partkey_tensor")
+    var ps_suppkey = Float64Array("/datadrive/tpch_large/ps_suppkey_tensor")
+    var ps_supplycost = Float64Array("/datadrive/tpch_large/ps_supplycost_tensor")
 
     print(ps_partkey.size)
 
@@ -2314,16 +2293,16 @@ fn test_query_2() raises:
     var df_partsupp = DataFrameF64(ps_col_data, ps_col_names)
     # var df_partsupp_outer = DataFrameF64(ps_col_data, ps_col_names)
 
-    var file_path_part = '../../data/tpch_3gb/part.csv'
+    var file_path_part = '/datadrive/tpch_large/part.csv'
     var df_pt = pd.read_csv(file_path_part)
     var p_type_arr = df_pt['p_type']
 
-    var p_partkey = Float64Array("../Data/tpch_med/p_partkey_tensor")
-    var p_size = Float64Array("../Data/tpch_med/p_size_tensor")
+    var p_partkey = Float64Array("/datadrive/tpch_large/p_partkey_tensor")
+    var p_size = Float64Array("/datadrive/tpch_large/p_size_tensor")
     var p_type = List[String]()
-    p_type.resize(600000, "")
+    p_type.resize(2000000, "")
 
-    for i in range(600000):
+    for i in range(2000000):
         p_type[i] = (p_type_arr[i].__str__())
     
     print(p_partkey.size)
@@ -2335,10 +2314,10 @@ fn test_query_2() raises:
     var df_part = DataFrameF64(part_col_data, part_col_names)
     # var df_part_outer = DataFrameF64(part_col_data, part_col_names)
 
-    var s_suppkey = Float64Array("../Data/tpch_med/s_suppkey_tensor")
-    var s_nationkey = Float64Array("../Data/tpch_med/s_nationkey_tensor")
-    var s_acctbal = Float64Array("../Data/tpch_med/s_acctbal_tensor")
-    var s_name = Float64Array("../Data/tpch_med/s_name_tensor")
+    var s_suppkey = Float64Array("/datadrive/tpch_large/s_suppkey_tensor")
+    var s_nationkey = Float64Array("/datadrive/tpch_large/s_nationkey_tensor")
+    var s_acctbal = Float64Array("/datadrive/tpch_large/s_acctbal_tensor")
+    var s_name = Float64Array("/datadrive/tpch_large/s_name_tensor")
 
     print(s_suppkey.size)
 
@@ -2351,9 +2330,9 @@ fn test_query_2() raises:
     # var df_supplier_outer = DataFrameF64(supp_col_data, supp_col_names)
 
 
-    var n_nationkey = Float64Array("../Data/tpch_med/n_nationkey_tensor")
-    var n_regionkey = Float64Array("../Data/tpch_med/n_regionkey_tensor")
-    var n_name = Float64Array("../Data/tpch_med/n_name_tensor")
+    var n_nationkey = Float64Array("/datadrive/tpch_large/n_nationkey_tensor")
+    var n_regionkey = Float64Array("/datadrive/tpch_large/n_regionkey_tensor")
+    var n_name = Float64Array("/datadrive/tpch_large/n_name_tensor")
 
     print(n_nationkey.size)
 
@@ -2364,8 +2343,8 @@ fn test_query_2() raises:
     var df_nation = DataFrameF64(nation_col_data, nation_col_names)
     # var df_nation_outer = DataFrameF64(nation_col_data, nation_col_names)
 
-    var r_regionkey = Float64Array("../Data/tpch_med/r_regionkey_tensor")
-    var r_name = Float64Array("../Data/tpch_med/r_name_tensor")
+    var r_regionkey = Float64Array("/datadrive/tpch_large/r_regionkey_tensor")
+    var r_name = Float64Array("/datadrive/tpch_large/r_name_tensor")
 
     print(r_regionkey.size)
 
@@ -2377,30 +2356,13 @@ fn test_query_2() raises:
     var df_region = DataFrameF64(region_col_data, region_col_names)
     # var df_region_outer = DataFrameF64(region_col_data, region_col_names)
 
+   
+    var end_time = perf_counter()
 
-    var end_time = monotonic()
-    var execution_time_nanoseconds = end_time - start_time
-    var execution_time_seconds = execution_time_nanoseconds / 1000000000
+    print("Data loading time: ", end_time - start_time)
+   
 
-    print("Data loading time: ", execution_time_seconds)
-
-    start_time = monotonic()
-    # get min supp cost for each part
-    # ps_supplycost = (
-	# 	select
-	# 		min(ps_supplycost)
-	# 	from
-	# 		partsupp,
-	# 		supplier,
-	# 		nation,
-	# 		region
-	# 	where
-	# 		p_partkey = ps_partkey
-	# 		and s_suppkey = ps_suppkey
-	# 		and s_nationkey = n_nationkey
-	# 		and n_regionkey = r_regionkey
-	# 		and r_name = 'EUROPE'
-	# )
+    start_time = perf_counter()
 
     # EUROPE
     df_region.select("r_name", "r_name", EQPredF64(), EQPredF64(), 35796.0, 35796.0, "")
@@ -2431,16 +2393,13 @@ fn test_query_2() raises:
 
     min_supplycost_final.sort_by(List[String]("s_acctbal", "n_name", "s_name", "partkey"))
 
-    end_time = monotonic()
-    execution_time_nanoseconds = end_time - start_time
-    execution_time_seconds = execution_time_nanoseconds / 1000000000
-
+    end_time = perf_counter()
     
     print("final df: ", min_supplycost_final.columns[0].size)
 
-    print("exec time: ", execution_time_seconds)
+    print("exec time: ", end_time - start_time)
 
-    for i in range(min_supplycost_final.columns.size):
+    for i in range(len(min_supplycost_final.columns)):
         if (min_supplycost_final.column_names[i] == "partkey"):
             print(min_supplycost_final.column_names[i])
             print(min_supplycost_final[min_supplycost_final.col_name_to_idx["partkey"]][min_supplycost_final.columns[0].size - 1])
@@ -2457,7 +2416,7 @@ fn test_query_2() raises:
             print(min_supplycost_final.column_names[i])
             print(min_supplycost_final[min_supplycost_final.col_name_to_idx["s_acctbal"]][min_supplycost_final.columns[0].size - 1])
     print()
-    for i in range(min_supplycost_final.columns.size):
+    for i in range(len(min_supplycost_final.columns)):
         if (min_supplycost_final.column_names[i] == "partkey"):
             print(min_supplycost_final.column_names[i])
             print(min_supplycost_final[min_supplycost_final.col_name_to_idx["partkey"]][min_supplycost_final.columns[0].size - 2])
@@ -2474,7 +2433,7 @@ fn test_query_2() raises:
             print(min_supplycost_final.column_names[i])
             print(min_supplycost_final[min_supplycost_final.col_name_to_idx["s_acctbal"]][min_supplycost_final.columns[0].size - 2])
     print()
-    for i in range(min_supplycost_final.columns.size):
+    for i in range(len(min_supplycost_final.columns)):
         if (min_supplycost_final.column_names[i] == "partkey"):
             print(min_supplycost_final.column_names[i])
             print(min_supplycost_final[min_supplycost_final.col_name_to_idx["partkey"]][min_supplycost_final.columns[0].size - 3])
@@ -2514,13 +2473,14 @@ fn test_query_7() raises:
     # var l_volume = Float64Array(17996609)
     # var l_suppkey = Float64Array(17996609)
     # var l_shipdate = Float64Array(17996609)
+    var start_load = perf_counter()
 
-    var l_orderkey = Float64Array("../Data/tpch_med/l_orderkey_tensor")
-    var l_extendedprice = Float64Array("../Data/tpch_med/l_extendedprice_tensor")
-    var l_discount = Float64Array("../Data/tpch_med/l_discount_tensor")
-    var l_volume = Float64Array("../Data/tpch_med/l_discprice_tensor")
-    var l_suppkey = Float64Array("../Data/tpch_med/l_suppkey_tensor")
-    var l_shipdate = Float64Array("../Data/tpch_med/l_shipdate_tensor")
+    var l_orderkey = Float64Array("/datadrive/tpch_large/l_orderkey_tensor")
+    var l_extendedprice = Float64Array("/datadrive/tpch_large/l_extendedprice_tensor")
+    var l_discount = Float64Array("/datadrive/tpch_large/l_discount_tensor")
+    var l_volume = Float64Array("/datadrive/tpch_large/l_discprice_tensor")
+    var l_suppkey = Float64Array("/datadrive/tpch_large/l_suppkey_tensor")
+    var l_shipdate = Float64Array("/datadrive/tpch_large/l_shipdate_tensor")
 
     # for i in range(17996609):
     #     l_orderkey[i] = l_orderkey_arr[i].to_float64()
@@ -2551,8 +2511,8 @@ fn test_query_7() raises:
     # var s_suppkey = Float64Array(30000)
     # var s_nationkey = Float64Array(30000)
 
-    var s_suppkey = Float64Array("../Data/tpch_med/s_suppkey_tensor")
-    var s_nationkey = Float64Array("../Data/tpch_med/s_nationkey_tensor")
+    var s_suppkey = Float64Array("/datadrive/tpch_large/s_suppkey_tensor")
+    var s_nationkey = Float64Array("/datadrive/tpch_large/s_nationkey_tensor")
 
     # for i in range(30000):
     #     s_suppkey[i] = s_suppkey_arr[i].to_float64()
@@ -2581,8 +2541,8 @@ fn test_query_7() raises:
     # var n_nationkey = Float64Array(25)
     # var n_name = Float64Array(25)
     
-    var n_nationkey = Float64Array("../Data/tpch_med/n_nationkey_tensor")
-    var n_name = Float64Array("../Data/tpch_med/n_name_tensor")
+    var n_nationkey = Float64Array("/datadrive/tpch_large/n_nationkey_tensor")
+    var n_name = Float64Array("/datadrive/tpch_large/n_name_tensor")
 
     # for i in range(25):
     #     n_nationkey[i] = n_nationkey_arr[i].to_float64()
@@ -2611,8 +2571,8 @@ fn test_query_7() raises:
     # var c_custkey = Float64Array(450000)
     # var c_nationkey = Float64Array(450000)
 
-    var c_custkey = Float64Array("../Data/tpch_med/c_custkey_tensor")
-    var c_nationkey = Float64Array("../Data/tpch_med/c_nationkey_tensor")
+    var c_custkey = Float64Array("/datadrive/tpch_large/c_custkey_tensor")
+    var c_nationkey = Float64Array("/datadrive/tpch_large/c_nationkey_tensor")
 
     # for i in range(450000):
     #     c_custkey[i] = c_custkey_arr[i].to_float64()
@@ -2639,8 +2599,8 @@ fn test_query_7() raises:
     # var o_orderkey = Float64Array(4500000)
 
 
-    var o_custkey = Float64Array("../Data/tpch_med/o_custkey_tensor")
-    var o_orderkey = Float64Array("../Data/tpch_med/o_orderkey_tensor")
+    var o_custkey = Float64Array("/datadrive/tpch_large/o_custkey_tensor")
+    var o_orderkey = Float64Array("/datadrive/tpch_large/o_orderkey_tensor")
     
 
     # for i in range(4500000):
@@ -2655,7 +2615,9 @@ fn test_query_7() raises:
     var orders_col_names = List[String]("custkey", "orderkey")
 
     var df_orders = DataFrameF64(orders_col_data, orders_col_names)
-
+    
+    var end_load = perf_counter()
+    print("Data loading time:", end_load - start_load)
 
     var start_time = monotonic()
 
@@ -2691,7 +2653,7 @@ fn test_query_7() raises:
     # extract(year from l_shipdate) as l_year
     for i in range(shipping["l_shipdate"].size):
         var unix_time = shipping["l_shipdate"][i]
-        shipping.columns[shipping.col_name_to_idx["l_shipdate"]][i] = (SIMD[DType.float64, 1](1970.0 + (unix_time / 31536000.0))).roundeven()
+        shipping.columns[shipping.col_name_to_idx["l_shipdate"]][i] = (SIMD[DType.float64, 1](1970.0 + (unix_time / 31536000.0))).__round__()
         
 
     # group by
@@ -2717,27 +2679,27 @@ fn test_query_7() raises:
     
     print("final df size: ", shipping.columns[0].size)
 
-    for i in range(shipping.columns.size):
+    for i in range(len(shipping.columns)):
         print(shipping.column_names[i])
         print(shipping.columns[i][0])
     print()
-    for i in range(shipping.columns.size):
+    for i in range(len(shipping.columns)):
         print(shipping.column_names[i])
         print(shipping.columns[i][1])
     print()
-    for i in range(shipping.columns.size):
+    for i in range(len(shipping.columns)):
         print(shipping.column_names[i])
         print(shipping.columns[i][2])
     print()
-    for i in range(shipping.columns.size):
+    for i in range(len(shipping.columns)):
         print(shipping.column_names[i])
         print(shipping.columns[i][3])
     print()
-    for i in range(shipping.columns.size):
+    for i in range(len(shipping.columns)):
         print(shipping.column_names[i])
         print(shipping.columns[i][4])
     print()
-    for i in range(shipping.columns.size):
+    for i in range(len(shipping.columns)):
         print(shipping.column_names[i])
         print(shipping.columns[i][5])
 
@@ -2746,7 +2708,9 @@ fn test_query_8() raises:
     var pd = Python.import_module("pandas")
     pd.set_option('display.max_columns', None)
 
-    var file_path_part = '../../data/tpch_3gb/part.csv'
+    var start_load = perf_counter()
+
+    var file_path_part = '/datadrive/tpch_large/part.csv'
     var df_pt = pd.read_csv(file_path_part)
     print(df_pt.head())
     print(df_pt.shape)
@@ -2755,11 +2719,11 @@ fn test_query_8() raises:
     var p_type_arr = df_pt['p_type']
 
     #var p_partkey = Float64Array(600000)
-    var p_partkey = Float64Array("../Data/tpch_med/p_partkey_tensor")
+    var p_partkey = Float64Array("/datadrive/tpch_large/p_partkey_tensor")
     var p_type = List[String]()
-    p_type.resize(600000, "")
+    p_type.resize(2000000, "")
 
-    for i in range(600000):
+    for i in range(2000000):
         # p_partkey[i] = p_partkey_arr[i].to_float64()
         p_type[i] = p_type_arr[i].__str__()
     
@@ -2791,12 +2755,12 @@ fn test_query_8() raises:
     # var l_suppkey = Float64Array(17996609)
     # var l_partkey = Float64Array(17996609)
 
-    var l_orderkey = Float64Array("../Data/tpch_med/l_orderkey_tensor")
-    var l_extendedprice = Float64Array("../Data/tpch_med/l_extendedprice_tensor")
-    var l_discount = Float64Array("../Data/tpch_med/l_discount_tensor")
-    var l_volume = Float64Array("../Data/tpch_med/l_discprice_tensor")
-    var l_suppkey = Float64Array("../Data/tpch_med/l_suppkey_tensor")
-    var l_partkey = Float64Array("../Data/tpch_med/l_partkey_tensor")
+    var l_orderkey = Float64Array("/datadrive/tpch_large/l_orderkey_tensor")
+    var l_extendedprice = Float64Array("/datadrive/tpch_large/l_extendedprice_tensor")
+    var l_discount = Float64Array("/datadrive/tpch_large/l_discount_tensor")
+    var l_volume = Float64Array("/datadrive/tpch_large/l_discprice_tensor")
+    var l_suppkey = Float64Array("/datadrive/tpch_large/l_suppkey_tensor")
+    var l_partkey = Float64Array("/datadrive/tpch_large/l_partkey_tensor")
 
     # for i in range(17996609):
     #     l_orderkey[i] = l_orderkey_arr[i].to_float64()
@@ -2827,8 +2791,8 @@ fn test_query_8() raises:
     # var s_suppkey = Float64Array(30000)
     # var s_nationkey = Float64Array(30000)
 
-    var s_suppkey = Float64Array("../Data/tpch_med/s_suppkey_tensor")
-    var s_nationkey = Float64Array("../Data/tpch_med/s_nationkey_tensor")
+    var s_suppkey = Float64Array("/datadrive/tpch_large/s_suppkey_tensor")
+    var s_nationkey = Float64Array("/datadrive/tpch_large/s_nationkey_tensor")
 
     # for i in range(30000):
     #     s_suppkey[i] = s_suppkey_arr[i].to_float64()
@@ -2857,9 +2821,9 @@ fn test_query_8() raises:
     # var n_name = Float64Array(25)
     # var n_regionkey = Float64Array(25)
 
-    var n_nationkey = Float64Array("../Data/tpch_med/n_nationkey_tensor")
-    var n_name = Float64Array("../Data/tpch_med/n_name_tensor")
-    var n_regionkey = Float64Array("../Data/tpch_med/n_regionkey_tensor")
+    var n_nationkey = Float64Array("/datadrive/tpch_large/n_nationkey_tensor")
+    var n_name = Float64Array("/datadrive/tpch_large/n_name_tensor")
+    var n_regionkey = Float64Array("/datadrive/tpch_large/n_regionkey_tensor")
 
     # for i in range(25):
     #     n_nationkey[i] = n_nationkey_arr[i].to_float64()
@@ -2889,8 +2853,8 @@ fn test_query_8() raises:
     # var c_custkey = Float64Array(450000)
     # var c_nationkey = Float64Array(450000)
 
-    var c_custkey = Float64Array("../Data/tpch_med/c_custkey_tensor")
-    var c_nationkey = Float64Array("../Data/tpch_med/c_nationkey_tensor")
+    var c_custkey = Float64Array("/datadrive/tpch_large/c_custkey_tensor")
+    var c_nationkey = Float64Array("/datadrive/tpch_large/c_nationkey_tensor")
 
     # for i in range(450000):
     #     c_custkey[i] = c_custkey_arr[i].to_float64()
@@ -2918,9 +2882,9 @@ fn test_query_8() raises:
     # var o_orderkey = Float64Array(4500000)
     # var o_orderdate = Float64Array(4500000)
 
-    var o_custkey = Float64Array("../Data/tpch_med/o_custkey_tensor")
-    var o_orderkey = Float64Array("../Data/tpch_med/o_orderkey_tensor")
-    var o_orderdate = Float64Array("../Data/tpch_med/o_orderdate_tensor")
+    var o_custkey = Float64Array("/datadrive/tpch_large/o_custkey_tensor")
+    var o_orderkey = Float64Array("/datadrive/tpch_large/o_orderkey_tensor")
+    var o_orderdate = Float64Array("/datadrive/tpch_large/o_orderdate_tensor")
     
 
     # for i in range(4500000):
@@ -2949,8 +2913,8 @@ fn test_query_8() raises:
     # var r_regionkey = Float64Array(5)
     # var r_name = Float64Array(5)
 
-    var r_regionkey = Float64Array("../Data/tpch_med/r_regionkey_tensor")
-    var r_name = Float64Array("../Data/tpch_med/r_name_tensor")
+    var r_regionkey = Float64Array("/datadrive/tpch_large/r_regionkey_tensor")
+    var r_name = Float64Array("/datadrive/tpch_large/r_name_tensor")
 
 
     # for i in range(5):
@@ -2964,6 +2928,9 @@ fn test_query_8() raises:
     var region_col_names = List[String]("regionkey1", "r_name")
 
     var df_region = DataFrameF64(region_col_data, region_col_names)
+
+    var end_load = perf_counter()
+    print("Data loading time:", end_load - start_load)
 
     var start_time = monotonic()
     # Subquery to get shipping table
@@ -2987,8 +2954,8 @@ fn test_query_8() raises:
     # extract(year from o_orderdate) as o_year
     for i in range(all_nations["o_orderdate"].size):
         var unix_time = all_nations["o_orderdate"][i]
-        all_nations.columns[all_nations.col_name_to_idx["o_orderdate"]][i] = (SIMD[DType.float64, 1](1970.0 + (unix_time / 31536000.0))).roundeven()
-        brazil.columns[brazil.col_name_to_idx["o_orderdate"]][i] = (SIMD[DType.float64, 1](1970.0 + (unix_time / 31536000.0))).roundeven()
+        all_nations.columns[all_nations.col_name_to_idx["o_orderdate"]][i] = (SIMD[DType.float64, 1](1970.0 + (unix_time / 31536000.0))).__round__()
+        brazil.columns[brazil.col_name_to_idx["o_orderdate"]][i] = (SIMD[DType.float64, 1](1970.0 + (unix_time / 31536000.0))).__round__()
     
     var brazil_mask = all_nations.select_mask("n_name2", "n_name2", EQPredF64(), EQPredF64(), 62514.0, 62514.0, "")
 
@@ -3014,7 +2981,7 @@ fn test_query_8() raises:
 
     print("exec time: ", execution_time_seconds)
 
-    for i in range(brazil.columns.size):
+    for i in range(len(brazil.columns)):
         if (brazil.column_names[i] == "o_year"):
             print(brazil.column_names[i])
             print(brazil[brazil.col_name_to_idx["o_year"]][0])
@@ -3022,7 +2989,7 @@ fn test_query_8() raises:
             print(brazil.column_names[i])
             print(brazil[brazil.col_name_to_idx["mkt_share"]][0])
     print()
-    for i in range(brazil.columns.size):
+    for i in range(len(brazil.columns)):
         if (brazil.column_names[i] == "o_year"):
             print(brazil.column_names[i])
             print(brazil[brazil.col_name_to_idx["o_year"]][1])
@@ -3030,7 +2997,7 @@ fn test_query_8() raises:
             print(brazil.column_names[i])
             print(brazil[brazil.col_name_to_idx["mkt_share"]][1])
     print()
-    for i in range(brazil.columns.size):
+    for i in range(len(brazil.columns)):
         if (brazil.column_names[i] == "o_year"):
             print(brazil.column_names[i])
             print(brazil[brazil.col_name_to_idx["o_year"]][2])
@@ -3044,7 +3011,8 @@ fn test_query_9() raises:
     var pd = Python.import_module("pandas")
     pd.set_option('display.max_columns', None)
 
-    var file_path_part = '../../data/tpch_3gb/part.csv'
+    var load_start = perf_counter()
+    var file_path_part = '/datadrive/tpch_large/part.csv'
     var df_pt = pd.read_csv(file_path_part)
     print(df_pt.head())
     print(df_pt.shape)
@@ -3053,11 +3021,11 @@ fn test_query_9() raises:
     var p_name_arr = df_pt['p_name']
 
     # var p_partkey = Float64Array(600000)
-    var p_partkey = Float64Array("../Data/tpch_med/p_partkey_tensor")
+    var p_partkey = Float64Array("/datadrive/tpch_large/p_partkey_tensor")
     var p_name = List[String]()
-    p_name.resize(600000, "")
+    p_name.resize(2000000, "")
 
-    for i in range(600000):
+    for i in range(2000000):
         #p_partkey[i] = p_partkey_arr[i].to_float64()
         p_name[i] = (p_name_arr[i].__str__())
     
@@ -3088,12 +3056,12 @@ fn test_query_9() raises:
     # var l_discount = Float64Array(17996609)
     # var l_quantity = Float64Array(17996609)
     # var l_suppkey = Float64Array(17996609)
-    var l_orderkey = Float64Array("../Data/tpch_med/l_orderkey_tensor")
-    var l_extendedprice = Float64Array("../Data/tpch_med/l_extendedprice_tensor")
-    var l_discount = Float64Array("../Data/tpch_med/l_discount_tensor")
-    var l_quantity = Float64Array("../Data/tpch_med/l_quantity_tensor")
-    var l_suppkey = Float64Array("../Data/tpch_med/l_suppkey_tensor")
-    var l_partkey = Float64Array("../Data/tpch_med/l_partkey_tensor")
+    var l_orderkey = Float64Array("/datadrive/tpch_large/l_orderkey_tensor")
+    var l_extendedprice = Float64Array("/datadrive/tpch_large/l_extendedprice_tensor")
+    var l_discount = Float64Array("/datadrive/tpch_large/l_discount_tensor")
+    var l_quantity = Float64Array("/datadrive/tpch_large/l_quantity_tensor")
+    var l_suppkey = Float64Array("/datadrive/tpch_large/l_suppkey_tensor")
+    var l_partkey = Float64Array("/datadrive/tpch_large/l_partkey_tensor")
 
     # for i in range(17996609):
         # l_orderkey[i] = l_orderkey_arr[i].to_float64()
@@ -3134,9 +3102,9 @@ fn test_query_9() raises:
     # var ps_suppkey = Float64Array(2400000)
     # var ps_supplycost = Float64Array(2400000)
 
-    var ps_partkey = Float64Array("../Data/tpch_med/ps_partkey_tensor")
-    var ps_suppkey = Float64Array("../Data/tpch_med/ps_suppkey_tensor")
-    var ps_supplycost = Float64Array("../Data/tpch_med/ps_supplycost_tensor")
+    var ps_partkey = Float64Array("/datadrive/tpch_large/ps_partkey_tensor")
+    var ps_suppkey = Float64Array("/datadrive/tpch_large/ps_suppkey_tensor")
+    var ps_supplycost = Float64Array("/datadrive/tpch_large/ps_supplycost_tensor")
 
     # for i in range(2400000):
     #     ps_partkey[i] = ps_partkey_arr[i].to_float64()
@@ -3163,8 +3131,8 @@ fn test_query_9() raises:
     # var s_suppkey = Float64Array(30000)
     # var s_nationkey = Float64Array(30000)
 
-    var s_suppkey = Float64Array("../Data/tpch_med/s_suppkey_tensor")
-    var s_nationkey = Float64Array("../Data/tpch_med/s_nationkey_tensor")
+    var s_suppkey = Float64Array("/datadrive/tpch_large/s_suppkey_tensor")
+    var s_nationkey = Float64Array("/datadrive/tpch_large/s_nationkey_tensor")
 
     # for i in range(30000):
     #     s_suppkey[i] = s_suppkey_arr[i].to_float64()
@@ -3191,8 +3159,8 @@ fn test_query_9() raises:
     # var n_nationkey = Float64Array(25)
     # var n_name = Float64Array(25)
 
-    var n_nationkey = Float64Array("../Data/tpch_med/n_nationkey_tensor")
-    var n_name = Float64Array("../Data/tpch_med/n_name_tensor")
+    var n_nationkey = Float64Array("/datadrive/tpch_large/n_nationkey_tensor")
+    var n_name = Float64Array("/datadrive/tpch_large/n_name_tensor")
 
     # for i in range(25):
     #     n_nationkey[i] = n_nationkey_arr[i].to_float64()
@@ -3218,8 +3186,8 @@ fn test_query_9() raises:
     # var o_orderkey = Float64Array(4500000)
     # var o_orderdate = Float64Array(4500000)
 
-    var o_orderkey = Float64Array("../Data/tpch_med/o_orderkey_tensor")
-    var o_orderdate = Float64Array("../Data/tpch_med/o_orderdate_tensor")
+    var o_orderkey = Float64Array("/datadrive/tpch_large/o_orderkey_tensor")
+    var o_orderdate = Float64Array("/datadrive/tpch_large/o_orderdate_tensor")
     
 
     # for i in range(4500000):
@@ -3234,6 +3202,10 @@ fn test_query_9() raises:
     var orders_col_names = List[String]("orderkey", "o_orderdate")
 
     var df_orders = DataFrameF64(orders_col_data, orders_col_names)
+
+    var load_end = perf_counter()
+
+    print("load time: ", load_end - load_start)
 
 
     var start_time = monotonic()
@@ -3264,7 +3236,7 @@ fn test_query_9() raises:
 
     for i in range(amount.size):
         amount[i] = (extendedprice[i] * (1 - discount[i])) - (supplycost[i] * quantity[i])
-        joined_final.columns[joined_final.col_name_to_idx["o_orderdate"]][i] = (SIMD[DType.float64, 1](1970.0 + (unix_time[i] / 31536000.0))).roundeven()
+        joined_final.columns[joined_final.col_name_to_idx["o_orderdate"]][i] = (SIMD[DType.float64, 1](1970.0 + (unix_time[i] / 31536000.0))).__round__()
         
     joined_final.append_column(amount^, "amount")
 
@@ -3286,7 +3258,7 @@ fn test_query_9() raises:
     print("exec time: ", execution_time_seconds)
     print("final joined size: ", joined_final.columns[0].size)
 
-    for i in range(joined_final.columns.size):
+    for i in range(len(joined_final.columns)):
         if (joined_final.column_names[i] == "o_year"):
             print(joined_final.column_names[i])
             print(joined_final[joined_final.col_name_to_idx["o_year"]][0])
@@ -3297,7 +3269,7 @@ fn test_query_9() raises:
             print(joined_final.column_names[i])
             print(joined_final[joined_final.col_name_to_idx["sum_profit"]][0])
     print()
-    for i in range(joined_final.columns.size):
+    for i in range(len(joined_final.columns)):
         if (joined_final.column_names[i] == "o_year"):
             print(joined_final.column_names[i])
             print(joined_final[joined_final.col_name_to_idx["o_year"]][1])
@@ -3308,7 +3280,7 @@ fn test_query_9() raises:
             print(joined_final.column_names[i])
             print(joined_final[joined_final.col_name_to_idx["sum_profit"]][1])
     print()
-    for i in range(joined_final.columns.size):
+    for i in range(len(joined_final.columns)):
         if (joined_final.column_names[i] == "o_year"):
             print(joined_final.column_names[i])
             print(joined_final[joined_final.col_name_to_idx["o_year"]][2])
@@ -3341,10 +3313,12 @@ fn test_query_10() raises:
     # var l_discount = Float64Array(17996609)
     # var l_returnflag = Float64Array(17996609)
     # # var revenue = Float64Array(17996609)
-    var l_orderkey = Float64Array("../Data/tpch_med/l_orderkey_tensor")
-    var l_extendedprice = Float64Array("../Data/tpch_med/l_extendedprice_tensor")
-    var l_discount = Float64Array("../Data/tpch_med/l_discount_tensor")
-    var l_returnflag = Float64Array("../Data/tpch_med/l_returnflag_tensor")
+    var start_load = perf_counter()
+
+    var l_orderkey = Float64Array("/datadrive/tpch_large/l_orderkey_tensor")
+    var l_extendedprice = Float64Array("/datadrive/tpch_large/l_extendedprice_tensor")
+    var l_discount = Float64Array("/datadrive/tpch_large/l_discount_tensor")
+    var l_returnflag = Float64Array("/datadrive/tpch_large/l_returnflag_tensor")
 
     # for i in range(17996609):
     #     l_orderkey[i] = l_orderkey_arr[i].to_float64()
@@ -3374,8 +3348,8 @@ fn test_query_10() raises:
     # var n_nationkey = Float64Array(25)
     # var n_name = Float64Array(25)
 
-    var n_nationkey = Float64Array("../Data/tpch_med/n_nationkey_tensor")
-    var n_name = Float64Array("../Data/tpch_med/n_name_tensor")
+    var n_nationkey = Float64Array("/datadrive/tpch_large/n_nationkey_tensor")
+    var n_name = Float64Array("/datadrive/tpch_large/n_name_tensor")
 
     # for i in range(25):
     #     n_nationkey[i] = n_nationkey_arr[i].to_float64()
@@ -3408,9 +3382,9 @@ fn test_query_10() raises:
     # var o_custkey = Float64Array(4500000)
     # var o_orderdate = Float64Array(4500000)
     
-    var o_orderkey = Float64Array("../Data/tpch_med/o_orderkey_tensor")
-    var o_custkey = Float64Array("../Data/tpch_med/o_custkey_tensor")
-    var o_orderdate = Float64Array("../Data/tpch_med/o_orderdate_tensor")
+    var o_orderkey = Float64Array("/datadrive/tpch_large/o_orderkey_tensor")
+    var o_custkey = Float64Array("/datadrive/tpch_large/o_custkey_tensor")
+    var o_orderdate = Float64Array("/datadrive/tpch_large/o_orderdate_tensor")
     
 
     # for i in range(4500000):
@@ -3441,9 +3415,9 @@ fn test_query_10() raises:
     # var c_nationkey = Float64Array(450000)
     # var c_acctbal = Float64Array(450000)
 
-    var c_custkey = Float64Array("../Data/tpch_med/c_custkey_tensor")
-    var c_nationkey = Float64Array("../Data/tpch_med/c_nationkey_tensor")
-    var c_acctbal = Float64Array("../Data/tpch_med/c_acctbal_tensor")
+    var c_custkey = Float64Array("/datadrive/tpch_large/c_custkey_tensor")
+    var c_nationkey = Float64Array("/datadrive/tpch_large/c_nationkey_tensor")
+    var c_acctbal = Float64Array("/datadrive/tpch_large/c_acctbal_tensor")
 
     # for i in range(450000):
     #     c_custkey[i] = c_custkey_arr[i].to_float64()
@@ -3453,14 +3427,13 @@ fn test_query_10() raises:
     print(c_custkey.size)
 
     var cust_col_data = List[Float64Array](c_custkey, c_nationkey, c_acctbal)
-
-    var cust_col1_name = "custkey"
-    var cust_col2_name = "nationkey"
-    var cust_col3_name = "c_acctbal"
     
     var cust_col_names = List[String]("custkey", "nationkey", "c_acctbal")
 
     var df_customer = DataFrameF64(cust_col_data, cust_col_names)
+
+    var end_load = perf_counter()
+    print("load time: ", end_load - start_load)
 
 
     var start_time = monotonic()
@@ -3500,7 +3473,7 @@ fn test_query_10() raises:
     print("final joined size: ", joined_final.columns[0].size)
 
 
-    for i in range(joined_final.columns.size):
+    for i in range(len(joined_final.columns)):
         if (joined_final.column_names[i] == "custkey"):
             print(joined_final.column_names[i])
             print(joined_final[joined_final.col_name_to_idx["custkey"]][joined_final.columns[0].size - 1])
@@ -3514,7 +3487,7 @@ fn test_query_10() raises:
             print(joined_final.column_names[i])
             print(joined_final[joined_final.col_name_to_idx["revenue"]][joined_final.columns[0].size - 1])
     print()
-    for i in range(joined_final.columns.size):
+    for i in range(len(joined_final.columns)):
         if (joined_final.column_names[i] == "custkey"):
             print(joined_final.column_names[i])
             print(joined_final[joined_final.col_name_to_idx["custkey"]][joined_final.columns[0].size - 2])
@@ -3528,7 +3501,7 @@ fn test_query_10() raises:
             print(joined_final.column_names[i])
             print(joined_final[joined_final.col_name_to_idx["revenue"]][joined_final.columns[0].size - 2])
     print()
-    for i in range(joined_final.columns.size):
+    for i in range(len(joined_final.columns)):
         if (joined_final.column_names[i] == "custkey"):
             print(joined_final.column_names[i])
             print(joined_final[joined_final.col_name_to_idx["custkey"]][joined_final.columns[0].size - 3])
@@ -3561,11 +3534,12 @@ fn test_query_11() raises:
     # var ps_suppkey = Float64Array(2400000)
     # var ps_supplycost = Float64Array(2400000)
     # var ps_availqty = Float64Array(2400000)
+    var start_load = perf_counter()
 
-    var ps_partkey = Float64Array("../Data/tpch_med/ps_partkey_tensor")
-    var ps_suppkey = Float64Array("../Data/tpch_med/ps_suppkey_tensor")
-    var ps_supplycost = Float64Array("../Data/tpch_med/ps_supplycost_tensor")
-    var ps_availqty = Float64Array("../Data/tpch_med/ps_availqty_tensor")
+    var ps_partkey = Float64Array("/datadrive/tpch_large/ps_partkey_tensor")
+    var ps_suppkey = Float64Array("/datadrive/tpch_large/ps_suppkey_tensor")
+    var ps_supplycost = Float64Array("/datadrive/tpch_large/ps_supplycost_tensor")
+    var ps_availqty = Float64Array("/datadrive/tpch_large/ps_availqty_tensor")
 
     # for i in range(2400000):
     #     # ps_partkey[i] = ps_partkey_arr[i].to_float64()
@@ -3599,8 +3573,8 @@ fn test_query_11() raises:
     # # var s_suppkey = Float64Array(30000)
     # # var s_nationkey = Float64Array(30000)
 
-    var s_suppkey = Float64Array("../Data/tpch_med/s_suppkey_tensor")
-    var s_nationkey = Float64Array("../Data/tpch_med/s_nationkey_tensor")
+    var s_suppkey = Float64Array("/datadrive/tpch_large/s_suppkey_tensor")
+    var s_nationkey = Float64Array("/datadrive/tpch_large/s_nationkey_tensor")
 
     # # for i in range(30000):
     # #     s_suppkey[i] = s_suppkey_arr[i].to_float64()
@@ -3628,8 +3602,8 @@ fn test_query_11() raises:
     # # var n_nationkey = Float64Array(25)
     # # var n_name = Float64Array(25)
 
-    var n_nationkey = Float64Array("../Data/tpch_med/n_nationkey_tensor")
-    var n_name = Float64Array("../Data/tpch_med/n_name_tensor")
+    var n_nationkey = Float64Array("/datadrive/tpch_large/n_nationkey_tensor")
+    var n_name = Float64Array("/datadrive/tpch_large/n_name_tensor")
 
     # # for i in range(25):
     # #     n_nationkey[i] = n_nationkey_arr[i].to_float64()
@@ -3643,6 +3617,10 @@ fn test_query_11() raises:
 
 
     var df_nation = DataFrameF64(nation_col_data, nation_col_names)
+
+    var end_load = perf_counter()
+    print("load time: ", end_load - start_load)
+
 
     var start_time = monotonic()
 
@@ -3688,7 +3666,7 @@ fn test_query_11() raises:
 
     print()
 
-    for i in range(joined_pss_df.columns.size):
+    for i in range(len(joined_pss_df.columns)):
         if (joined_pss_df.column_names[i] == "ps_partkey"):
                 print(joined_pss_df.column_names[i])
                 print(joined_pss_df[joined_pss_df.col_name_to_idx["ps_partkey"]][joined_pss_df.columns[0].size - 1])
@@ -3698,7 +3676,7 @@ fn test_query_11() raises:
             
     print()
 
-    for i in range(joined_pss_df.columns.size):
+    for i in range(len(joined_pss_df.columns)):
         if (joined_pss_df.column_names[i] == "ps_partkey"):
                 print(joined_pss_df.column_names[i])
                 print(joined_pss_df[joined_pss_df.col_name_to_idx["ps_partkey"]][joined_pss_df.columns[0].size - 2])
@@ -3708,7 +3686,7 @@ fn test_query_11() raises:
     
     print()
 
-    for i in range(joined_pss_df.columns.size):
+    for i in range(len(joined_pss_df.columns)):
         if (joined_pss_df.column_names[i] == "ps_partkey"):
                 print(joined_pss_df.column_names[i])
                 print(joined_pss_df[joined_pss_df.col_name_to_idx["ps_partkey"]][joined_pss_df.columns[0].size - 3])
@@ -3739,12 +3717,13 @@ fn test_query_12() raises:
     # var l_commitdate = Float64Array(17996609)
     # var l_receiptdate = Float64Array(17996609)
     # var l_shipmode = Float64Array(17996609)
+    var start_load = perf_counter()
 
-    var l_orderkey = Float64Array("../Data/tpch_med/l_orderkey_tensor")
-    var l_shipdate = Float64Array("../Data/tpch_med/l_shipdate_tensor")
-    var l_commitdate = Float64Array("../Data/tpch_med/l_commitdate_tensor")
-    var l_receiptdate = Float64Array("../Data/tpch_med/l_receiptdate_tensor")
-    var l_shipmode = Float64Array("../Data/tpch_med/l_shipmode_tensor")
+    var l_orderkey = Float64Array("/datadrive/tpch_large/l_orderkey_tensor")
+    var l_shipdate = Float64Array("/datadrive/tpch_large/l_shipdate_tensor")
+    var l_commitdate = Float64Array("/datadrive/tpch_large/l_commitdate_tensor")
+    var l_receiptdate = Float64Array("/datadrive/tpch_large/l_receiptdate_tensor")
+    var l_shipmode = Float64Array("/datadrive/tpch_large/l_shipmode_tensor")
 
     # for i in range(17996609):
     #     # l_orderkey[i] = l_orderkey_arr[i].to_float64()
@@ -3774,8 +3753,8 @@ fn test_query_12() raises:
     # var o_orderkey = Float64Array(4500000)
     # var o_orderpriority = Float64Array(4500000)
 
-    var o_orderkey = Float64Array("../Data/tpch_med/o_orderkey_tensor")
-    var o_orderpriority = Float64Array("../Data/tpch_med/o_orderpriority_tensor")
+    var o_orderkey = Float64Array("/datadrive/tpch_large/o_orderkey_tensor")
+    var o_orderpriority = Float64Array("/datadrive/tpch_large/o_orderpriority_tensor")
 
     # for i in range(4500000):
     #     o_orderkey[i] = o_orderkey_arr[i].to_float64()
@@ -3788,6 +3767,9 @@ fn test_query_12() raises:
     var orders_col_names = List[String]("orderkey", "o_orderpriority")
 
     var df_orders = DataFrameF64(orders_col_data, orders_col_names)
+
+    var end_load = perf_counter()
+    print("load time: ", end_load - start_load)
 
     # shipmode_mapping = {
     #     'TRUCK': 1,
@@ -3817,7 +3799,7 @@ fn test_query_12() raises:
     var high_line = Float64Array(joined_lo_df.columns[0].size)
     var low_line = Float64Array(joined_lo_df.columns[0].size)
 
-    for i in range(high_line_mask.size):
+    for i in range(len(high_line_mask)):
         if high_line_mask[i]:
             high_line[i] = 1.0
         else:
@@ -3848,7 +3830,7 @@ fn test_query_12() raises:
 
     print()
 
-    for i in range(joined_lo_df.columns.size):
+    for i in range(len(joined_lo_df.columns)):
         if (joined_lo_df.column_names[i] == "l_shipmode"):
                 print(joined_lo_df.column_names[i])
                 print(joined_lo_df[joined_lo_df.col_name_to_idx["l_shipmode"]][0])
@@ -3861,7 +3843,7 @@ fn test_query_12() raises:
             
     print()
 
-    for i in range(joined_lo_df.columns.size):
+    for i in range(len(joined_lo_df.columns)):
         if (joined_lo_df.column_names[i] == "l_shipmode"):
                     print(joined_lo_df.column_names[i])
                     print(joined_lo_df[joined_lo_df.col_name_to_idx["l_shipmode"]][1])
@@ -3877,6 +3859,8 @@ fn test_query_13() raises:
     var pd = Python.import_module("pandas")
     pd.set_option('display.max_columns', None)
 
+
+
     # var file_path_customer = 'customer.csv'
     # var df_cust = pd.read_csv(file_path_customer)
     # print(df_cust.head())
@@ -3885,7 +3869,7 @@ fn test_query_13() raises:
     # var c_custkey_arr = df_cust['c_custkey'].to_numpy()
 
     # var c_custkey = Float64Array(450000)
-    var c_custkey = Float64Array("../Data/tpch_med/c_custkey_tensor")
+    var c_custkey = Float64Array("/datadrive/tpch_large/c_custkey_tensor")
 
     # for i in range(450000):
     #     c_custkey[i] = c_custkey_arr[i].to_float64()
@@ -3898,21 +3882,22 @@ fn test_query_13() raises:
 
     var df_customer = DataFrameF64(cust_col_data, cust_col_names)
 
+    var start_load = perf_counter()
 
-    var file_path_orders = '../../data/tpch_3gb/orders.csv'
+    var file_path_orders = '/datadrive/tpch_large/orders.csv'
+
     var df_ord = pd.read_csv(file_path_orders)
     print(df_ord.head())
     print(df_ord.shape)
 
-    #var o_custkey_arr = df_ord['o_custkey'].to_numpy()
     var o_comment_arr = df_ord['o_comment']
 
     #var o_custkey = Float64Array(4500000)
-    var o_custkey = Float64Array("../Data/tpch_med/o_custkey_tensor")
+    var o_custkey = Float64Array("/datadrive/tpch_large/o_custkey_tensor")
     var o_comment = List[String]()
-    o_comment.resize(4500000, "")
+    o_comment.resize(15000000, "")
 
-    for i in range(4500000):
+    for i in range(15000000):
         #o_custkey[i] = o_custkey_arr[i].to_float64()
         o_comment[i] = (o_comment_arr[i].__str__())
 
@@ -3924,9 +3909,19 @@ fn test_query_13() raises:
 
     var df_orders = DataFrameF64(orders_col_data, orders_col_names)
     
+    var end_load = perf_counter()
+
+    print("load time ORD: ", end_load - start_load)
+
+
     var start_time = monotonic()
 
+    var start_udf_filter = perf_counter()
+
     filter_not_string_exists_before(df_orders, o_comment, "special", "requests")
+
+    var end_udf_filter = perf_counter()
+    print("udf filter time: ", end_udf_filter - start_udf_filter)
 
     var joined_co_df = inner_join_f64(df_customer, df_orders, "custkey")
     var aggregated_col_names = List[String]("custkey", "customer_order_count")
@@ -3948,7 +3943,7 @@ fn test_query_13() raises:
     print("exec time: ", execution_time_seconds)
     print("grouped size: ", joined_co_df.columns[0].size)
 
-    for i in range(joined_co_df.columns.size):
+    for i in range(len(joined_co_df.columns)):
         if (joined_co_df.column_names[i] == "c_count"):
                     print(joined_co_df.column_names[i])
                     print(joined_co_df[joined_co_df.col_name_to_idx["c_count"]][joined_co_df.columns[0].size - 1])
@@ -3958,7 +3953,7 @@ fn test_query_13() raises:
     
     print()
 
-    for i in range(joined_co_df.columns.size):
+    for i in range(len(joined_co_df.columns)):
         if (joined_co_df.column_names[i] == "c_count"):
                     print(joined_co_df.column_names[i])
                     print(joined_co_df[joined_co_df.col_name_to_idx["c_count"]][joined_co_df.columns[0].size - 2])
@@ -3968,7 +3963,7 @@ fn test_query_13() raises:
     
     print()
 
-    for i in range(joined_co_df.columns.size):
+    for i in range(len(joined_co_df.columns)):
         if (joined_co_df.column_names[i] == "c_count"):
                     print(joined_co_df.column_names[i])
                     print(joined_co_df[joined_co_df.col_name_to_idx["c_count"]][joined_co_df.columns[0].size - 3])
@@ -3997,10 +3992,12 @@ fn test_query_14() raises:
     # var l_partkey = Float64Array(17996609)
     # var l_shipdate = Float64Array(17996609)
 
-    var l_extendedprice = Float64Array("../Data/tpch_med/l_extendedprice_tensor")
-    var l_discount = Float64Array("../Data/tpch_med/l_discount_tensor")
-    var l_partkey = Float64Array("../Data/tpch_med/l_partkey_tensor")
-    var l_shipdate = Float64Array("../Data/tpch_med/l_shipdate_tensor")
+    var start_load = perf_counter()
+
+    var l_extendedprice = Float64Array("/datadrive/tpch_large/l_extendedprice_tensor")
+    var l_discount = Float64Array("/datadrive/tpch_large/l_discount_tensor")
+    var l_partkey = Float64Array("/datadrive/tpch_large/l_partkey_tensor")
+    var l_shipdate = Float64Array("/datadrive/tpch_large/l_shipdate_tensor")
 
     # for i in range(17996609):
     #     l_extendedprice[i] = l_extendedprice_arr[i].to_float64()
@@ -4017,7 +4014,7 @@ fn test_query_14() raises:
     var df_lineitem = DataFrameF64(col_data, col_names)
 
 
-    var file_path_part = '../../data/tpch_3gb/part.csv'
+    var file_path_part = '/datadrive/tpch_large/part.csv'
     var df_pt = pd.read_csv(file_path_part)
     print(df_pt.head())
     print(df_pt.shape)
@@ -4026,11 +4023,11 @@ fn test_query_14() raises:
     var p_type_arr = df_pt['p_type']
 
     # var p_partkey = Float64Array(600000)
-    var p_partkey = Float64Array("../Data/tpch_med/p_partkey_tensor")
+    var p_partkey = Float64Array("/datadrive/tpch_large/p_partkey_tensor")
     var p_type = List[String]()
-    p_type.resize(600000, "")
+    p_type.resize(2000000, "")
 
-    for i in range(600000):
+    for i in range(2000000):
         # p_partkey[i] = p_partkey_arr[i].to_float64()
         p_type[i] = p_type_arr[i].__str__()
     
@@ -4044,6 +4041,8 @@ fn test_query_14() raises:
 
     var df_part_promo = DataFrameF64(part_col_data, part_col_names)
 
+    var end_load = perf_counter()
+    print("load time: ", end_load - start_load)
 
     var start_time = monotonic()
 
@@ -4105,11 +4104,12 @@ fn test_query_15() raises:
     # var l_extendedprice = Float64Array(17996609)
     # var l_discount = Float64Array(17996609)
     # var l_shipdate = Float64Array(17996609)
+    var start_load = perf_counter()
 
-    var l_suppkey = Float64Array("../Data/tpch_med/l_suppkey_tensor")
-    var l_extendedprice = Float64Array("../Data/tpch_med/l_extendedprice_tensor")
-    var l_discount = Float64Array("../Data/tpch_med/l_discount_tensor")
-    var l_shipdate = Float64Array("../Data/tpch_med/l_shipdate_tensor")
+    var l_suppkey = Float64Array("/datadrive/tpch_large/l_suppkey_tensor")
+    var l_extendedprice = Float64Array("/datadrive/tpch_large/l_extendedprice_tensor")
+    var l_discount = Float64Array("/datadrive/tpch_large/l_discount_tensor")
+    var l_shipdate = Float64Array("/datadrive/tpch_large/l_shipdate_tensor")
 
     # for i in range(17996609):
     #     l_suppkey[i] = l_suppkey_arr[i].to_float64()
@@ -4138,8 +4138,8 @@ fn test_query_15() raises:
     # var s_suppkey = Float64Array(30000)
     # var s_name = Float64Array(30000)
 
-    var s_suppkey = Float64Array("../Data/tpch_med/s_suppkey_tensor")
-    var s_name = Float64Array("../Data/tpch_med/s_name_tensor")
+    var s_suppkey = Float64Array("/datadrive/tpch_large/s_suppkey_tensor")
+    var s_name = Float64Array("/datadrive/tpch_large/s_name_tensor")
 
     # for i in range(30000):
     #     s_suppkey[i] = s_suppkey_arr[i].to_float64()
@@ -4152,6 +4152,9 @@ fn test_query_15() raises:
 
     var df_supplier = DataFrameF64(supplier_col_data, supplier_col_names)
 
+    var end_load = perf_counter()
+    
+    print("load time: ", end_load - start_load)
 
     var start_time = monotonic()
 
@@ -4198,7 +4201,7 @@ fn test_query_15() raises:
     print("Max revenue: ", max_revenue)
     print("Result size: ", joined_ls_df.columns[0].size)
 
-    for i in range(joined_ls_df.columns.size):
+    for i in range(len(joined_ls_df.columns)):
         if (joined_ls_df.column_names[i] == "suppkey"):
                 print(joined_ls_df.column_names[i])
                 print(joined_ls_df[joined_ls_df.col_name_to_idx["suppkey"]][0])
@@ -4216,7 +4219,9 @@ fn test_query_16() raises:
     var pd = Python.import_module("pandas")
     pd.set_option('display.max_columns', None)
 
-    var file_path_supp = '../../data/tpch_3gb/supplier.csv'
+    var start_load = perf_counter()
+
+    var file_path_supp = '/datadrive/tpch_large/supplier.csv'
     var df_supp = pd.read_csv(file_path_supp)
     print(df_supp.head())
     print(df_supp.shape)
@@ -4225,11 +4230,11 @@ fn test_query_16() raises:
     var s_comment_arr = df_supp['s_comment']
 
     # var s_suppkey = Float64Array(30000)
-    var s_suppkey = Float64Array("../Data/tpch_med/s_suppkey_tensor")
+    var s_suppkey = Float64Array("/datadrive/tpch_large/s_suppkey_tensor")
     var s_comment = List[String]()
-    s_comment.resize(30000, "")
+    s_comment.resize(100000, "")
 
-    for i in range(30000):
+    for i in range(100000):
         # s_suppkey[i] = s_suppkey_arr[i].to_float64()
         s_comment[i] = s_comment_arr[i].__str__()
 
@@ -4242,7 +4247,7 @@ fn test_query_16() raises:
     var df_supplier = DataFrameF64(supp_col_data, supp_col_names)
 
 
-    var file_path_part = '../../data/tpch_3gb/part.csv'
+    var file_path_part = '/datadrive/tpch_large/part.csv'
     var df_pt = pd.read_csv(file_path_part)
     print(df_pt.head())
     print(df_pt.shape)
@@ -4254,14 +4259,14 @@ fn test_query_16() raises:
 
     # var p_partkey = Float64Array(600000)
     # var p_size = Float64Array(600000)
-    var p_partkey = Float64Array("../Data/tpch_med/p_partkey_tensor")
-    var p_size = Float64Array("../Data/tpch_med/p_size_tensor")
+    var p_partkey = Float64Array("/datadrive/tpch_large/p_partkey_tensor")
+    var p_size = Float64Array("/datadrive/tpch_large/p_size_tensor")
     var p_type = List[String]()
-    p_type.resize(600000, "")
+    p_type.resize(2000000, "")
     var p_brand = List[String]()
-    p_brand.resize(600000, "")
+    p_brand.resize(2000000, "")
 
-    for i in range(600000):
+    for i in range(2000000):
         # p_partkey[i] = p_partkey_arr[i].to_float64()
         # p_size[i] = p_size_arr[i].to_float64()
         p_type[i] = p_type_arr[i].__str__()
@@ -4288,8 +4293,8 @@ fn test_query_16() raises:
     # var ps_partkey = Float64Array(2400000)
     # var ps_suppkey = Float64Array(2400000)
 
-    var ps_partkey = Float64Array("../Data/tpch_med/ps_partkey_tensor")
-    var ps_suppkey = Float64Array("../Data/tpch_med/ps_suppkey_tensor")
+    var ps_partkey = Float64Array("/datadrive/tpch_large/ps_partkey_tensor")
+    var ps_suppkey = Float64Array("/datadrive/tpch_large/ps_suppkey_tensor")
 
     # for i in range(2400000):
     #     ps_partkey[i] = ps_partkey_arr[i].to_float64()
@@ -4302,6 +4307,10 @@ fn test_query_16() raises:
     var ps_col_names = List[String]("partkey", "suppkey")
 
     var df_partsupp = DataFrameF64(ps_col_data, ps_col_names)
+
+    var end_load = perf_counter()
+    
+    print("load time: ", end_load - start_load)
 
     var start_time = monotonic()
 
@@ -4348,7 +4357,7 @@ fn test_query_16() raises:
 
     print("exec time: ", execution_time_seconds)
 
-    for i in range(joined_psp_df.columns.size):
+    for i in range(len(joined_psp_df.columns)):
         if (joined_psp_df.column_names[i] == "p_size"):
                 print(joined_psp_df.column_names[i])
                 print(joined_psp_df[joined_psp_df.col_name_to_idx["p_size"]][joined_psp_df.columns[0].size - 1])
@@ -4357,7 +4366,7 @@ fn test_query_16() raises:
                 print(joined_psp_df[joined_psp_df.col_name_to_idx["suppkey"]][joined_psp_df.columns[0].size - 1])
     print()
 
-    for i in range(joined_psp_df.columns.size):
+    for i in range(len(joined_psp_df.columns)):
         if (joined_psp_df.column_names[i] == "p_size"):
                 print(joined_psp_df.column_names[i])
                 print(joined_psp_df[joined_psp_df.col_name_to_idx["p_size"]][joined_psp_df.columns[0].size - 2])
@@ -4366,7 +4375,7 @@ fn test_query_16() raises:
                 print(joined_psp_df[joined_psp_df.col_name_to_idx["suppkey"]][joined_psp_df.columns[0].size - 2])
     print()
 
-    for i in range(joined_psp_df.columns.size):
+    for i in range(len(joined_psp_df.columns)):
         if (joined_psp_df.column_names[i] == "p_size"):
                 print(joined_psp_df.column_names[i])
                 print(joined_psp_df[joined_psp_df.col_name_to_idx["p_size"]][joined_psp_df.columns[0].size - 3])
@@ -4391,9 +4400,11 @@ fn test_query_17() raises:
     # var l_partkey = Float64Array(17996609)
     # var l_quantity = Float64Array(17996609)
     # var l_extendedprice = Float64Array(17996609)
-    var l_partkey = Float64Array("../Data/tpch_med/l_partkey_tensor")
-    var l_quantity = Float64Array("../Data/tpch_med/l_quantity_tensor")
-    var l_extendedprice = Float64Array("../Data/tpch_med/l_extendedprice_tensor")
+    var start_load = perf_counter()
+
+    var l_partkey = Float64Array("/datadrive/tpch_large/l_partkey_tensor")
+    var l_quantity = Float64Array("/datadrive/tpch_large/l_quantity_tensor")
+    var l_extendedprice = Float64Array("/datadrive/tpch_large/l_extendedprice_tensor")
 
     # for i in range(17996609):
     #     l_partkey[i] = l_partkey_arr[i].to_float64()
@@ -4409,7 +4420,7 @@ fn test_query_17() raises:
     var df_lineitem = DataFrameF64(lineitem_col_data, lineitem_col_names)
 
 
-    var file_path_part = '../../data/tpch_3gb/part.csv'
+    var file_path_part = '/datadrive/tpch_large/part.csv'
     var df_pt = pd.read_csv(file_path_part)
     print(df_pt.head())
     print(df_pt.shape)
@@ -4419,13 +4430,13 @@ fn test_query_17() raises:
     var p_container_arr = df_pt['p_container']
 
     # var p_partkey = Float64Array(600000)
-    var p_partkey = Float64Array("../Data/tpch_med/p_partkey_tensor")
+    var p_partkey = Float64Array("/datadrive/tpch_large/p_partkey_tensor")
     var p_brand = List[String]()
-    p_brand.resize(600000, "")
+    p_brand.resize(2000000, "")
     var p_container = List[String]()
-    p_container.resize(600000, "")
+    p_container.resize(2000000, "")
 
-    for i in range(600000):
+    for i in range(2000000):
         # p_partkey[i] = p_partkey_arr[i].to_float64()
         p_brand[i] = p_brand_arr[i].__str__()
         p_container[i] = p_container_arr[i].__str__()
@@ -4437,6 +4448,9 @@ fn test_query_17() raises:
     var part_col_names = List[String]("partkey")
 
     var df_part = DataFrameF64(part_col_data, part_col_names)
+
+    var end_load = perf_counter()
+    print("load time: ", end_load - start_load)
 
     var start_time = monotonic()
 
@@ -4499,9 +4513,9 @@ fn test_query_18() raises:
     
     # var l_orderkey = Float64Array(17996609)
     # var l_quantity = Float64Array(17996609)
-
-    var l_orderkey = Float64Array("../Data/tpch_med/l_orderkey_tensor")
-    var l_quantity = Float64Array("../Data/tpch_med/l_quantity_tensor")
+    var start_load = perf_counter()
+    var l_orderkey = Float64Array("/datadrive/tpch_large/l_orderkey_tensor")
+    var l_quantity = Float64Array("/datadrive/tpch_large/l_quantity_tensor")
 
     # for i in range(17996609):
     #     l_orderkey[i] = l_orderkey_arr[i].to_float64()
@@ -4532,10 +4546,10 @@ fn test_query_18() raises:
     # var o_totalprice = Float64Array(4500000)
     # var o_custkey = Float64Array(4500000)
 
-    var o_orderkey = Float64Array("../Data/tpch_med/o_orderkey_tensor")
-    var o_orderdate = Float64Array("../Data/tpch_med/o_orderdate_tensor")
-    var o_totalprice = Float64Array("../Data/tpch_med/o_totalprice_tensor")
-    var o_custkey = Float64Array("../Data/tpch_med/o_custkey_tensor")
+    var o_orderkey = Float64Array("/datadrive/tpch_large/o_orderkey_tensor")
+    var o_orderdate = Float64Array("/datadrive/tpch_large/o_orderdate_tensor")
+    var o_totalprice = Float64Array("/datadrive/tpch_large/o_totalprice_tensor")
+    var o_custkey = Float64Array("/datadrive/tpch_large/o_custkey_tensor")
 
 
     # for i in range(4500000):
@@ -4563,7 +4577,7 @@ fn test_query_18() raises:
     # var c_custkey_arr = df_cust['c_custkey'].to_numpy()
 
     # var c_custkey = Float64Array(450000)
-    var c_custkey = Float64Array("../Data/tpch_med/c_custkey_tensor")
+    var c_custkey = Float64Array("/datadrive/tpch_large/c_custkey_tensor")
 
     # for i in range(450000):
     #     c_custkey[i] = c_custkey_arr[i].to_float64()
@@ -4576,17 +4590,22 @@ fn test_query_18() raises:
 
     var df_customer = DataFrameF64(cust_col_data, cust_col_names)
 
+    var end_load = perf_counter()
+    print("load time: ", end_load - start_load)
 
     var start_time = monotonic()
 
+    var start_join = perf_counter()
     var joined_lo_df = inner_join_f64(df_lineitem, df_orders, "orderkey")
+    var end_join = perf_counter()
+    print("1st join time : ", end_join - start_join)
 
     # groupby l_orderkey, sum l_quantity, filter, then join back with the lineitem orders df
-    # var group_start = perf_counter()
+    var group_start = perf_counter()
     var aggregated_col_names = List[String]("orderkey", "l_quantity_sum")
     df_lineitem.groupby("orderkey", "sum", aggregated_col_names)
-    # var group_end = perf_counter()
-    #print("groupby time: ", group_end - group_start)
+    var group_end = perf_counter()
+    print("groupby time: ", group_end - group_start)
     
     df_lineitem.select("l_quantity_sum", "l_quantity_sum", GTPredF64(), GTPredF64(), 300.0, 300.0, "")
 
@@ -4612,7 +4631,7 @@ fn test_query_18() raises:
     print("final grouped size: ", joined_oc_df.columns[0].size)
     
 
-    for i in range(joined_oc_df.columns.size):
+    for i in range(len(joined_oc_df.columns)):
         if (joined_oc_df.column_names[i] == "custkey"):
                 print(joined_oc_df.column_names[i])
                 print(joined_oc_df[joined_oc_df.col_name_to_idx["custkey"]][joined_oc_df.columns[0].size - 1])
@@ -4630,7 +4649,7 @@ fn test_query_18() raises:
                 print(joined_oc_df[joined_oc_df.col_name_to_idx["quantity_sum_grouped"]][joined_oc_df.columns[0].size - 1])
     print()
 
-    for i in range(joined_oc_df.columns.size):
+    for i in range(len(joined_oc_df.columns)):
         if (joined_oc_df.column_names[i] == "custkey"):
                 print(joined_oc_df.column_names[i])
                 print(joined_oc_df[joined_oc_df.col_name_to_idx["custkey"]][joined_oc_df.columns[0].size - 2])
@@ -4648,7 +4667,7 @@ fn test_query_18() raises:
                 print(joined_oc_df[joined_oc_df.col_name_to_idx["quantity_sum_grouped"]][joined_oc_df.columns[0].size - 2])
     print()
 
-    for i in range(joined_oc_df.columns.size):
+    for i in range(len(joined_oc_df.columns)):
         if (joined_oc_df.column_names[i] == "custkey"):
                 print(joined_oc_df.column_names[i])
                 print(joined_oc_df[joined_oc_df.col_name_to_idx["custkey"]][joined_oc_df.columns[0].size - 3])
@@ -4677,8 +4696,9 @@ fn test_query_19() raises:
 
     # get masks for p_brand, p_container, l_quantity, and p_size
     # use the AND to get comined mask for this first group of filters
+    var start_load = perf_counter()
 
-    var file_path = '../../data/tpch_3gb/lineitem-med.csv'
+    var file_path = '/datadrive/tpch_large/lineitem.csv'
     var df = pd.read_csv(file_path)
     print(df.head())
     print(df.shape)
@@ -4697,22 +4717,25 @@ fn test_query_19() raises:
     # var l_partkey = Float64Array(17996609)
     # var l_shipmode = Float64Array(17996609)
 
-    var l_extendedprice = Float64Array("../Data/tpch_med/l_extendedprice_tensor")
-    var l_discount = Float64Array("../Data/tpch_med/l_discount_tensor")
-    var l_quantity = Float64Array("../Data/tpch_med/l_quantity_tensor")
-    var l_partkey = Float64Array("../Data/tpch_med/l_partkey_tensor")
-    var l_shipmode = Float64Array("../Data/tpch_med/l_shipmode_tensor")
+    var l_extendedprice = Float64Array("/datadrive/tpch_large/l_extendedprice_tensor")
+    var l_discount = Float64Array("/datadrive/tpch_large/l_discount_tensor")
+    var l_quantity = Float64Array("/datadrive/tpch_large/l_quantity_tensor")
+    var l_partkey = Float64Array("/datadrive/tpch_large/l_partkey_tensor")
+    var l_shipmode = Float64Array("/datadrive/tpch_large/l_shipmode_tensor")
 
+    var start_conv = perf_counter()
     var l_shipinstruct = List[String]()
-    l_shipinstruct.resize(17996609, "")
+    l_shipinstruct.resize(59986052, "")
 
-    for i in range(17996609):
+    for i in range(59986052):
         # l_extendedprice[i] = l_extendedprice_arr[i].to_float64()
         # l_discount[i] = l_discount_arr[i].to_float64()
         # l_quantity[i] = l_quantity_arr[i].to_float64()
         # l_partkey[i] = l_partkey_arr[i].to_float64()
         # l_shipmode[i] = l_shipmode_arr[i].to_float64()
         l_shipinstruct[i] = l_shipinstruct_arr[i].__str__()
+    var end_conv = perf_counter()
+    print("conversion time: ", end_conv - start_conv)
         
     print(l_partkey.size)
 
@@ -4722,7 +4745,10 @@ fn test_query_19() raises:
 
     var df_lineitem = DataFrameF64(col_data, col_names)
 
-    var file_path_part = '../../data/tpch_3gb/part.csv'
+    var end_load = perf_counter()
+    print("load time LINEITEM: ", end_load - start_load)
+
+    var file_path_part = '/datadrive/tpch_large/part.csv'
     var df_pt = pd.read_csv(file_path_part)
     print(df_pt.head())
     print(df_pt.shape)
@@ -4734,14 +4760,14 @@ fn test_query_19() raises:
 
     # var p_partkey = Float64Array(600000)
     # var p_size = Float64Array(600000)
-    var p_partkey = Float64Array("../Data/tpch_med/p_partkey_tensor")
-    var p_size = Float64Array("../Data/tpch_med/p_size_tensor")
+    var p_partkey = Float64Array("/datadrive/tpch_large/p_partkey_tensor")
+    var p_size = Float64Array("/datadrive/tpch_large/p_size_tensor")
     var p_brand = List[String]()
-    p_brand.resize(600000, "")
+    p_brand.resize(2000000, "")
     var p_container = List[String]()
-    p_container.resize(600000, "")
+    p_container.resize(2000000, "")
 
-    for i in range(600000):
+    for i in range(2000000):
         # p_partkey[i] = p_partkey_arr[i].to_float64()
         # p_size[i] = p_size_arr[i].to_float64()
         p_brand[i] = p_brand_arr[i].__str__()
@@ -4755,6 +4781,9 @@ fn test_query_19() raises:
 
     var df_part = DataFrameF64(part_col_data, part_col_names)
 
+   
+
+    
     var start_time = monotonic()
 
     var ship_mode_mask = df_lineitem.select_mask("l_shipmode", "l_shipmode", EQPredF64(), EQPredF64(), 2.0, 4.0, "OR")
@@ -4834,10 +4863,12 @@ fn test_query_20() raises:
     # var l_quantity = Float64Array(17996609)
     # var l_suppkey = Float64Array(17996609)
     # var l_shipdate = Float64Array(17996609)
-    var l_partkey = Float64Array("../Data/tpch_med/l_partkey_tensor")
-    var l_quantity = Float64Array("../Data/tpch_med/l_quantity_tensor")
-    var l_suppkey = Float64Array("../Data/tpch_med/l_suppkey_tensor")
-    var l_shipdate = Float64Array("../Data/tpch_med/l_shipdate_tensor")
+    var start_load = perf_counter()
+
+    var l_partkey = Float64Array("/datadrive/tpch_large/l_partkey_tensor")
+    var l_quantity = Float64Array("/datadrive/tpch_large/l_quantity_tensor")
+    var l_suppkey = Float64Array("/datadrive/tpch_large/l_suppkey_tensor")
+    var l_shipdate = Float64Array("/datadrive/tpch_large/l_shipdate_tensor")
     # for i in range(17996609):
     #     l_partkey[i] = l_partkey_arr[i].to_float64()
     #     l_quantity[i] = l_quantity_arr[i].to_float64()
@@ -4853,7 +4884,7 @@ fn test_query_20() raises:
     var df_lineitem = DataFrameF64(col_data, col_names)
 
 
-    var file_path_part = '../../data/tpch_3gb/part.csv'
+    var file_path_part = '/datadrive/tpch_large/part.csv'
     var df_pt = pd.read_csv(file_path_part)
     print(df_pt.head())
     print(df_pt.shape)
@@ -4862,11 +4893,11 @@ fn test_query_20() raises:
     var p_name_arr = df_pt['p_name']
 
     # var p_partkey = Float64Array(600000)
-    var p_partkey = Float64Array("../Data/tpch_med/p_partkey_tensor")
+    var p_partkey = Float64Array("/datadrive/tpch_large/p_partkey_tensor")
     var p_name = List[String]()
-    p_name.resize(600000, "")
+    p_name.resize(2000000, "")
 
-    for i in range(600000):
+    for i in range(2000000):
         # p_partkey[i] = p_partkey_arr[i].to_float64()
         p_name[i] = p_name_arr[i].__str__()
     
@@ -4888,9 +4919,9 @@ fn test_query_20() raises:
     # var s_nationkey_arr = df_supp['s_nationkey'].to_numpy()
     # var s_name_arr = df_supp['s_name'].to_numpy()
 
-    var s_suppkey = Float64Array("../Data/tpch_med/s_suppkey_tensor")
-    var s_nationkey = Float64Array("../Data/tpch_med/s_nationkey_tensor")
-    var s_name = Float64Array("../Data/tpch_med/s_name_tensor")
+    var s_suppkey = Float64Array("/datadrive/tpch_large/s_suppkey_tensor")
+    var s_nationkey = Float64Array("/datadrive/tpch_large/s_nationkey_tensor")
+    var s_name = Float64Array("/datadrive/tpch_large/s_name_tensor")
 
     # var s_suppkey = Float64Array(30000)
     # var s_nationkey = Float64Array(30000)
@@ -4919,9 +4950,9 @@ fn test_query_20() raises:
     # var ps_suppkey_arr = df_psupp['ps_suppkey'].to_numpy()
     # var ps_availqty_arr = df_psupp['ps_availqty'].to_numpy()
 
-    var ps_partkey = Float64Array("../Data/tpch_med/ps_partkey_tensor")
-    var ps_suppkey = Float64Array("../Data/tpch_med/ps_suppkey_tensor")
-    var ps_availqty = Float64Array("../Data/tpch_med/ps_availqty_tensor")
+    var ps_partkey = Float64Array("/datadrive/tpch_large/ps_partkey_tensor")
+    var ps_suppkey = Float64Array("/datadrive/tpch_large/ps_suppkey_tensor")
+    var ps_availqty = Float64Array("/datadrive/tpch_large/ps_availqty_tensor")
 
     # var ps_partkey = Float64Array(2400000)
     # var ps_suppkey = Float64Array(2400000)
@@ -4952,8 +4983,8 @@ fn test_query_20() raises:
     # var n_nationkey = Float64Array(25)
     # var n_name = Float64Array(25)
 
-    var n_nationkey = Float64Array("../Data/tpch_med/n_nationkey_tensor")
-    var n_name = Float64Array("../Data/tpch_med/n_name_tensor")
+    var n_nationkey = Float64Array("/datadrive/tpch_large/n_nationkey_tensor")
+    var n_name = Float64Array("/datadrive/tpch_large/n_name_tensor")
 
     # for i in range(25):
     #     n_nationkey[i] = n_nationkey_arr[i].to_float64()
@@ -4966,6 +4997,11 @@ fn test_query_20() raises:
     var nation_col_names = List[String]("nationkey", "n_name")
 
     var df_nation = DataFrameF64(nation_col_data, nation_col_names)
+
+    var end_load = perf_counter()
+
+    print("load time: ", end_load - start_load)
+
 
     var start_time = monotonic()
 
@@ -5021,7 +5057,7 @@ fn test_query_20() raises:
     print("joined_lpss_df size: ", joined_lpss_df.columns[0].size)
     print()
 
-    for i in range(joined_lpss_df.columns.size):
+    for i in range(len(joined_lpss_df.columns)):
         if (joined_lpss_df.column_names[i] == "s_name"):
                 print(joined_lpss_df.column_names[i])
                 print(joined_lpss_df[joined_lpss_df.col_name_to_idx["s_name"]][0])
@@ -5034,7 +5070,7 @@ fn test_query_20() raises:
             
     print()
 
-    for i in range(joined_lpss_df.columns.size):
+    for i in range(len(joined_lpss_df.columns)):
         if (joined_lpss_df.column_names[i] == "s_name"):
                 print(joined_lpss_df.column_names[i])
                 print(joined_lpss_df[joined_lpss_df.col_name_to_idx["s_name"]][1])
@@ -5047,7 +5083,7 @@ fn test_query_20() raises:
     
     print()
 
-    for i in range(joined_lpss_df.columns.size):
+    for i in range(len(joined_lpss_df.columns)):
         if (joined_lpss_df.column_names[i] == "s_name"):
                 print(joined_lpss_df.column_names[i])
                 print(joined_lpss_df[joined_lpss_df.col_name_to_idx["s_name"]][2])
@@ -5080,11 +5116,12 @@ fn test_query_21() raises:
     # var l_suppkey = Float64Array(17996609)
     # var l_commitdate = Float64Array(17996609)
     # var l_receiptdate = Float64Array(17996609)
+    var start_load = perf_counter()
 
-    var l_orderkey = Float64Array("../Data/tpch_med/l_orderkey_tensor")
-    var l_suppkey = Float64Array("../Data/tpch_med/l_suppkey_tensor")
-    var l_commitdate = Float64Array("../Data/tpch_med/l_commitdate_tensor")
-    var l_receiptdate = Float64Array("../Data/tpch_med/l_receiptdate_tensor")
+    var l_orderkey = Float64Array("/datadrive/tpch_small/l_orderkey_tensor")
+    var l_suppkey = Float64Array("/datadrive/tpch_small/l_suppkey_tensor")
+    var l_commitdate = Float64Array("/datadrive/tpch_small/l_commitdate_tensor")
+    var l_receiptdate = Float64Array("/datadrive/tpch_small/l_receiptdate_tensor")
     
     # for i in range(17996609):
     #     l_orderkey[i] = float(l_orderkey_arr[i])
@@ -5115,9 +5152,9 @@ fn test_query_21() raises:
     # var s_nationkey = Float64Array(30000)
     # var s_name = Float64Array(30000)
 
-    var s_suppkey = Float64Array("../Data/tpch_med/s_suppkey_tensor")
-    var s_nationkey = Float64Array("../Data/tpch_med/s_nationkey_tensor")
-    var s_name = Float64Array("../Data/tpch_med/s_name_tensor")
+    var s_suppkey = Float64Array("/datadrive/tpch_small/s_suppkey_tensor")
+    var s_nationkey = Float64Array("/datadrive/tpch_small/s_nationkey_tensor")
+    var s_name = Float64Array("/datadrive/tpch_small/s_name_tensor")
 
     # for i in range(30000):
     #     s_suppkey[i] = float(s_suppkey_arr[i])
@@ -5144,8 +5181,8 @@ fn test_query_21() raises:
     # var o_orderstatus = Float64Array(4500000)
     # var o_orderkey = Float64Array(4500000)
 
-    var o_orderstatus = Float64Array("../Data/tpch_med/o_orderstatus_tensor")
-    var o_orderkey = Float64Array("../Data/tpch_med/o_orderkey_tensor")
+    var o_orderstatus = Float64Array("/datadrive/tpch_small/o_orderstatus_tensor")
+    var o_orderkey = Float64Array("/datadrive/tpch_small/o_orderkey_tensor")
     
 
     # for i in range(4500000):
@@ -5174,8 +5211,8 @@ fn test_query_21() raises:
     # var n_nationkey = Float64Array(25)
     # var n_name = Float64Array(25)
 
-    var n_nationkey = Float64Array("../Data/tpch_med/n_nationkey_tensor")
-    var n_name = Float64Array("../Data/tpch_med/n_name_tensor")
+    var n_nationkey = Float64Array("/datadrive/tpch_small/n_nationkey_tensor")
+    var n_name = Float64Array("/datadrive/tpch_small/n_name_tensor")
 
     # # for i in range(25):
     # #     n_nationkey[i] = float(n_nationkey_arr[i])
@@ -5188,6 +5225,10 @@ fn test_query_21() raises:
     var nation_col_names = List[String]("nationkey", "n_name")
 
     var df_nation = DataFrameF64(nation_col_data, nation_col_names)
+
+    var end_load = perf_counter()
+    print("data load time: ", end_load - start_load)
+
 
     var start_time = monotonic()
 
@@ -5249,7 +5290,7 @@ fn test_query_21() raises:
 
     print("exec time: ", execution_time_seconds)
 
-    for i in range(valid_lineitems_sa.columns.size):
+    for i in range(len(valid_lineitems_sa.columns)):
         if (valid_lineitems_sa.column_names[i] == "s_name"):
             print(valid_lineitems_sa.column_names[i])
             print(valid_lineitems_sa[valid_lineitems_sa.col_name_to_idx["s_name"]][0])
@@ -5257,7 +5298,7 @@ fn test_query_21() raises:
             print(valid_lineitems_sa.column_names[i])
             print(valid_lineitems_sa[valid_lineitems_sa.col_name_to_idx["numwait"]][0])
     
-    for i in range(valid_lineitems_sa.columns.size):
+    for i in range(len(valid_lineitems_sa.columns)):
         if (valid_lineitems_sa.column_names[i] == "s_name"):
             print(valid_lineitems_sa.column_names[i])
             print(valid_lineitems_sa[valid_lineitems_sa.col_name_to_idx["s_name"]][valid_lineitems_sa.columns[0].size - 1])
@@ -5272,19 +5313,21 @@ fn test_query_22() raises:
 
     # print("data load start time: ", monotonic())
 
-    var file_path_customer = '../../data/tpch_3gb/customer.csv'
+    var start_load = perf_counter()
+
+    var file_path_customer = '/datadrive/tpch_large/customer.csv'
     var df_cust = pd.read_csv(file_path_customer)
 
     var c_phone_arr = df_cust['c_phone']
     var c_phone = List[String]()
-    c_phone.resize(450000, "")
+    c_phone.resize(1500000, "")
 
-    for i in range(450000):
+    for i in range(1500000):
         c_phone[i] = (c_phone_arr[i].__str__())
     
-    var c_custkey = Float64Array("../Data/tpch_med/c_custkey_tensor")
-    var c_nationkey = Float64Array("../Data/tpch_med/c_nationkey_tensor")
-    var c_acctbal = Float64Array("../Data/tpch_med/c_acctbal_tensor")
+    var c_custkey = Float64Array("/datadrive/tpch_large/c_custkey_tensor")
+    var c_nationkey = Float64Array("/datadrive/tpch_large/c_nationkey_tensor")
+    var c_acctbal = Float64Array("/datadrive/tpch_large/c_acctbal_tensor")
 
     var cust_col_data = List[Float64Array](c_custkey, c_nationkey, c_acctbal)
     
@@ -5294,8 +5337,8 @@ fn test_query_22() raises:
     var df_customer2 = DataFrameF64(cust_col_data, cust_col_names)
 
 
-    var o_custkey = Float64Array("../Data/tpch_med/o_custkey_tensor")
-    var o_orderkey = Float64Array("../Data/tpch_med/o_orderkey_tensor")
+    var o_custkey = Float64Array("/datadrive/tpch_large/o_custkey_tensor")
+    var o_orderkey = Float64Array("/datadrive/tpch_large/o_orderkey_tensor")
 
     var orders_col_data = List[Float64Array](o_custkey, o_orderkey)
     
@@ -5303,6 +5346,9 @@ fn test_query_22() raises:
 
     var df_orders = DataFrameF64(orders_col_data, orders_col_names)
 
+    var end_load = perf_counter()
+    print("data load time: ", end_load - start_load)
+    
     print("data load end time: ", monotonic())
 
     var start_time = monotonic()
@@ -5371,7 +5417,7 @@ fn test_query_22() raises:
     print("final shape:", joined_co_df.columns[0].size)
 
 
-    for i in range(joined_co_df.columns.size):
+    for i in range(len(joined_co_df.columns)):
         if (joined_co_df.column_names[i] == "cntrycode"):
             print(joined_co_df.column_names[i])
             print(joined_co_df[joined_co_df.col_name_to_idx["cntrycode"]][0])
@@ -5384,7 +5430,7 @@ fn test_query_22() raises:
     
     print()
 
-    for i in range(joined_co_df.columns.size):
+    for i in range(len(joined_co_df.columns)):
         if (joined_co_df.column_names[i] == "cntrycode"):
             print(joined_co_df.column_names[i])
             print(joined_co_df[joined_co_df.col_name_to_idx["cntrycode"]][joined_co_df.columns[0].size - 1])

@@ -2,8 +2,11 @@ import pandas as pd
 import time
 
 # Load data
-df_lineitem = pd.read_csv('/home/shengya4/data/tpch_3gb/lineitem-med.csv', usecols=['l_suppkey', 'l_extendedprice', 'l_discount', 'l_shipdate'])
-df_supplier = pd.read_csv('/home/shengya4/data/tpch_3gb/supplier.csv', usecols=['s_suppkey', 's_name'])
+start_load = time.perf_counter()
+df_lineitem = pd.read_csv('/datadrive/tpch_large/lineitem.csv', usecols=['l_suppkey', 'l_extendedprice', 'l_discount', 'l_shipdate'])
+df_supplier = pd.read_csv('/datadrive/tpch_large/supplier.csv', usecols=['s_suppkey', 's_name'])
+end_load = time.perf_counter()
+print("Data loading time: ", end_load - start_load)
 
 start_time = time.time()
 

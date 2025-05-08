@@ -3,28 +3,31 @@ import pandas as pd
 
 pd.set_option('display.max_columns', None)
 
+start_load = time.perf_counter()
 # Load your datasets as before, keeping the necessary columns
-file_path_orders = '/home/shengya4/data/tpch_3gb/orders.csv'
+file_path_orders = '/datadrive/tpch_large/orders.csv'
 df_orders = pd.read_csv(file_path_orders, usecols=['o_orderkey', 'o_custkey', 'o_orderdate'])
 
-file_path_lineitem = '/home/shengya4/data/tpch_3gb/lineitem-med.csv'
+file_path_lineitem = '/datadrive/tpch_large/lineitem.csv'
 df_lineitem = pd.read_csv(file_path_lineitem, usecols=['l_orderkey', 'l_extendedprice', 'l_discount', 'l_suppkey'])
 
 # Calculate revenue early, as in your original code
 df_lineitem['revenue'] = df_lineitem['l_extendedprice'] * (1 - df_lineitem['l_discount'])
 
-file_path_cust = '/home/shengya4/data/tpch_3gb/customer.csv'
+file_path_cust = '/datadrive/tpch_large/customer.csv'
 df_cust = pd.read_csv(file_path_cust, usecols=['c_custkey', 'c_nationkey'])
 
-file_path_supp = '/home/shengya4/data/tpch_3gb/supplier.csv'
+file_path_supp = '/datadrive/tpch_large/supplier.csv'
 df_supp = pd.read_csv(file_path_supp, usecols=['s_suppkey', 's_nationkey'])
 
-file_path_nation = '/home/shengya4/data/tpch_3gb/nation.csv'
+file_path_nation = '/datadrive/tpch_large/nation.csv'
 df_nation = pd.read_csv(file_path_nation, usecols=['n_nationkey', 'n_regionkey', 'n_name'])
 
-file_path_region = '/home/shengya4/data/tpch_3gb/region.csv'
+file_path_region = '/datadrive/tpch_large/region.csv'
 df_region = pd.read_csv(file_path_region, usecols=['r_regionkey', 'r_name'])
 
+end_load = time.perf_counter()
+print("Data loading time: ", end_load - start_load)
 # Start filtering before the joins
 start_time = time.time()
 

@@ -2,8 +2,12 @@ import pandas as pd
 import time
 
 # Load DataFrames (assuming the columns are named as in the query)
-df_customer = pd.read_csv('/home/shengya4/data/tpch_3gb/customer.csv', usecols=['c_custkey'])
-df_orders = pd.read_csv('/home/shengya4/data/tpch_3gb/orders.csv', usecols=['o_custkey', 'o_comment'])
+
+df_customer = pd.read_csv('/datadrive/tpch_large/customer.csv', usecols=['c_custkey'])
+start_load = time.perf_counter()
+df_orders = pd.read_csv('/datadrive/tpch_large/orders.csv', usecols=['o_custkey', 'o_comment'])
+end_load = time.perf_counter()
+print("Data loading time ORD: ", end_load - start_load)
 
 def filter_not_string_exists_before(comment, filter_str1, filter_str2):
     # Find the index of the first occurrence of `filter_str1`
@@ -22,8 +26,11 @@ start_time = time.time()
 filter_str1 = "special"
 filter_str2 = "requests"
 
+start_udf = time.perf_counter()
 # 2.765572071s with custom lambda function filtering
 df_orders_filtered = df_orders[df_orders['o_comment'].apply(lambda comment: filter_not_string_exists_before(comment, filter_str1, filter_str2))]
+end_udf = time.perf_counter()
+print("UDF filtering time: ", end_udf - start_udf)
 
 # Step 1: Perform an inner join on `c_custkey = o_custkey`
 joined_co_df = pd.merge(df_customer, df_orders_filtered, left_on='c_custkey', right_on='o_custkey', how='inner')

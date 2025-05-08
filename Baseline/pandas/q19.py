@@ -2,8 +2,13 @@ import pandas as pd
 import time
 
 # Step 1: Load only necessary columns from CSV files
-df_lineitem = pd.read_csv('/home/shengya4/data/tpch_3gb/lineitem-med.csv', usecols=['l_partkey', 'l_quantity', 'l_extendedprice', 'l_discount', 'l_shipinstruct', 'l_shipmode'])
-df_part = pd.read_csv('/home/shengya4/data/tpch_3gb/part.csv', usecols=['p_partkey', 'p_brand', 'p_size', 'p_container'])
+start_load = time.perf_counter()
+df_lineitem = pd.read_csv('/datadrive/tpch_large/lineitem.csv', usecols=['l_partkey', 'l_quantity', 'l_extendedprice', 'l_discount', 'l_shipinstruct', 'l_shipmode'])
+end_load = time.perf_counter()
+print("Data loading time lineitem: ", end_load - start_load)
+df_part = pd.read_csv('/datadrive/tpch_large/part.csv', usecols=['p_partkey', 'p_brand', 'p_size', 'p_container'])
+# end_load = time.perf_counter()
+
 
 start_time = time.time()
 

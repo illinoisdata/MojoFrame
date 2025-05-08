@@ -4,14 +4,18 @@ import numpy as np
 
 
 # Load customer data
-file_path_customer = '/home/shengya4/data/tpch_3gb/customer.csv'
+start_load = time.perf_counter()
+file_path_customer = '/datadrive/tpch_large/customer.csv'
 df_customer = pd.read_csv(file_path_customer, usecols=["c_custkey", "c_nationkey", "c_acctbal", "c_phone"])
 print(df_customer.head())
 print("Customer DataFrame shape:", df_customer.shape)
 
 # Load orders data
-file_path_orders = '/home/shengya4/data/tpch_3gb/orders.csv'
+file_path_orders = '/datadrive/tpch_large/orders.csv'
 df_orders = pd.read_csv(file_path_orders, usecols=["o_custkey", "o_orderkey"])
+end_load = time.perf_counter()
+print("Data loading time: ", end_load - start_load)
+
 print(df_orders.head())
 print("Orders DataFrame shape:", df_orders.shape)
 
