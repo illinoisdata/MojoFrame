@@ -7,6 +7,5 @@ version = "0.1.0"
 [tasks]
 
 [dependencies]
-max = "<25"
+max = ">=25.3.0.dev2025040318,<26"
 pandas = ">=2.2.3,<3"
-numojo = ">=0.5.0,<0.6"
