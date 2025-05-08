@@ -8,7 +8,14 @@ Currently, core relational opertaions and some utility functions are implemented
 
 ## Running
 
-Install magic CLI: `curl -ssL https://magic.modular.com/92f881dc-d525-4538-913e-eea8752d2210 | bash`
+Install magic CLI:
+`curl -ssL https://magic.modular.com/92f881dc-d525-4538-913e-eea8752d2210 | bash`
+
+Navigate into the Mojoframe directory:
 `cd Mojoframe`
+
+Initialize project files:
 `magic init --format mojoproject`
+
+Run the mojo program:
 `magic run mojo main.mojo`
