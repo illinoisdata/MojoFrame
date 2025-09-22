@@ -1,8 +1,8 @@
-from core.DataFrame import DataFrameF64, DataFrameF32, DataFrameI32, TensorDataFrameF64, SetElement
+from core.DataFrame import DataFrameF64, SetElement # DataFrameF32, DataFrameI32, TensorDataFrameF64,
 from collections.dict import Dict, KeyElement
 from collections import Set
 from utils.index import Index
-from tensor import Tensor
+# from tensor import Tensor
 from math import isclose
 from utils.numerics import neg_inf
 from time import monotonic, perf_counter
@@ -10,9 +10,11 @@ from algorithm import parallelize, vectorize
 from utils.lock import BlockingSpinLock
 from math import math
 from sys.info import simdwidthof
-from core.dict import CompactDict
-from core.keys_container import KeysBuilder, KeyRef, Keyable
-from hashlib.hash import _hash_simd
+# from core.dict import CompactDict
+# from core.keys_container import KeysBuilder, KeyRef, Keyable
+#from hashlib.hash import _hash_simd
+from hashlib.hasher import Hasher
+
 
 alias INSERTION_SORT_THRESHOLD = 32
 alias FLOAT_VEC_WIDTH = simdwidthof[DType.float64]()
@@ -31,7 +33,7 @@ fn array_max_f64(read arr: Float64Array) raises -> SIMD[DType.float64, 1]:
 
     return cur_max
 
-fn element_mult_f64(mut arr1: Float64Array, mut arr2: Float64Array) raises -> Float64Array:
+fn element_mult_f64(read arr1: Float64Array, read arr2: Float64Array) raises -> Float64Array:
     var unroll_factor = 8
     var length = arr1.size
     var remainder = length % unroll_factor
@@ -53,7 +55,7 @@ fn element_mult_f64(mut arr1: Float64Array, mut arr2: Float64Array) raises -> Fl
     
     return result_arr
 
-fn pairwise_sum_f64(mut arr: Float64Array, n: Int, start: Int, stop: Int) -> SIMD[DType.float64, 1]:
+fn pairwise_sum_f64(read arr: Float64Array, n: Int, start: Int, stop: Int) -> SIMD[DType.float64, 1]:
     if n < 8:
         var res = SIMD[DType.float64, 1](0)
         for i in range(start, stop):
@@ -180,78 +182,78 @@ fn column_wise_mult_f64(mut arr1: Float64Array, mut arr2: Float64Array) raises -
         result_arr[i] = (arr1[i] * arr2[i])
     return result_arr
 
-fn aggregation_sum_i32(mut columns: List[Int32Array], col_names: List[String], groupby_col_idx: Int) raises -> List[Int32Array]:
-    # Iterate through each row of the DF (stored in columnar format)
-    # For the groupby column, group all the rows by the different keys
+# fn aggregation_sum_i32(mut columns: List[Int32Array], col_names: List[String], groupby_col_idx: Int) raises -> List[Int32Array]:
+#     # Iterate through each row of the DF (stored in columnar format)
+#     # For the groupby column, group all the rows by the different keys
 
-    # The groupby sum table in Pandas is a 2d array
-    # Dict that maps group to sums takes 14s to run for 10M records
-    # var groupby_table = Dict[Int, Int32Array]()
-    var start_time = monotonic()
+#     # The groupby sum table in Pandas is a 2d array
+#     # Dict that maps group to sums takes 14s to run for 10M records
+#     # var groupby_table = Dict[Int, Int32Array]()
+#     var start_time = monotonic()
 
-    var groupby_table = List[Int32Array]()
-    var groups_vec = List[IntKey]()
-    var num_cols = len(columns)
-    var num_rows = columns[groupby_col_idx].size
-    var group_by_col = columns[groupby_col_idx]
-    var group_to_idx = Dict[IntKey, Int]()
+#     var groupby_table = List[Int32Array]()
+#     var groups_vec = List[IntKey]()
+#     var num_cols = len(columns)
+#     var num_rows = columns[groupby_col_idx].size
+#     var group_by_col = columns[groupby_col_idx]
+#     var group_to_idx = Dict[IntKey, Int]()
 
-    for row_i in range(num_rows):
-        # Each row in the groupby column belongs to a group
-        var cur_row_group = IntKey(group_by_col[row_i])
-        if not (cur_row_group in group_to_idx):
-            groups_vec.append(cur_row_group)
-            group_to_idx[cur_row_group] = 0
+#     for row_i in range(num_rows):
+#         # Each row in the groupby column belongs to a group
+#         var cur_row_group = IntKey(group_by_col[row_i])
+#         if not (cur_row_group in group_to_idx):
+#             groups_vec.append(cur_row_group)
+#             group_to_idx[cur_row_group] = 0
 
-    # Map groups to index like 0, 1, 2
-    for i in range(len(groups_vec)):
-        # print(groups_vec[i])
-        group_to_idx[groups_vec[i]] = i
-        groupby_table.append(Int32Array(num_cols - 1))
+#     # Map groups to index like 0, 1, 2
+#     for i in range(len(groups_vec)):
+#         # print(groups_vec[i])
+#         group_to_idx[groups_vec[i]] = i
+#         groupby_table.append(Int32Array(num_cols - 1))
 
-    # for row_i in range(num_rows):
-    #     # Each row in the groupby column belongs to a group
-    #     var agg_i = 0
-    #     var cur_row_group = (group_by_col[row_i])
-    #     if groupby_table.__contains__(cur_row_group):
-    #         # For each row/group, iterate through the columns at this row index
-    #         for col_i in range(num_cols):
-    #             if col_i != groupby_col_idx:
-    #                 var cur_col = columns[col_i]
-    #                 groupby_table[cur_row_group][agg_i] += cur_col[row_i]
-    #                 agg_i += 1
-    #     else:
-    #         groups_vec.append(cur_row_group)
-    #         groupby_table[cur_row_group] = Int32Array(num_cols)
-    #         for col_i in range(num_cols):
-    #             if col_i != groupby_col_idx:
-    #                 var cur_col = columns[col_i]
-    #                 groupby_table[cur_row_group][agg_i] = cur_col[row_i]
-    #                 agg_i += 1
-    var agg_i = 0
+#     # for row_i in range(num_rows):
+#     #     # Each row in the groupby column belongs to a group
+#     #     var agg_i = 0
+#     #     var cur_row_group = (group_by_col[row_i])
+#     #     if groupby_table.__contains__(cur_row_group):
+#     #         # For each row/group, iterate through the columns at this row index
+#     #         for col_i in range(num_cols):
+#     #             if col_i != groupby_col_idx:
+#     #                 var cur_col = columns[col_i]
+#     #                 groupby_table[cur_row_group][agg_i] += cur_col[row_i]
+#     #                 agg_i += 1
+#     #     else:
+#     #         groups_vec.append(cur_row_group)
+#     #         groupby_table[cur_row_group] = Int32Array(num_cols)
+#     #         for col_i in range(num_cols):
+#     #             if col_i != groupby_col_idx:
+#     #                 var cur_col = columns[col_i]
+#     #                 groupby_table[cur_row_group][agg_i] = cur_col[row_i]
+#     #                 agg_i += 1
+#     var agg_i = 0
     
-    for col_i in range(num_cols):
-        if col_i != groupby_col_idx:
-            var cur_col = columns[col_i]
-            for row_i in range(num_rows):
-                var cur_row_group_idx = group_to_idx[IntKey(group_by_col[row_i])]
-                # if groupby_table.__contains__(cur_row_group):
-                #     groupby_table[cur_row_group][agg_i] += cur_col[row_i]
-                # else:
-                #     groups_vec.append(cur_row_group)
-                #     groupby_table[cur_row_group] = Int32Array(num_cols - 1)
-                #     groupby_table[cur_row_group][agg_i] = cur_col[row_i]
-                groupby_table[cur_row_group_idx][agg_i] += cur_col[row_i]
-            agg_i += 1
-    var end_time = monotonic()
-    print((end_time - start_time) / 1000000000)
-    # After building the groupby dict, return the result as a DF
-    # var summed_data = List[Int32Array]()
-    # var group_vec_size = groups_vec.size
-    # for i in range(group_vec_size):
-    #     summed_data.append(groupby_table[groups_vec[i]])
+#     for col_i in range(num_cols):
+#         if col_i != groupby_col_idx:
+#             var cur_col = columns[col_i]
+#             for row_i in range(num_rows):
+#                 var cur_row_group_idx = group_to_idx[IntKey(group_by_col[row_i])]
+#                 # if groupby_table.__contains__(cur_row_group):
+#                 #     groupby_table[cur_row_group][agg_i] += cur_col[row_i]
+#                 # else:
+#                 #     groups_vec.append(cur_row_group)
+#                 #     groupby_table[cur_row_group] = Int32Array(num_cols - 1)
+#                 #     groupby_table[cur_row_group][agg_i] = cur_col[row_i]
+#                 groupby_table[cur_row_group_idx][agg_i] += cur_col[row_i]
+#             agg_i += 1
+#     var end_time = monotonic()
+#     print((end_time - start_time) / 1000000000)
+#     # After building the groupby dict, return the result as a DF
+#     # var summed_data = List[Int32Array]()
+#     # var group_vec_size = groups_vec.size
+#     # for i in range(group_vec_size):
+#     #     summed_data.append(groupby_table[groups_vec[i]])
     
-    return groupby_table
+#     return groupby_table
 
 # fn aggregation_sum_i32_alt(mut columns: List[Int32Array], col_names: List[String], groupby_col_idx: Int) raises -> List[Int32Array]:
 #     # Dict that stores group and their number of records
@@ -351,6 +353,77 @@ fn aggregation_sum_i32(mut columns: List[Int32Array], col_names: List[String], g
 
 
     # return columns
+fn aggregation_sum_f64_multicol_selective(mut df: DataFrameF64, groupby_cols: List[String], agg_cols: List[String]) raises -> List[Float64Array]:
+    if len(groupby_cols) == 2:
+        var groupby_table = List[Float64Array]()
+        var group_to_idx = Dict[DoubleTupleKey, Int]()
+       
+        var groups_vec = List[DoubleTupleKey]()
+        
+        var groupby_cols_dict = Dict[String, Bool]()
+        var agg_cols_dict = Dict[String, Bool]()
+        var flat_keys = List[SIMD[DType.float64, 1]]()
+        var key_col_len = df[0].size
+
+        var key_to_index = List[Int]()
+        key_to_index.resize(key_col_len, 0)
+
+        # Build dictionaries for groupby and aggregation columns
+        for i in range(len(groupby_cols)):
+            groupby_cols_dict[groupby_cols[i]] = True
+            
+        for i in range(len(agg_cols)):
+            agg_cols_dict[agg_cols[i]] = True
+
+        # Build flat keys for groupby columns
+        for i in range(len(groupby_cols)):
+            var col = df[groupby_cols[i]]
+            for row_i in range(key_col_len):
+                flat_keys.append(col[row_i])
+    
+        # Create groups
+        for i in range(key_col_len):
+            var compound_key = DoubleTupleKey(DoubleTup(Tuple(flat_keys[i], flat_keys[i+key_col_len])))
+            if not(compound_key in group_to_idx):
+                groups_vec.append(compound_key)
+                group_to_idx[compound_key] = 0
+        
+        for i in range(len(groups_vec)):
+            group_to_idx[groups_vec[i]] = i
+
+        for i in range(key_col_len):
+            var compound_key = DoubleTupleKey(DoubleTup(Tuple(flat_keys[i], flat_keys[i+key_col_len])))
+            key_to_index[i] = group_to_idx[compound_key]
+
+        # Create result arrays only for specified aggregation columns
+        for _ in range(len(agg_cols)):
+            groupby_table.append(Float64Array(len(groups_vec)))
+
+        var agg_i = 0
+        # Aggregate only the specified columns
+        for col_i in range(len(df.columns)):
+            var col_name = df.column_names[col_i]
+            if col_name in agg_cols_dict:
+                var cur_col = df.columns[col_i]
+                for row_i in range(key_col_len):
+                    groupby_table[agg_i][key_to_index[row_i]] += cur_col[row_i]
+                agg_i += 1
+        
+        # Add group columns at the beginning
+        var group_col1 = Float64Array(len(groups_vec))
+        var group_col2 = Float64Array(len(groups_vec))
+        
+        for key_i in range(len(groups_vec)):
+            var cur_key = groups_vec[key_i]
+            group_col1[key_i] = cur_key.i.data[0]
+            group_col2[key_i] = cur_key.i.data[1]
+
+        groupby_table.insert(0, group_col2)
+        groupby_table.insert(0, group_col1)
+
+        return groupby_table
+    
+    return List[Float64Array]()
 
 fn aggregation_sum_f64_multicol(mut df: DataFrameF64, groupby_cols: List[String]) raises -> List[Float64Array]:
     if len(groupby_cols) == 2:
@@ -904,209 +977,376 @@ fn aggregation_sum_f64_parallel(mut columns: List[Float64Array],
     return final_table
 
 fn aggregation_sum_f64(mut columns: List[Float64Array], col_names: List[String], groupby_col_idx: Int) raises -> List[Float64Array]:
-    var groupby_table = List[Float64Array]()
-    var groups_vec = List[FloatKey]()
+    # var groupby_table = List[Float64Array]()
+    # var groups_vec = List[FloatKey]()
+    # var num_cols = len(columns)
+    # var num_rows = columns[groupby_col_idx].size
+    # var group_by_col = columns[groupby_col_idx]
+    # var group_to_idx = Dict[FloatKey, Int]()
+
+    # for row_i in range(num_rows):
+    #     # Each row in the groupby column belongs to a group
+    #     # var cur_row_group = group_by_col[row_i]
+    #     var cur_row_group_key = FloatKey(group_by_col[row_i])
+    #     if not (cur_row_group_key in group_to_idx):
+    #         groups_vec.append(cur_row_group_key)
+    #         group_to_idx[cur_row_group_key] = 0
+
+    #     # if group_to_idx.__contains__(cur_row_group):
+    #     #     continue
+    #     # else:
+    #     #     groups_vec.append(cur_row_group)
+    #     #     group_to_idx[cur_row_group] = 0
+        
+    # # table
+    # #  col1_sum col_2_sum col1_avg col2_avg
+    # # 0
+    # # 1
+    # # 2
+    # # Map groups to index like 0, 1, 2
+    # for i in range(len(groups_vec)):
+    #     # print(groups_vec[i])
+    #     group_to_idx[groups_vec[i]] = i
+    #     # groupby_table.append(Float64Array(num_cols - 1))
+
+    # for _ in range(num_cols - 1):
+    #     groupby_table.append(Float64Array(len(groups_vec)))
+
+    # var agg_i = 0
+    
+    # for col_i in range(num_cols):
+    #     if col_i != groupby_col_idx:
+    #         var cur_col = columns[col_i]
+    #         for row_i in range(num_rows):
+    #             var cur_row_group_idx = group_to_idx[FloatKey(group_by_col[row_i])]
+    #             # l_extendedprice * (1 - l_discount) sum this for each row if this condition is given
+    #             groupby_table[agg_i][cur_row_group_idx] += cur_col[row_i]
+    #         agg_i += 1
+    
+    # var group_col = Float64Array(len(groups_vec))
+   
+    # for key_i in range(len(groups_vec)):
+    #     # var cur_key = groups_vec[key_i]
+    #     group_col[key_i] = groups_vec[key_i].i
+
+    # groupby_table.insert(0, group_col)
+
+    # return groupby_table
+
     var num_cols = len(columns)
     var num_rows = columns[groupby_col_idx].size
     var group_by_col = columns[groupby_col_idx]
+    
+    # single pass group discovery
     var group_to_idx = Dict[FloatKey, Int]()
-
+    var groups_vec = List[FloatKey]()
+    
     for row_i in range(num_rows):
-        # Each row in the groupby column belongs to a group
-        # var cur_row_group = group_by_col[row_i]
-        var cur_row_group_key = FloatKey(group_by_col[row_i])
-        if not (cur_row_group_key in group_to_idx):
-            groups_vec.append(cur_row_group_key)
-            group_to_idx[cur_row_group_key] = 0
+        var group_key = FloatKey(group_by_col[row_i])
+        if group_key not in group_to_idx:
+            group_to_idx[group_key] = len(groups_vec)
+            groups_vec.append(group_key)
 
-        # if group_to_idx.__contains__(cur_row_group):
-        #     continue
-        # else:
-        #     groups_vec.append(cur_row_group)
-        #     group_to_idx[cur_row_group] = 0
-        
-    # table
-    #  col1_sum col_2_sum col1_avg col2_avg
-    # 0
-    # 1
-    # 2
-    # Map groups to index like 0, 1, 2
-    for i in range(len(groups_vec)):
-        # print(groups_vec[i])
-        group_to_idx[groups_vec[i]] = i
-        # groupby_table.append(Float64Array(num_cols - 1))
+    # cache row-to-group mapping
+    var row_to_group_idx = List[Int]()
+    row_to_group_idx.resize(num_rows, 0)
+    
+    for row_i in range(num_rows):
+        row_to_group_idx[row_i] = group_to_idx[FloatKey(group_by_col[row_i])]
 
+    #allocate result tables
+    var groupby_table = List[Float64Array]()
     for _ in range(num_cols - 1):
         groupby_table.append(Float64Array(len(groups_vec)))
 
+    # aggregation with cached indices
     var agg_i = 0
-    
     for col_i in range(num_cols):
         if col_i != groupby_col_idx:
             var cur_col = columns[col_i]
             for row_i in range(num_rows):
-                var cur_row_group_idx = group_to_idx[FloatKey(group_by_col[row_i])]
-                # l_extendedprice * (1 - l_discount) sum this for each row if this condition is given
-                groupby_table[agg_i][cur_row_group_idx] += cur_col[row_i]
+                var group_idx = row_to_group_idx[row_i]
+                groupby_table[agg_i][group_idx] += cur_col[row_i]
             agg_i += 1
     
+    # add group column
     var group_col = Float64Array(len(groups_vec))
-   
-    for key_i in range(len(groups_vec)):
-        # var cur_key = groups_vec[key_i]
-        group_col[key_i] = groups_vec[key_i].i
+    for i in range(len(groups_vec)):
+        group_col[i] = groups_vec[i].i
 
     groupby_table.insert(0, group_col)
-
     return groupby_table
 
 fn aggregation_sum_conditional_f64(mut columns: List[Float64Array], col_names: List[String], read mask: List[Bool], groupby_col_idx: Int) raises -> List[Float64Array]:
-    var groupby_table = List[Float64Array]()
-    var groups_vec = List[FloatKey]()
+    # var groupby_table = List[Float64Array]()
+    # var groups_vec = List[FloatKey]()
+    # var num_cols = len(columns)
+    # var num_rows = columns[groupby_col_idx].size
+    # var group_by_col = columns[groupby_col_idx]
+    # var group_to_idx = Dict[FloatKey, Int]()
+
+    # for row_i in range(num_rows):
+    #     # Each row in the groupby column belongs to a group
+    #     var cur_row_group = FloatKey(group_by_col[row_i])
+    #     if not (cur_row_group in group_to_idx):
+    #         groups_vec.append(cur_row_group)
+    #         group_to_idx[cur_row_group] = 0
+        
+    # # table
+    # #  col1_sum col_2_sum col1_avg col2_avg
+    # # 0
+    # # 1
+    # # 2
+    # # Map groups to index like 0, 1, 2
+    # for i in range(len(groups_vec)):
+    #     # print(groups_vec[i])
+    #     group_to_idx[groups_vec[i]] = i
+    #     # groupby_table.append(Float64Array(num_cols - 1))
+
+    # for _ in range(num_cols - 1):
+    #     groupby_table.append(Float64Array(len(groups_vec)))
+
+    # var agg_i = 0
+    
+    # for col_i in range(num_cols):
+    #     if col_i != groupby_col_idx:
+    #         var cur_col = columns[col_i]
+    #         for row_i in range(num_rows):
+    #             var cur_row_group_idx = group_to_idx[FloatKey(group_by_col[row_i])]
+    #             if mask[row_i]:
+    #                 groupby_table[agg_i][cur_row_group_idx] += cur_col[row_i]
+    #         agg_i += 1
+    
+    # var group_col = Float64Array(len(groups_vec))
+   
+    # for key_i in range(len(groups_vec)):
+    #     # var cur_key = groups_vec[key_i]
+    #     group_col[key_i] = groups_vec[key_i].i
+
+    # groupby_table.insert(0, group_col)
+
+    # return groupby_table
+
     var num_cols = len(columns)
     var num_rows = columns[groupby_col_idx].size
     var group_by_col = columns[groupby_col_idx]
+    
+    # single pass group discovery
     var group_to_idx = Dict[FloatKey, Int]()
-
+    var groups_vec = List[FloatKey]()
+    
     for row_i in range(num_rows):
-        # Each row in the groupby column belongs to a group
-        var cur_row_group = FloatKey(group_by_col[row_i])
-        if not (cur_row_group in group_to_idx):
-            groups_vec.append(cur_row_group)
-            group_to_idx[cur_row_group] = 0
-        
-    # table
-    #  col1_sum col_2_sum col1_avg col2_avg
-    # 0
-    # 1
-    # 2
-    # Map groups to index like 0, 1, 2
-    for i in range(len(groups_vec)):
-        # print(groups_vec[i])
-        group_to_idx[groups_vec[i]] = i
-        # groupby_table.append(Float64Array(num_cols - 1))
+        var group_key = FloatKey(group_by_col[row_i])
+        if group_key not in group_to_idx:
+            group_to_idx[group_key] = len(groups_vec)
+            groups_vec.append(group_key)
 
+    # cache row-to-group mapping
+    var row_to_group_idx = List[Int]()
+    row_to_group_idx.resize(num_rows, 0)
+    
+    for row_i in range(num_rows):
+        row_to_group_idx[row_i] = group_to_idx[FloatKey(group_by_col[row_i])]
+
+    # allocate result tables
+    var groupby_table = List[Float64Array]()
     for _ in range(num_cols - 1):
         groupby_table.append(Float64Array(len(groups_vec)))
 
+    # conditional aggregation with cached indices
     var agg_i = 0
-    
     for col_i in range(num_cols):
         if col_i != groupby_col_idx:
             var cur_col = columns[col_i]
             for row_i in range(num_rows):
-                var cur_row_group_idx = group_to_idx[FloatKey(group_by_col[row_i])]
-                if mask[row_i]:
-                    groupby_table[agg_i][cur_row_group_idx] += cur_col[row_i]
+                if mask[row_i]:  # Only add if mask is true
+                    var group_idx = row_to_group_idx[row_i]
+                    groupby_table[agg_i][group_idx] += cur_col[row_i]
             agg_i += 1
     
+    # add group column
     var group_col = Float64Array(len(groups_vec))
-   
-    for key_i in range(len(groups_vec)):
-        # var cur_key = groups_vec[key_i]
-        group_col[key_i] = groups_vec[key_i].i
+    for i in range(len(groups_vec)):
+        group_col[i] = groups_vec[i].i
 
     groupby_table.insert(0, group_col)
-
     return groupby_table
 
 fn aggregation_min_f64(mut columns: List[Float64Array], col_names: List[String], groupby_col_idx: Int) raises -> List[Float64Array]:
-    var groupby_table = List[Float64Array]()
-    var groups_vec = List[FloatKey]()
+    # var groupby_table = List[Float64Array]()
+    # var groups_vec = List[FloatKey]()
+    # var num_cols = len(columns)
+    # var num_rows = columns[groupby_col_idx].size
+    # var group_by_col = columns[groupby_col_idx]
+    # var group_to_idx = Dict[FloatKey, Int]()
+    # var neg_inf = neg_inf[DType.float64]()
+
+    # for row_i in range(num_rows):
+    #     # Each row in the groupby column belongs to a group
+    #     var cur_row_group = FloatKey(group_by_col[row_i]) 
+    #     if not (cur_row_group in group_to_idx):
+    #         groups_vec.append(cur_row_group)
+    #         group_to_idx[cur_row_group] = 0
+    
+    # # table
+    # #  col1_sum col_2_sum col1_avg col2_avg
+    # # 0
+    # # 1
+    # # 2
+    # # Map groups to index like 0, 1, 2
+    # for i in range(len(groups_vec)):
+    #     # print(groups_vec[i])
+    #     group_to_idx[groups_vec[i]] = i
+    #     # groupby_table.append(Float64Array(num_cols - 1))
+
+    # for _ in range(num_cols - 1):
+    #     groupby_table.append(Float64Array(len(groups_vec), True))
+
+    # var agg_i = 0
+    
+    # for col_i in range(num_cols):
+    #     if col_i != groupby_col_idx:
+    #         var cur_col = columns[col_i]
+    #         for row_i in range(num_rows):
+    #             var cur_row_group_idx = group_to_idx[FloatKey(group_by_col[row_i])]
+    #             if groupby_table[agg_i][cur_row_group_idx] == neg_inf:
+    #                 groupby_table[agg_i][cur_row_group_idx] = cur_col[row_i]
+    #             else:
+    #                 groupby_table[agg_i][cur_row_group_idx] = min(cur_col[row_i], groupby_table[agg_i][cur_row_group_idx])
+    #         agg_i += 1
+    
+    # var group_col = Float64Array(len(groups_vec))
+   
+    # for key_i in range(len(groups_vec)):
+    #     # var cur_key = groups_vec[key_i]
+    #     group_col[key_i] = groups_vec[key_i].i
+
+    # groupby_table.insert(0, group_col)
+
+    # return groupby_table
+
     var num_cols = len(columns)
     var num_rows = columns[groupby_col_idx].size
     var group_by_col = columns[groupby_col_idx]
-    var group_to_idx = Dict[FloatKey, Int]()
-    var neg_inf = neg_inf[DType.float64]()
-
-    for row_i in range(num_rows):
-        # Each row in the groupby column belongs to a group
-        var cur_row_group = FloatKey(group_by_col[row_i]) 
-        if not (cur_row_group in group_to_idx):
-            groups_vec.append(cur_row_group)
-            group_to_idx[cur_row_group] = 0
     
-    # table
-    #  col1_sum col_2_sum col1_avg col2_avg
-    # 0
-    # 1
-    # 2
-    # Map groups to index like 0, 1, 2
-    for i in range(len(groups_vec)):
-        # print(groups_vec[i])
-        group_to_idx[groups_vec[i]] = i
-        # groupby_table.append(Float64Array(num_cols - 1))
+    var group_to_idx = Dict[FloatKey, Int]()
+    var groups_vec = List[FloatKey]()
+    
+    for row_i in range(num_rows):
+        var group_key = FloatKey(group_by_col[row_i])
+        if group_key not in group_to_idx:
+            group_to_idx[group_key] = len(groups_vec)
+            groups_vec.append(group_key)
 
+    var row_to_group_idx = List[Int]()
+    row_to_group_idx.resize(num_rows, 0)
+    
+    for row_i in range(num_rows):
+        row_to_group_idx[row_i] = group_to_idx[FloatKey(group_by_col[row_i])]
+
+    var groupby_table = List[Float64Array]()
     for _ in range(num_cols - 1):
-        groupby_table.append(Float64Array(len(groups_vec), True))
+        groupby_table.append(Float64Array(len(groups_vec), True))  # as_min=True
 
+    var neg_inf = neg_inf[DType.float64]()
     var agg_i = 0
     
     for col_i in range(num_cols):
         if col_i != groupby_col_idx:
             var cur_col = columns[col_i]
             for row_i in range(num_rows):
-                var cur_row_group_idx = group_to_idx[FloatKey(group_by_col[row_i])]
-                if groupby_table[agg_i][cur_row_group_idx] == neg_inf:
-                    groupby_table[agg_i][cur_row_group_idx] = cur_col[row_i]
+                var group_idx = row_to_group_idx[row_i]
+                var current_val = cur_col[row_i]
+                
+                if groupby_table[agg_i][group_idx] == neg_inf:
+                    groupby_table[agg_i][group_idx] = current_val
                 else:
-                    groupby_table[agg_i][cur_row_group_idx] = min(cur_col[row_i], groupby_table[agg_i][cur_row_group_idx])
+                    groupby_table[agg_i][group_idx] = min(current_val, groupby_table[agg_i][group_idx])
             agg_i += 1
     
     var group_col = Float64Array(len(groups_vec))
-   
-    for key_i in range(len(groups_vec)):
-        # var cur_key = groups_vec[key_i]
-        group_col[key_i] = groups_vec[key_i].i
+    for i in range(len(groups_vec)):
+        group_col[i] = groups_vec[i].i
 
     groupby_table.insert(0, group_col)
-
     return groupby_table
 
 fn aggregation_count_f64(mut columns: List[Float64Array], col_names: List[String], groupby_col_idx: Int) raises -> List[Float64Array]:
-    var groupby_table = List[Float64Array]()
+    # var groupby_table = List[Float64Array]()
+    # var groups_vec = List[FloatKey]()
+    
+    # var group_by_col = columns[groupby_col_idx]
+    # var num_rows = group_by_col.size
+    # var group_to_idx = Dict[FloatKey, Int]()
+
+    # for row_i in range(num_rows):
+    #     # Each row in the groupby column belongs to a group
+    #     var cur_row_group = FloatKey(group_by_col[row_i])
+    #     if not(cur_row_group in group_to_idx):
+    #         groups_vec.append(cur_row_group)
+    #         group_to_idx[cur_row_group] = 0
+        
+    # # table
+    # #  col1_sum col_2_sum col1_avg col2_avg
+    # # 0
+    # # 1
+    # # 2
+    # # Map groups to index like 0, 1, 2
+    # for i in range(len(groups_vec)):
+    #     # print(groups_vec[i])
+    #     group_to_idx[groups_vec[i]] = i
+    #     # groupby_table.append(Float64Array(num_cols - 1))
+
+
+    # groupby_table.append(Float64Array(len(groups_vec)))
+    
+    # for row_i in range(num_rows):
+    #     var cur_row_group_idx = group_to_idx[FloatKey(group_by_col[row_i])]
+    #     groupby_table[0][cur_row_group_idx] += 1
+    
+    # var group_col = Float64Array(len(groups_vec))
+   
+    # for key_i in range(len(groups_vec)):
+    #     # var cur_key = groups_vec[key_i]
+    #     group_col[key_i] = groups_vec[key_i].i
+
+    # groupby_table.insert(0, group_col)
+
+    # return groupby_table
+
+    var num_rows = columns[groupby_col_idx].size
+    var group_by_col = columns[groupby_col_idx]
+    
+    var group_to_idx = Dict[FloatKey, Int]()
     var groups_vec = List[FloatKey]()
     
-    var group_by_col = columns[groupby_col_idx]
-    var num_rows = group_by_col.size
-    var group_to_idx = Dict[FloatKey, Int]()
-
     for row_i in range(num_rows):
-        # Each row in the groupby column belongs to a group
-        var cur_row_group = FloatKey(group_by_col[row_i])
-        if not(cur_row_group in group_to_idx):
-            groups_vec.append(cur_row_group)
-            group_to_idx[cur_row_group] = 0
-        
-    # table
-    #  col1_sum col_2_sum col1_avg col2_avg
-    # 0
-    # 1
-    # 2
-    # Map groups to index like 0, 1, 2
-    for i in range(len(groups_vec)):
-        # print(groups_vec[i])
-        group_to_idx[groups_vec[i]] = i
-        # groupby_table.append(Float64Array(num_cols - 1))
+        var group_key = FloatKey(group_by_col[row_i])
+        if group_key not in group_to_idx:
+            group_to_idx[group_key] = len(groups_vec)
+            groups_vec.append(group_key)
 
-
-    groupby_table.append(Float64Array(len(groups_vec)))
+    var row_to_group_idx = List[Int]()
+    row_to_group_idx.resize(num_rows, 0)
     
     for row_i in range(num_rows):
-        var cur_row_group_idx = group_to_idx[FloatKey(group_by_col[row_i])]
-        groupby_table[0][cur_row_group_idx] += 1
+        row_to_group_idx[row_i] = group_to_idx[FloatKey(group_by_col[row_i])]
+
+    var groupby_table = List[Float64Array]()
+    groupby_table.append(Float64Array(len(groups_vec)))
+
+    for row_i in range(num_rows):
+        var group_idx = row_to_group_idx[row_i]
+        groupby_table[0][group_idx] += 1
     
     var group_col = Float64Array(len(groups_vec))
-   
-    for key_i in range(len(groups_vec)):
-        # var cur_key = groups_vec[key_i]
-        group_col[key_i] = groups_vec[key_i].i
+    for i in range(len(groups_vec)):
+        group_col[i] = groups_vec[i].i
 
     groupby_table.insert(0, group_col)
-
     return groupby_table
 
-fn aggregation_count_distinct_f64(mut columns: List[Float64Array], col_names: List[String], groupby_col_idx: Int, aggregation_col_idx: Int) raises -> List[Float64Array]:
+fn aggregation_count_distinct_f64(read columns: List[Float64Array], col_names: List[String], groupby_col_idx: Int, aggregation_col_idx: Int) raises -> List[Float64Array]:
     var start_time = monotonic()
 
     var groupby_table = List[Float64Array]()
@@ -1301,115 +1541,284 @@ fn aggregation_count_distinct_f64(mut columns: List[Float64Array], col_names: Li
 
     return groupby_table
 
-fn aggregation_all_f64(mut columns: List[Float64Array], col_names: List[String], groupby_col_idx: Int) raises -> List[Float64Array]:
-    var groupby_table = List[Float64Array]()
-    var groups_vec = List[FloatKey]() 
-    # sum, avg two agg methods, then one column for groups and one for counts
-    var num_cols_df = len(columns)
-    var num_cols = (len(columns) - 1) * 2 + 2
-    var num_rows = columns[groupby_col_idx].size
+fn aggregation_count_distinct_f64_fast(read columns: List[Float64Array], col_names: List[String], groupby_col_idx: Int, aggregation_col_idx: Int) raises -> List[Float64Array]:
     var group_by_col = columns[groupby_col_idx]
+    var aggregation_col = columns[aggregation_col_idx]
+    var num_rows = group_by_col.size
+    
+    # Phase 1: Single-threaded group discovery
+    var groups_vec = List[FloatKey]()
     var group_to_idx = Dict[FloatKey, Int]()
-
+    
     for row_i in range(num_rows):
-        # Each row in the groupby column belongs to a group
-        var cur_row_group = FloatKey(group_by_col[row_i])
-        if not (cur_row_group in group_to_idx):
-            groups_vec.append(cur_row_group)
-            group_to_idx[cur_row_group] = 0
+        var group_key = FloatKey(group_by_col[row_i])
+        if group_key not in group_to_idx:
+            group_to_idx[group_key] = len(groups_vec)
+            groups_vec.append(group_key)
     
     var num_groups = len(groups_vec)
-    var group_count = List[Int]()
-    # # Map groups to index like 0, 1, 2
-    # print(groups_vec.size)
-    for i in range(len(groups_vec)):
-        # print(groups_vec[i])
-        group_to_idx[groups_vec[i]] = i
-        group_count.append(0)
     
+    # Phase 2: Partition data by groups to avoid conflicts
+    var group_row_lists = List[List[Int]]()
+    group_row_lists.resize(num_groups, List[Int]())
+    
+    # Assign each row to its group's list
+    for row_i in range(num_rows):
+        var group_idx = group_to_idx[FloatKey(group_by_col[row_i])]
+        group_row_lists[group_idx].append(row_i)
+    
+    # Phase 3: Process each group in parallel (no conflicts since groups are separate)
+    var distinct_counts = List[Int]()
+    distinct_counts.resize(num_groups, 0)
+    
+    # Each group can be processed independently - no conflicts!
+    @parameter
+    fn process_group(group_idx: Int):
+        var distinct_set = Set[FloatKey]()
+        var group_rows = group_row_lists[group_idx]
+        
+        for i in range(len(group_rows)):
+            var row_idx = group_rows[i]
+            var agg_val = aggregation_col[row_idx]
+            distinct_set.add(FloatKey(agg_val))
+        
+        distinct_counts[group_idx] = len(distinct_set)
+    
+    # Parallel execution - each thread gets different groups
+    parallelize[process_group](num_groups, 8)
+    
+    # Build results
+    var group_col = Float64Array(num_groups)
+    var distinct_count_array = Float64Array(num_groups)
+    
+    for i in range(num_groups):
+        group_col[i] = groups_vec[i].i
+        distinct_count_array[i] = distinct_counts[i]
+    
+    var groupby_table = List[Float64Array]()
+    groupby_table.append(group_col^)
+    groupby_table.append(distinct_count_array^)
+    
+    return groupby_table^
+
+
+fn aggregation_all_f64(mut columns: List[Float64Array], col_names: List[String], groupby_col_idx: Int) raises -> List[Float64Array]:
+    # var groupby_table = List[Float64Array]()
+    # var groups_vec = List[FloatKey]() 
+    # # sum, avg two agg methods, then one column for groups and one for counts
+    # var num_cols_df = len(columns)
+    # var num_cols = (len(columns) - 1) * 2 + 2
+    # var num_rows = columns[groupby_col_idx].size
+    # var group_by_col = columns[groupby_col_idx]
+    # var group_to_idx = Dict[FloatKey, Int]()
+
+    # for row_i in range(num_rows):
+    #     # Each row in the groupby column belongs to a group
+    #     var cur_row_group = FloatKey(group_by_col[row_i])
+    #     if not (cur_row_group in group_to_idx):
+    #         groups_vec.append(cur_row_group)
+    #         group_to_idx[cur_row_group] = 0
+    
+    # var num_groups = len(groups_vec)
+    # var group_count = List[Int]()
+    # # # Map groups to index like 0, 1, 2
+    # # print(groups_vec.size)
+    # for i in range(len(groups_vec)):
+    #     # print(groups_vec[i])
+    #     group_to_idx[groups_vec[i]] = i
+    #     group_count.append(0)
+    
+    # for _ in range(num_cols):
+    #     groupby_table.append(Float64Array(num_groups))
+    
+    # var agg_i = 1
+
+    # for col_i in range(num_cols_df):
+    #     if col_i != groupby_col_idx:
+    #         var cur_col = columns[col_i]
+    #         for row_i in range(num_rows):
+    #             var cur_row_group_idx = group_to_idx[FloatKey(group_by_col[row_i])]
+    #             group_count[cur_row_group_idx] += 1
+    #             groupby_table[agg_i][cur_row_group_idx] += cur_col[row_i]
+    #         agg_i += 1
+    
+    # # from col1 to size - 1, the table stores sums
+    # for col in range(1, num_cols_df):
+    #     var sums = groupby_table[col]
+    #     for group in range(num_groups):
+    #         var group_count = group_count[group] / (num_cols_df - 1)
+    #         groupby_table[agg_i][group] = sums[group] / group_count
+    #     agg_i += 1
+    
+    # for group in range(num_groups):
+    #     var group_count = group_count[group] / (num_cols_df - 1)
+    #     groupby_table[num_cols - 1][group] = group_count
+    #     groupby_table[0][group] = groups_vec[group].i
+
+    # return groupby_table
+
+    var num_cols_df = len(columns)
+    var num_cols = (num_cols_df - 1) * 2 + 2
+    var num_rows = columns[groupby_col_idx].size
+    var group_by_col = columns[groupby_col_idx]
+    
+    # Single-pass group discovery
+    var group_to_idx = Dict[FloatKey, Int]()
+    var groups_vec = List[FloatKey]()
+    
+    for row_i in range(num_rows):
+        var group_key = FloatKey(group_by_col[row_i])
+        if group_key not in group_to_idx:
+            group_to_idx[group_key] = len(groups_vec)
+            groups_vec.append(group_key)
+
+    # Cache row-to-group mapping
+    var row_to_group_idx = List[Int]()
+    row_to_group_idx.resize(num_rows, 0)
+    
+    for row_i in range(num_rows):
+        row_to_group_idx[row_i] = group_to_idx[FloatKey(group_by_col[row_i])]
+
+    var num_groups = len(groups_vec)
+    var group_count = List[Int]()
+    group_count.resize(num_groups, 0)
+    
+    # Allocate result tables
+    var groupby_table = List[Float64Array]()
     for _ in range(num_cols):
         groupby_table.append(Float64Array(num_groups))
     
     var agg_i = 1
-
     for col_i in range(num_cols_df):
         if col_i != groupby_col_idx:
             var cur_col = columns[col_i]
             for row_i in range(num_rows):
-                var cur_row_group_idx = group_to_idx[FloatKey(group_by_col[row_i])]
-                group_count[cur_row_group_idx] += 1
-                groupby_table[agg_i][cur_row_group_idx] += cur_col[row_i]
+                var group_idx = row_to_group_idx[row_i]
+                group_count[group_idx] += 1  # Count per column (original logic)
+                groupby_table[agg_i][group_idx] += cur_col[row_i]
             agg_i += 1
     
-    # from col1 to size - 1, the table stores sums
+    # Calculate averages (preserving original division logic)
     for col in range(1, num_cols_df):
         var sums = groupby_table[col]
         for group in range(num_groups):
-            var group_count = group_count[group] / (num_cols_df - 1)
-            groupby_table[agg_i][group] = sums[group] / group_count
+            var actual_group_count = group_count[group] / (num_cols_df - 1)  # Original logic
+            groupby_table[agg_i][group] = sums[group] / actual_group_count
         agg_i += 1
     
+    # Fill group keys and counts
     for group in range(num_groups):
-        var group_count = group_count[group] / (num_cols_df - 1)
-        groupby_table[num_cols - 1][group] = group_count
+        var actual_group_count = group_count[group] / (num_cols_df - 1)
+        groupby_table[num_cols - 1][group] = actual_group_count
         groupby_table[0][group] = groups_vec[group].i
 
     return groupby_table
 
 fn aggregation_mean_f64(mut columns: List[Float64Array], col_names: List[String], groupby_col_idx: Int) raises -> List[Float64Array]:
 
-    var groupby_table = List[Float64Array]()
-    var groups_vec = List[FloatKey]()
+    # var groupby_table = List[Float64Array]()
+    # var groups_vec = List[FloatKey]()
+    # var num_cols = len(columns)
+    # var num_rows = columns[groupby_col_idx].size
+    # var group_by_col = columns[groupby_col_idx]
+    # var group_to_idx = Dict[FloatKey, Int]()
+
+    # for row_i in range(num_rows):
+    #     # Each row in the groupby column belongs to a group
+    #     var cur_row_group = FloatKey(group_by_col[row_i])
+    #     if not (cur_row_group in group_to_idx):
+    #         groups_vec.append(cur_row_group)
+    #         group_to_idx[cur_row_group] = 0
+    
+    # var group_count = List[Int]()
+    # group_count.resize(len(groups_vec), 0)
+
+    # # # Map groups to index like 0, 1, 2
+    # for i in range(len(groups_vec)):
+    #     group_to_idx[groups_vec[i]] = i
+    #     # groupby_table.append(Float64Array(num_cols - 1))
+            
+    # for i in range(group_by_col.size):
+    #     group_count[group_to_idx[FloatKey(group_by_col[i])]] += 1
+
+    # for _ in range(num_cols - 1):
+    #     groupby_table.append(Float64Array(len(groups_vec)))
+
+    
+    # var agg_i = 0
+    
+    # for col_i in range(num_cols):
+    #     if col_i != groupby_col_idx:
+    #         var cur_col = columns[col_i]
+    #         for row_i in range(num_rows):
+    #             var cur_row_group_idx = group_to_idx[FloatKey(group_by_col[row_i])]
+    #             groupby_table[agg_i][cur_row_group_idx] += cur_col[row_i]
+            
+    #         for group in range(len(groups_vec)):
+    #             groupby_table[agg_i][group] = (groupby_table[agg_i][group]) / (group_count[group])
+
+    #         agg_i += 1
+
+    # var group_col = Float64Array(len(groups_vec))
+   
+    # for key_i in range(len(groups_vec)):
+    #     group_col[key_i] = groups_vec[key_i].i
+
+    # groupby_table.insert(0, group_col)
+
+    # return groupby_table
+
     var num_cols = len(columns)
     var num_rows = columns[groupby_col_idx].size
     var group_by_col = columns[groupby_col_idx]
-    var group_to_idx = Dict[FloatKey, Int]()
-
-    for row_i in range(num_rows):
-        # Each row in the groupby column belongs to a group
-        var cur_row_group = FloatKey(group_by_col[row_i])
-        if not (cur_row_group in group_to_idx):
-            groups_vec.append(cur_row_group)
-            group_to_idx[cur_row_group] = 0
     
+    var group_to_idx = Dict[FloatKey, Int]()
+    var groups_vec = List[FloatKey]()
+    
+    for row_i in range(num_rows):
+        var group_key = FloatKey(group_by_col[row_i])
+        if group_key not in group_to_idx:
+            group_to_idx[group_key] = len(groups_vec)
+            groups_vec.append(group_key)
+    
+    var row_to_group_idx = List[Int]()
+    row_to_group_idx.resize(num_rows, 0)
+    
+    for row_i in range(num_rows):
+        row_to_group_idx[row_i] = group_to_idx[FloatKey(group_by_col[row_i])]
+    
+
     var group_count = List[Int]()
     group_count.resize(len(groups_vec), 0)
-
-    # # Map groups to index like 0, 1, 2
-    for i in range(len(groups_vec)):
-        group_to_idx[groups_vec[i]] = i
-        # groupby_table.append(Float64Array(num_cols - 1))
-            
-    for i in range(group_by_col.size):
-        group_count[group_to_idx[FloatKey(group_by_col[i])]] += 1
-
+    
+    for row_i in range(num_rows):
+        group_count[row_to_group_idx[row_i]] += 1
+    
+    var groupby_table = List[Float64Array]()
     for _ in range(num_cols - 1):
         groupby_table.append(Float64Array(len(groups_vec)))
-
     
     var agg_i = 0
-    
     for col_i in range(num_cols):
         if col_i != groupby_col_idx:
             var cur_col = columns[col_i]
-            for row_i in range(num_rows):
-                var cur_row_group_idx = group_to_idx[FloatKey(group_by_col[row_i])]
-                groupby_table[agg_i][cur_row_group_idx] += cur_col[row_i]
             
-            for group in range(len(groups_vec)):
-                groupby_table[agg_i][group] = (groupby_table[agg_i][group]) / (group_count[group])
-
+            for row_i in range(num_rows):
+                var group_idx = row_to_group_idx[row_i]
+                groupby_table[agg_i][group_idx] += cur_col[row_i]
+            
+            # convert sums to means
+            for group_i in range(len(groups_vec)):
+                groupby_table[agg_i][group_i] /= Float64(group_count[group_i])
+            
             agg_i += 1
-
+    
     var group_col = Float64Array(len(groups_vec))
-   
-    for key_i in range(len(groups_vec)):
-        group_col[key_i] = groups_vec[key_i].i
-
+    for i in range(len(groups_vec)):
+        group_col[i] = groups_vec[i].i
+    
     groupby_table.insert(0, group_col)
-
     return groupby_table
-
 
 # fn aggregation_sum_f64(mut columns: List[Float64Array], col_names: List[String], groupby_col_idx: Int) raises -> List[Float64Array]:
 #     var groupby_table = List[Float64Array]()
@@ -1462,7 +1871,7 @@ fn combine_masks(read masks: List[List[Bool]], logical_operator: String) raises 
         
         return filtered_mask
 
-fn filter_string_equal(mut df: DataFrameF64, read str_col: List[String], filter_str: String) raises:
+fn filter_string_equal(read df: DataFrameF64, read str_col: List[String], filter_str: String) raises -> DataFrameF64:
     var selected_indices = List[Int]()
     for i in range(df.columns[0].size):
         if str_col[i] == filter_str:
@@ -1476,13 +1885,13 @@ fn filter_string_equal(mut df: DataFrameF64, read str_col: List[String], filter_
             col_to_fill[row_i] = original_col[selected_indices[row_i]]
         filtered_data.append(col_to_fill)
         
-    df.columns = filtered_data
+    return DataFrameF64(filtered_data, df.column_names)
 
 fn filter_string_equal_mask(read str_col: List[String], filter_str: String) ->  List[Bool]:
     var n = len(str_col)
     # var chunk_size = 64000
     var num_work_items = 8
-    var num_threads = 4
+    var num_threads = 8
     var chunk_size = (n + num_work_items - 1) // num_work_items
 
     var selected_indices_mask = List[Bool]()
@@ -1510,7 +1919,7 @@ fn filter_string_not_equal_mask(read str_col: List[String], filter_str: String) 
 
     return selected_indices_mask
 
-fn filter_string_contains(mut df: DataFrameF64, read str_col: List[String], filter_str: String) raises:
+fn filter_string_contains(read df: DataFrameF64, read str_col: List[String], filter_str: String) raises -> DataFrameF64:
     # var selected_indices = List[Int]()
     # for i in range(df.columns[0].size):
     #     if filter_str in str_col[i]:
@@ -1566,10 +1975,10 @@ fn filter_string_contains(mut df: DataFrameF64, read str_col: List[String], filt
             col_to_fill[row_i] = original_col[selected_indices[row_i]]
         filtered_data.append(col_to_fill)
         
-    df.columns = filtered_data
+    return DataFrameF64(filtered_data, df.column_names)
     
 
-fn filter_string_endwith(mut df: DataFrameF64, read str_col: List[String], filter_str: String) raises:
+fn filter_string_endwith(read df: DataFrameF64, read str_col: List[String], filter_str: String) raises -> DataFrameF64:
     var selected_indices = List[Int]()
     for i in range(df.columns[0].size):
         if str_col[i].endswith(filter_str):
@@ -1582,10 +1991,10 @@ fn filter_string_endwith(mut df: DataFrameF64, read str_col: List[String], filte
         for row_i in range(len(selected_indices)):
             col_to_fill[row_i] = original_col[selected_indices[row_i]]
         filtered_data.append(col_to_fill)
-        
-    df.columns = filtered_data
+    
+    return DataFrameF64(filtered_data, df.column_names)
 
-fn filter_string_startwith(mut df: DataFrameF64, read str_col: List[String], filter_str: String) raises:
+fn filter_string_startwith(read df: DataFrameF64, read str_col: List[String], filter_str: String) raises -> DataFrameF64:
     var selected_indices = List[Int]()
     # var n = df.columns[0].size
 
@@ -1629,8 +2038,8 @@ fn filter_string_startwith(mut df: DataFrameF64, read str_col: List[String], fil
         for row_i in range(len(selected_indices)):
             col_to_fill[row_i] = original_col[selected_indices[row_i]]
         filtered_data.append(col_to_fill)
-        
-    df.columns = filtered_data
+
+    return DataFrameF64(filtered_data, df.column_names)
 
 fn filter_string_not_startwith_mask(read str_col: List[String], filter_str: String) -> List[Bool]:
     var selected_indices_mask = List[Bool]()
@@ -1689,7 +2098,7 @@ fn filter_string_IN_mask(read string_col: List[String], filter_list: List[String
 
     return selected_indices_mask
 
-fn filter_not_string_exists_before(mut df: DataFrameF64, read str_col: List[String], filter_str1: String, filter_str2: String) raises:
+fn filter_not_string_exists_before(read df: DataFrameF64, read str_col: List[String], filter_str1: String, filter_str2: String) raises -> DataFrameF64:
     # ".*str1.*str2.*" str2 appears after str1 at least once
 
     # var selected_indices = List[Int]()
@@ -1748,7 +2157,7 @@ fn filter_not_string_exists_before(mut df: DataFrameF64, read str_col: List[Stri
             col_to_fill[row_i] = original_col[selected_indices[row_i]]
         filtered_data.append(col_to_fill)
         
-    df.columns = filtered_data
+    return DataFrameF64(filtered_data, df.column_names)
 
 
 fn cast_as_float64(read str_col: List[String], substr_start_index: Int, substr_end_index: Int) raises -> Float64Array:
@@ -1976,65 +2385,65 @@ fn evaluate_f64_alt[T: PredicateF64, T2: PredicateF64](read column_1: Float64Arr
     return Int32Array(0)
 
 
-fn evaluate_f64_tensor[T: PredicateF64, T2: PredicateF64](
-                      df: TensorDataFrameF64, 
-                      col1_idx: Int, 
-                      col2_idx: Int,
-                      predicate_1: T, predicate_2: T2,
-                      value_cmp_1: SIMD[DType.float64, 1],
-                      value_cmp_2: SIMD[DType.float64, 1],
-                      logical_operator: String,
-                      num_threads: Int = 4,
-                      ) raises -> Int32Array:
+# fn evaluate_f64_tensor[T: PredicateF64, T2: PredicateF64](
+#                       df: TensorDataFrameF64, 
+#                       col1_idx: Int, 
+#                       col2_idx: Int,
+#                       predicate_1: T, predicate_2: T2,
+#                       value_cmp_1: SIMD[DType.float64, 1],
+#                       value_cmp_2: SIMD[DType.float64, 1],
+#                       logical_operator: String,
+#                       num_threads: Int = 4,
+#                       ) raises -> Int32Array:
     
-    var n = df._num_rows
-    var total_count = 0
-    # var data_tensor = df.data
+#     var n = df._num_rows
+#     var total_count = 0
+#     # var data_tensor = df.data
     
-    if logical_operator == "AND":
+#     if logical_operator == "AND":
 
-        var chunk_size = 640000 # Tune this
-        var n_chunks = (n + chunk_size - 1) // chunk_size
-        var partial_results = List[List[Int]]()
-        partial_results.resize(n_chunks, List[Int]())
-        var partial_count = Int32Array(n_chunks) # Use TensorShape
+#         var chunk_size = 640000 # Tune this
+#         var n_chunks = (n + chunk_size - 1) // chunk_size
+#         var partial_results = List[List[Int]]()
+#         partial_results.resize(n_chunks, List[Int]())
+#         var partial_count = Int32Array(n_chunks) # Use TensorShape
 
-        @parameter
-        fn worker_and(chunk_id: Int):
-            var start_i = chunk_id * chunk_size # Conceptual row start
-            var end_i = min(start_i + chunk_size, n) # Conceptual row end
-            var local_list = List[Int]()
-            var local_count = 0
-            for row_i in range(start_i, end_i): # Iterate through conceptual rows
-                # Access elements directly from the transposed tensor
+#         @parameter
+#         fn worker_and(chunk_id: Int):
+#             var start_i = chunk_id * chunk_size # Conceptual row start
+#             var end_i = min(start_i + chunk_size, n) # Conceptual row end
+#             var local_list = List[Int]()
+#             var local_count = 0
+#             for row_i in range(start_i, end_i): # Iterate through conceptual rows
+#                 # Access elements directly from the transposed tensor
 
-                if predicate_1.evaluate(df.data[Index(col1_idx, row_i)] , value_cmp_1) and \
-                   predicate_2.evaluate(df.data[Index(col2_idx, row_i)], value_cmp_2):
-                    local_list.append(row_i)
-                    local_count += 1
-            # var end_for = perf_counter()
-            # print("Time taken for loop:", end_for - for_timer)
+#                 if predicate_1.evaluate(df.data[Index(col1_idx, row_i)] , value_cmp_1) and \
+#                    predicate_2.evaluate(df.data[Index(col2_idx, row_i)], value_cmp_2):
+#                     local_list.append(row_i)
+#                     local_count += 1
+#             # var end_for = perf_counter()
+#             # print("Time taken for loop:", end_for - for_timer)
 
-            partial_results[chunk_id] = local_list
-            partial_count[chunk_id] = local_count
+#             partial_results[chunk_id] = local_list
+#             partial_count[chunk_id] = local_count
 
-        parallelize[worker_and](n_chunks, num_threads)
+#         parallelize[worker_and](n_chunks, num_threads)
 
-        # merge results
-        for c in range(n_chunks):
-            total_count += partial_count[c].__int__()
+#         # merge results
+#         for c in range(n_chunks):
+#             total_count += partial_count[c].__int__()
 
-        var filtered_idxs = Int32Array(total_count)
-        var i = 0
-        for c in range(n_chunks):
-            var local_list = partial_results[c]
-            for idx in range(len(local_list)):
-                filtered_idxs[i] = local_list[idx]
-                i += 1
+#         var filtered_idxs = Int32Array(total_count)
+#         var i = 0
+#         for c in range(n_chunks):
+#             var local_list = partial_results[c]
+#             for idx in range(len(local_list)):
+#                 filtered_idxs[i] = local_list[idx]
+#                 i += 1
         
-        return filtered_idxs
+#         return filtered_idxs
 
-    return Int32Array(0)
+#     return Int32Array(0)
 
 
 fn evaluate_f64[T: PredicateF64, T2: PredicateF64](read column_1: Float64Array, read column_2: Float64Array,
@@ -2137,34 +2546,94 @@ fn evaluate_f64_mask[T: PredicateF64, T2: PredicateF64](read column_1: Float64Ar
                       value_cmp_1: SIMD[DType.float64, 1], value_cmp_2: SIMD[DType.float64, 1],
                       logical_operator: String) raises -> List[Bool]:
     var index_mask = List[Bool]()
+    index_mask.resize(column_1.size, False)
 
     if logical_operator == "AND":
         for row_i in range(column_1.size):
             if predicate_1.evaluate(column_1[row_i], value_cmp_1) and predicate_2.evaluate(column_2[row_i], value_cmp_2):
-                index_mask.append(True)
+                index_mask[row_i] = True
             else:
-                index_mask.append(False)
+                index_mask[row_i] = False
 
     elif logical_operator == "OR":
         for row_i in range(column_1.size):
             if predicate_1.evaluate(column_1[row_i], value_cmp_1) or predicate_2.evaluate(column_2[row_i], value_cmp_2):
-                index_mask.append(True)
+                index_mask[row_i] = True
             else:
-                index_mask.append(False)
-    
+                index_mask[row_i] = False
+
     else:
         if logical_operator == "COL":
             for row_i in range(column_1.size):
                 if predicate_1.evaluate(column_1[row_i], column_2[row_i]):
-                    index_mask.append(True)
+                    index_mask[row_i] = True
                 else:
-                    index_mask.append(False)
+                    index_mask[row_i] = False
         else:
             for row_i in range(column_1.size):
                 if predicate_1.evaluate(column_1[row_i], value_cmp_1):
-                    index_mask.append(True)
+                    index_mask[row_i] = True
                 else:
-                    index_mask.append(False)
+                    index_mask[row_i] = False
+
+    return index_mask
+
+fn evaluate_f64_mask_optimized[T: PredicateF64, T2: PredicateF64](
+    read column_1: Float64Array, read column_2: Float64Array,
+    predicate_1: T, predicate_2: T2,
+    value_cmp_1: SIMD[DType.float64, 1], value_cmp_2: SIMD[DType.float64, 1],
+    logical_operator: String) raises -> List[Bool]:
+    
+    var n = column_1.size
+    var num_work_items = 8
+    var num_threads = 8
+    var chunk_size = (n + num_work_items - 1) // num_work_items
+    
+
+    var index_mask = List[Bool]()
+    index_mask.resize(n, False)
+    
+    if logical_operator == "AND":
+        @parameter
+        fn worker_and(thread_id: Int):
+            var start = thread_id * chunk_size
+            var end = min(start + chunk_size, n)
+            for row_i in range(start, end):
+                index_mask[row_i] = (predicate_1.evaluate(column_1[row_i], value_cmp_1) and 
+                                   predicate_2.evaluate(column_2[row_i], value_cmp_2))
+        
+        parallelize[worker_and](num_work_items, num_threads)
+    
+    elif logical_operator == "OR":
+        @parameter
+        fn worker_or(thread_id: Int):
+            var start = thread_id * chunk_size
+            var end = min(start + chunk_size, n)
+            for row_i in range(start, end):
+                index_mask[row_i] = (predicate_1.evaluate(column_1[row_i], value_cmp_1) or 
+                                   predicate_2.evaluate(column_2[row_i], value_cmp_2))
+        
+        parallelize[worker_or](num_work_items, num_threads)
+    
+    elif logical_operator == "COL":
+        @parameter
+        fn worker_col(thread_id: Int):
+            var start = thread_id * chunk_size
+            var end = min(start + chunk_size, n)
+            for row_i in range(start, end):
+                index_mask[row_i] = predicate_1.evaluate(column_1[row_i], column_2[row_i])
+        
+        parallelize[worker_col](num_work_items, num_threads)
+    
+    else:
+        @parameter
+        fn worker_single(thread_id: Int):
+            var start = thread_id * chunk_size
+            var end = min(start + chunk_size, n)
+            for row_i in range(start, end):
+                index_mask[row_i] = predicate_1.evaluate(column_1[row_i], value_cmp_1)
+        
+        parallelize[worker_single](num_work_items, num_threads)
     
     return index_mask
 
@@ -2224,129 +2693,129 @@ fn evaluate_i32(mut column: Int32Array, operation: String, value_cmp: SIMD[DType
 #                 indices_list1.append(index1)
 #                 indices_list2.append(key_idxs[index2])
 
-fn inner_join_i32(mut df1: DataFrameI32, mut df2: DataFrameI32, key_column: String) raises -> DataFrameI32:
-    # find the max number of distinct groups in both join columns
-    var key_column1 = df1[key_column]
-    var key_column2 = df2[key_column]
+# fn inner_join_i32(mut df1: DataFrameI32, mut df2: DataFrameI32, key_column: String) raises -> DataFrameI32:
+#     # find the max number of distinct groups in both join columns
+#     var key_column1 = df1[key_column]
+#     var key_column2 = df2[key_column]
 
-    var max1 = key_column1[0]
-    var max2 = key_column2[0]
+#     var max1 = key_column1[0]
+#     var max2 = key_column2[0]
 
-    for i in range(key_column1.size):
-        max1 = max(max1, key_column1[i])
+#     for i in range(key_column1.size):
+#         max1 = max(max1, key_column1[i])
 
-    for i in range(key_column2.size):
-        max2 = max(max2, key_column2[i])
+#     for i in range(key_column2.size):
+#         max2 = max(max2, key_column2[i])
     
-    var max_groups = max(max1, max2).__int__()
-    var count = 0
+#     var max_groups = max(max1, max2).__int__()
+#     var count = 0
 
     
-    var left_count = List[Int]()
-    var right_count = List[Int]()
-    left_count.resize(max_groups + 1, 0)
-    right_count.resize(max_groups + 1, 0)
+#     var left_count = List[Int]()
+#     var right_count = List[Int]()
+#     left_count.resize(max_groups + 1, 0)
+#     right_count.resize(max_groups + 1, 0)
     
-    # # First pass to count frequencies of each group/key
-    for i in range(key_column1.size):
-        left_count[key_column1[i].__int__()] += 1
+#     # # First pass to count frequencies of each group/key
+#     for i in range(key_column1.size):
+#         left_count[key_column1[i].__int__()] += 1
 
-    for i in range(key_column2.size):
-        right_count[key_column2[i].__int__()] += 1
+#     for i in range(key_column2.size):
+#         right_count[key_column2[i].__int__()] += 1
 
-    # Determine how many combinations will result from this group in the output
-    # cartesion product
-    # if the group has entries in both columns
-    for i in range(1, max_groups+1):
-        var lc = left_count[i]
-        var rc = right_count[i]
-        if lc > 0 and rc > 0:
-            count += lc * rc
+#     # Determine how many combinations will result from this group in the output
+#     # cartesion product
+#     # if the group has entries in both columns
+#     for i in range(1, max_groups+1):
+#         var lc = left_count[i]
+#         var rc = right_count[i]
+#         if lc > 0 and rc > 0:
+#             count += lc * rc
 
-    var left_indexer = Int32Array(count)
-    var right_indexer = Int32Array(count)
+#     var left_indexer = Int32Array(count)
+#     var right_indexer = Int32Array(count)
 
-    var left_pos = left_count[0]
-    var right_pos = right_count[0]
-    var position = 0
+#     var left_pos = left_count[0]
+#     var right_pos = right_count[0]
+#     var position = 0
 
-    for i in range(1, max_groups+1):
-        var lc = left_count[i]
-        var rc = right_count[i]
+#     for i in range(1, max_groups+1):
+#         var lc = left_count[i]
+#         var rc = right_count[i]
 
-        if rc > 0 and lc > 0:
-            for j in range(lc):
+#         if rc > 0 and lc > 0:
+#             for j in range(lc):
                
-                # Calculate the starting index in the result arrays
-                # for group left[i] and all elements from right belonging to the same group.
-                # 1,2,3      1,2,1,3,2
-                # 0,0,1,1,2          0,1,2,3,4
-                # Group 1 -> lc:1 rc:2
+#                 # Calculate the starting index in the result arrays
+#                 # for group left[i] and all elements from right belonging to the same group.
+#                 # 1,2,3      1,2,1,3,2
+#                 # 0,0,1,1,2          0,1,2,3,4
+#                 # Group 1 -> lc:1 rc:2
 
-                # offset = 0 + 0 * 2
-                var offset = position + j * rc
-                # print("offset:", offset)
+#                 # offset = 0 + 0 * 2
+#                 var offset = position + j * rc
+#                 # print("offset:", offset)
     
-                for k in range(rc):
-                    # left_indexer[0 + 0] = 0 + 0
-                    # left_indexer[0 + 1] = 0 + 0
-                    left_indexer[offset + k] = left_pos + j
-                    # right_indexer[0 + 0] = 0 + 0
-                    # right_indexer[0 + 1] = 0 + 1
-                    right_indexer[offset + k] = right_pos + k
-            # update pointer to skip to next location after all combinations in current group
-            position += lc * rc
+#                 for k in range(rc):
+#                     # left_indexer[0 + 0] = 0 + 0
+#                     # left_indexer[0 + 1] = 0 + 0
+#                     left_indexer[offset + k] = left_pos + j
+#                     # right_indexer[0 + 0] = 0 + 0
+#                     # right_indexer[0 + 1] = 0 + 1
+#                     right_indexer[offset + k] = right_pos + k
+#             # update pointer to skip to next location after all combinations in current group
+#             position += lc * rc
 
-        # skip to next group
-        left_pos += lc
-        right_pos += rc
+#         # skip to next group
+#         left_pos += lc
+#         right_pos += rc
     
 
-    # Use indexers to build DataFrame
-    var col_data1 = List[Int32Array]()
-    var col_names1 = List[String]()
+#     # Use indexers to build DataFrame
+#     var col_data1 = List[Int32Array]()
+#     var col_names1 = List[String]()
 
-    # [0,1,2,3,4] [1,1,2,2,3]
-    col_names1 = df1.column_names
+#     # [0,1,2,3,4] [1,1,2,2,3]
+#     col_names1 = df1.column_names
     
-    for col_i in range (df1.column_names.__len__()):
-        var row_input_idx = 0
-        var col = df1[col_i]
-        var col_to_append = Int32Array(left_indexer.size)
+#     for col_i in range (df1.column_names.__len__()):
+#         var row_input_idx = 0
+#         var col = df1[col_i]
+#         var col_to_append = Int32Array(left_indexer.size)
 
-        for row_i in range(left_indexer.size):
-            #print("get:", col[(left_indexer[row_i]).__int__()])
-            col_to_append[row_input_idx] = col[(left_indexer[row_i]).__int__()]
-            row_input_idx += 1
-        col_data1.append(col_to_append)
+#         for row_i in range(left_indexer.size):
+#             #print("get:", col[(left_indexer[row_i]).__int__()])
+#             col_to_append[row_input_idx] = col[(left_indexer[row_i]).__int__()]
+#             row_input_idx += 1
+#         col_data1.append(col_to_append)
 
-    # var col_data2 = List[Int32Array]()
-    # var col_names2 = List[String]()
+#     # var col_data2 = List[Int32Array]()
+#     # var col_names2 = List[String]()
 
-    # [0,1,2,3,4] [1,1,2,2,3]
+#     # [0,1,2,3,4] [1,1,2,2,3]
     
-    for col_i in range (df2.column_names.__len__()):
-        if df2.column_names[col_i] != key_column:
-            col_names1.append(df2.column_names[col_i])
-            var row_input_idx = 0
-            var col = df2[col_i]
-            var col_to_append = Int32Array(right_indexer.size)
+#     for col_i in range (df2.column_names.__len__()):
+#         if df2.column_names[col_i] != key_column:
+#             col_names1.append(df2.column_names[col_i])
+#             var row_input_idx = 0
+#             var col = df2[col_i]
+#             var col_to_append = Int32Array(right_indexer.size)
 
-            for row_i in range(right_indexer.size):
-                #print("get:", col[(right_indexer[row_i]).__int__()])
-                col_to_append[row_input_idx] = col[(right_indexer[row_i]).__int__()]
-                row_input_idx += 1
-            col_data1.append(col_to_append)
+#             for row_i in range(right_indexer.size):
+#                 #print("get:", col[(right_indexer[row_i]).__int__()])
+#                 col_to_append[row_input_idx] = col[(right_indexer[row_i]).__int__()]
+#                 row_input_idx += 1
+#             col_data1.append(col_to_append)
 
-    # for i in range(left_indexer.size):
-    #     print(left_indexer[i])
+#     # for i in range(left_indexer.size):
+#     #     print(left_indexer[i])
     
-    # for i in range(right_indexer.size):
-    #     print(right_indexer[i])
+#     # for i in range(right_indexer.size):
+#     #     print(right_indexer[i])
     
-    return DataFrameI32(col_data1, col_names1)
+#     return DataFrameI32(col_data1, col_names1)
 
-fn left_join_f64(mut df1: DataFrameF64, mut df2: DataFrameF64, key_column: String) raises -> DataFrameF64:
+fn left_join_f64(read df1: DataFrameF64, read df2: DataFrameF64, key_column: String) raises -> DataFrameF64:
     var key_column1 = df1[key_column]
     var key_column2 = df2[key_column]
 
@@ -2452,7 +2921,7 @@ fn left_join_f64(mut df1: DataFrameF64, mut df2: DataFrameF64, key_column: Strin
 
     col_names = df1.column_names
 
-    for col_i in range(df1.column_names.__len__()):
+    for col_i in range(len(df1.column_names)):
         var row_input_idx = 0
         var col = df1[col_i]
         var out_col = Float64Array(left_indexer.size)
@@ -2465,7 +2934,7 @@ fn left_join_f64(mut df1: DataFrameF64, mut df2: DataFrameF64, key_column: Strin
         col_data.append(out_col)
 
 
-    for col_i in range(df2.column_names.__len__()):
+    for col_i in range(len(df2.column_names)):
         if df2.column_names[col_i] != key_column:
             col_names.append(df2.column_names[col_i])
             var row_input_idx = 0
@@ -2485,8 +2954,8 @@ fn left_join_f64(mut df1: DataFrameF64, mut df2: DataFrameF64, key_column: Strin
 
     return DataFrameF64(col_data, col_names)
 
-fn inner_join_f64(mut df1: DataFrameF64, mut df2: DataFrameF64, key_column: String) raises -> DataFrameF64:
-    var start_time = monotonic()
+fn inner_join_f64(read df1: DataFrameF64, read df2: DataFrameF64, key_column: String) raises -> DataFrameF64:
+    var start_time = perf_counter()
 
     var num_threads = 8
 
@@ -2504,7 +2973,7 @@ fn inner_join_f64(mut df1: DataFrameF64, mut df2: DataFrameF64, key_column: Stri
     var max_limit2 = (key_column2.size // 8) * 8
 
     for i in range(0, max_limit1, 8):
-        var maxs = key_column1.data.load[width=8](i)
+        var maxs = key_column1.data.load[width=8](i, 0)
         var temp_max = maxs.reduce_max()
         max1 = max(max1, temp_max)
     
@@ -2513,7 +2982,7 @@ fn inner_join_f64(mut df1: DataFrameF64, mut df2: DataFrameF64, key_column: Stri
         max1 = max(max1, key_column1[i])
 
     for i in range(0, max_limit2, 8):
-        var maxs = key_column2.data.load[width=8](i)
+        var maxs = key_column2.data.load[width=8](i, 0)
         var temp_max = maxs.reduce_max()
         max2 = max(max2, temp_max)
     
@@ -2528,16 +2997,16 @@ fn inner_join_f64(mut df1: DataFrameF64, mut df2: DataFrameF64, key_column: Stri
     
     var count = 0
     
-    var end_time = monotonic()
+    var end_time = perf_counter()
 
-    print("find max time: ", (end_time - start_time) / 1000000000)
+    print("find max time: ", (end_time - start_time))
 
     # print("max grps")
     # print(max_groups)
     # var left_count = List[Int]()
     # var right_count = List[Int]()
 
-    start_time = monotonic()
+    start_time = perf_counter()
 
     var left_count = Int32Array(max_groups + 1)
     var right_count = Int32Array(max_groups + 1)
@@ -2554,16 +3023,22 @@ fn inner_join_f64(mut df1: DataFrameF64, mut df2: DataFrameF64, key_column: Stri
     # var left_count = count_group_freq_parallel(key_column1, max_groups)
     # var right_count = count_group_freq_parallel(key_column2, max_groups)
 
-    end_time = monotonic()
-    print("count time:", (end_time - start_time) / 1000000000)
+    # for i in range(left_count.size):
+    #     print("left count:", left_count[i])
+
+    # for i in range(right_count.size):
+    #     print("right count:", right_count[i])
+
+    end_time = perf_counter()
+    print("count time:", (end_time - start_time))
 
     # Determine how many combinations will result from this group in the output
     # cartesion product
     # if the group has entries in both columns
 
-    start_time = monotonic()
+    start_time = perf_counter()
 
-    for i in range(1, max_groups+1):
+    for i in range(0, max_groups+1):
         var lc = (left_count[i].__int__())
         var rc = (right_count[i].__int__())
         if lc > 0 and rc > 0:
@@ -2572,11 +3047,27 @@ fn inner_join_f64(mut df1: DataFrameF64, mut df2: DataFrameF64, key_column: Stri
     var left_indexer = Int32Array(count)
     var right_indexer = Int32Array(count)
 
-    var left_pos = left_count[0]
-    var right_pos = right_count[0]
+
+     # Build position mapping for each group
+    # var left_positions = Int32Array(max_groups + 1)
+    # var right_positions = Int32Array(max_groups + 1)
+    
+    var left_pos = 0
+    var right_pos = 0
+
+    # var curr_left_pos = 0
+    # var curr_right_pos = 0
+
+     # Calculate where each group's data starts in the original arrays
+    # for i in range(0, max_groups + 1):
+    #     left_positions[i] = curr_left_pos
+    #     right_positions[i] = curr_right_pos
+    #     curr_left_pos += left_count[i].__int__()
+    #     curr_right_pos += right_count[i].__int__()
+
     var position = 0
 
-    for i in range(1, max_groups+1):
+    for i in range(0, max_groups+1):
         var lc = (left_count[i].__int__())
         var rc = (right_count[i].__int__())
 
@@ -2607,8 +3098,20 @@ fn inner_join_f64(mut df1: DataFrameF64, mut df2: DataFrameF64, key_column: Stri
         left_pos += lc
         right_pos += rc
 
-    end_time = monotonic()
-    print("indexer time:", (end_time - start_time) / 1000000000)
+        
+        # if lc > 0 and rc > 0:
+        #     var left_start = left_positions[i].__int__()
+        #     var right_start = right_positions[i].__int__()
+            
+        #     for j in range(lc):
+        #         for k in range(rc):
+        #             left_indexer[position] = left_start + j
+        #             right_indexer[position] = right_start + k
+        #             position += 1
+
+
+    end_time = perf_counter()
+    print("indexer time:", (end_time - start_time))
 
     # print("left indexer:")
     # for i in range(left_indexer.size):
@@ -2620,17 +3123,22 @@ fn inner_join_f64(mut df1: DataFrameF64, mut df2: DataFrameF64, key_column: Stri
 
     #var start_time = monotonic()
     
-    start_time = monotonic()
+    start_time = perf_counter()
 
     var new_left_indexer = groupsort_indexer(key_column1, left_indexer, left_count, max1.__int__())
     var new_right_indexer = groupsort_indexer(key_column2, right_indexer, right_count, max2.__int__())
 
-    end_time = monotonic()
-    print("sort time:", (end_time - start_time) / 1000000000)
+    end_time = perf_counter()
+    print("sort time:", (end_time - start_time))
     
+    # for i in range(new_left_indexer.size):
+    #     print("new left:", new_left_indexer[i])
+    
+    # for i in range(new_right_indexer.size):
+    #     print("new right:", new_right_indexer[i])
     # var plan = build_column_plan(df1, df2, key_column)
 
-    start_time = monotonic()
+    start_time = perf_counter()
 
     # Use indexers to build DataFrame
     var col_data1 = List[Float64Array]()
@@ -2685,9 +3193,9 @@ fn inner_join_f64(mut df1: DataFrameF64, mut df2: DataFrameF64, key_column: Stri
             var limit = ((end_i - start_i) // 8) * 8 + start_i 
 
             for row_i in range(start_i, limit, 8):
-                var matched_idxs = new_left_indexer.data.load[width=8](row_i)
+                var matched_idxs = new_left_indexer.data.load[width=8](row_i, 0)
 
-                col_to_append.data.store[width=8](row_i, SIMD[DType.float64, 8](
+                col_to_append.data.store[width=8](row_i, 0, SIMD[DType.float64, 8](
                     col[matched_idxs[0].__int__()], col[matched_idxs[1].__int__()],
                     col[matched_idxs[2].__int__()], col[matched_idxs[3].__int__()],
                     col[matched_idxs[4].__int__()], col[matched_idxs[5].__int__()],
@@ -2736,9 +3244,9 @@ fn inner_join_f64(mut df1: DataFrameF64, mut df2: DataFrameF64, key_column: Stri
 
                 # Copy a slice of rows using 4 SIMD registers
                 for row_i in range(start_i, limit, 8):  # Increment by 32
-                    var matched_idxs = new_right_indexer.data.load[width=8](row_i)
+                    var matched_idxs = new_right_indexer.data.load[width=8](row_i, 0)
 
-                    col_to_append.data.store[width=8](row_i, SIMD[DType.float64, 8](
+                    col_to_append.data.store[width=8](row_i, 0, SIMD[DType.float64, 8](
                         col[matched_idxs[0].__int__()], col[matched_idxs[1].__int__()],
                         col[matched_idxs[2].__int__()], col[matched_idxs[3].__int__()],
                         col[matched_idxs[4].__int__()], col[matched_idxs[5].__int__()],
@@ -2758,332 +3266,475 @@ fn inner_join_f64(mut df1: DataFrameF64, mut df2: DataFrameF64, key_column: Stri
     
     # var built_columns = fill_joined_columns_parallel(df1, df2, new_left_indexer, new_right_indexer, plan)
 
-    end_time = monotonic()
-    print("fill data time:", (end_time - start_time) / 1000000000)
+    end_time = perf_counter()
+    print("fill data time:", (end_time - start_time))
 
     # return DataFrameF64(built_columns.columns, built_columns.names)
 
-    return DataFrameF64(col_data1,col_names1)
+    return DataFrameF64(col_data1, col_names1)
 
-fn inner_join_sort_merge_f64(mut df1: DataFrameF64, mut df2: DataFrameF64, key_column: String, chunk_size: Int=640000, num_threads: Int=8) raises -> DataFrameF64:
+# fn inner_join_sort_merge_f64(mut df1: DataFrameF64, mut df2: DataFrameF64, key_column: String, chunk_size: Int=640000, num_threads: Int=8) raises -> DataFrameF64:
 
-    var start_sort = perf_counter()
+#     var start_sort = perf_counter()
 
-    var key_column1 = df1[key_column]
-    var key_column2 = df2[key_column]
+#     var key_column1 = df1[key_column]
+#     var key_column2 = df2[key_column]
 
-    var n1 = key_column1.size
-    var n2 = key_column2.size
+#     var n1 = key_column1.size
+#     var n2 = key_column2.size
 
-    var sorted_left_idx = parallel_argsort_f64(key_column1, num_threads)
-    var sorted_right_idx = parallel_argsort_f64(key_column2, num_threads)
+#     var sorted_left_idx = parallel_argsort_f64(key_column1, num_threads)
+#     var sorted_right_idx = parallel_argsort_f64(key_column2, num_threads)
 
-    var end_sort = perf_counter()
-    print("sort time:", end_sort - start_sort)
-    # pointer for sorted left idx
-    var i = 0
-    var k = 0
+#     var end_sort = perf_counter()
+#     print("sort time:", end_sort - start_sort)
+#     # pointer for sorted left idx
+#     var i = 0
+#     var k = 0
 
-    var final_left_idx = List[Int]()
-    var final_right_idx = List[Int]()
+#     var final_left_idx = List[Int]()
+#     var final_right_idx = List[Int]()
 
-    while i < n1 and k < n2:
-        var original_i = sorted_left_idx[i].__int__()
-        var original_k = sorted_right_idx[k].__int__()
+#     while i < n1 and k < n2:
+#         var original_i = sorted_left_idx[i].__int__()
+#         var original_k = sorted_right_idx[k].__int__()
 
-        var original_left_key = key_column1[original_i]
-        var original_right_key = key_column2[original_k]
+#         var original_left_key = key_column1[original_i]
+#         var original_right_key = key_column2[original_k]
 
-        if original_left_key < original_right_key:
-            # didn't find a match, move pointer in left key col
-            i += 1 
-        elif original_left_key > original_right_key:
-            # didn't find a match, move pointer in right key col
-            k += 1 
-        else: 
-            # find all the matching keys in both columns
-            # find the segment where the matching keys are
-            var i_start = i
-            var i_end = i + 1
-            while i_end < n1 and key_column1[sorted_left_idx[i_end].__int__()] == original_left_key:
-                i_end += 1
+#         if original_left_key < original_right_key:
+#             # didn't find a match, move pointer in left key col
+#             i += 1 
+#         elif original_left_key > original_right_key:
+#             # didn't find a match, move pointer in right key col
+#             k += 1 
+#         else: 
+#             # find all the matching keys in both columns
+#             # find the segment where the matching keys are
+#             var i_start = i
+#             var i_end = i + 1
+#             while i_end < n1 and key_column1[sorted_left_idx[i_end].__int__()] == original_left_key:
+#                 i_end += 1
 
-            var k_start = k
-            var k_end = k + 1
-            while k_end < n2 and key_column2[sorted_right_idx[k_end].__int__()] == original_right_key:
-                k_end += 1
+#             var k_start = k
+#             var k_end = k + 1
+#             while k_end < n2 and key_column2[sorted_right_idx[k_end].__int__()] == original_right_key:
+#                 k_end += 1
 
-            # create combinations of the matching keys
-            for cur_i_idx in range(i_start, i_end):
-                # var current_original_i = sorted_left_idx[cur_i_idx]
-                for cur_k_idx in range(k_start, k_end):
-                    # var current_original_k = sorted_right_idx[cur_k_idx]
-                    final_left_idx.append(sorted_left_idx[cur_i_idx].__int__())
-                    final_right_idx.append(sorted_right_idx[cur_k_idx].__int__())
+#             # create combinations of the matching keys
+#             for cur_i_idx in range(i_start, i_end):
+#                 # var current_original_i = sorted_left_idx[cur_i_idx]
+#                 for cur_k_idx in range(k_start, k_end):
+#                     # var current_original_k = sorted_right_idx[cur_k_idx]
+#                     final_left_idx.append(sorted_left_idx[cur_i_idx].__int__())
+#                     final_right_idx.append(sorted_right_idx[cur_k_idx].__int__())
 
-            # move left and right pointers to next matching key group
-            i = i_end
-            k = k_end
-
-   
-
-    print(len(final_left_idx))
-    print(len(final_right_idx))
-
-    var num_final_rows = len(final_left_idx) 
-
-    var final_left_indices = Int32Array(num_final_rows)
-    var final_right_indices = Int32Array(num_final_rows)
-
-    for idx in range(num_final_rows):
-        final_left_indices[idx] = final_left_idx[idx]
-        final_right_indices[idx] = final_right_idx[idx]
+#             # move left and right pointers to next matching key group
+#             i = i_end
+#             k = k_end
 
    
 
-    # var plan = build_column_plan(df1, df2, key_column)
+#     print(len(final_left_idx))
+#     print(len(final_right_idx))
 
-    # start_time = monotonic()
+#     var num_final_rows = len(final_left_idx) 
+
+#     var final_left_indices = Int32Array(num_final_rows)
+#     var final_right_indices = Int32Array(num_final_rows)
+
+#     for idx in range(num_final_rows):
+#         final_left_indices[idx] = final_left_idx[idx]
+#         final_right_indices[idx] = final_right_idx[idx]
+
+   
+
+#     # var plan = build_column_plan(df1, df2, key_column)
+
+#     # start_time = monotonic()
+
+#     # # Use indexers to build DataFrame
+#     var col_data1 = List[Float64Array]()
+#     var col_names1 = List[String]((df1.column_names)^)
+    
+#     # # [0,1,2,3,4] [1,1,2,2,3]
+#     # col_names1 = df1.column_names
+    
+#     # var chunk_size = 640000
+
+#     # var main_limit = (num_rows // 8) * 8
+
+#     var start = perf_counter()
+    
+#     for col_i in range (df1.column_names.__len__()):
+        
+#         # var row_input_idx = 0
+#         var col = df1[col_i]
+#         var col_to_append = Float64Array(num_final_rows)
+
+#         # var start = perf_counter()
+
+#         # for row_i in range(left_indexer.size):
+#         #     #print("get:", col[(left_indexer[row_i]).__int__()])
+#         #     col_to_append[row_i] = col[(left_indexer[row_i]).__int__()]
+        
+        
+#         var n_chunks = (num_final_rows + chunk_size - 1) // chunk_size
+
+#         # Copy a slice of rows using 4 SIMD registers
+
+#         @parameter
+#         fn fill_result_worker1(chunk_id: Int):
+#             # var start_i = chunk_id * chunk_size
+#             # var end_i = min(start_i + chunk_size, left_indexer.size)
+#             # var limit = ((end_i - start_i) // 8) * 8 + start_i
+
+#             # # Copy a slice of rows
+#             # for row_i in range(start_i, limit, 8):
+#             #     var matched_idxs = new_left_indexer.data.load[width=8](row_i)
+#             #     col_to_append.data.store[width=8](row_i, SIMD[DType.float64, 8](col[matched_idxs[0].__int__()], col[matched_idxs[1].__int__()],
+#             #                                           col[matched_idxs[2].__int__()], col[matched_idxs[3].__int__()],
+#             #                                           col[matched_idxs[4].__int__()], col[matched_idxs[5].__int__()],
+#             #                                           col[matched_idxs[6].__int__()], col[matched_idxs[7].__int__()]))
+            
+#             # for row_i in range(limit, end_i):
+#             #     var matched_idx = new_left_indexer[row_i].__int__()
+#             #     col_to_append[row_i] = col[matched_idx]
+
+
+#             var start_i = chunk_id * chunk_size
+#             var end_i = min(start_i + chunk_size, num_final_rows)
+#             var limit = ((end_i - start_i) // FLOAT_VEC_WIDTH) * FLOAT_VEC_WIDTH + start_i 
+
+#             for row_i in range(start_i, limit, FLOAT_VEC_WIDTH):
+#                 var matched_idxs = final_left_indices.data.load[width=FLOAT_VEC_WIDTH](row_i)
+#                 var values = SIMD[DType.float64, FLOAT_VEC_WIDTH]()
+
+#                 @parameter
+#                 for k in range(FLOAT_VEC_WIDTH):
+#                     values[k] = col[matched_idxs[k].__int__()]
+
+#                 col_to_append.data.store[width=FLOAT_VEC_WIDTH](row_i, values)
+#                 # col_to_append.data.store[width=8](row_i, SIMD[DType.float64, 8](
+#                 #     col[matched_idxs[0].__int__()], col[matched_idxs[1].__int__()],
+#                 #     col[matched_idxs[2].__int__()], col[matched_idxs[3].__int__()],
+#                 #     col[matched_idxs[4].__int__()], col[matched_idxs[5].__int__()],
+#                 #     col[matched_idxs[6].__int__()], col[matched_idxs[7].__int__()]
+#                 # ))
+
+#             # handle remaining elements
+#             for row_i in range(limit, end_i):
+#                 var matched_idx = final_left_indices[row_i].__int__()
+#                 col_to_append[row_i] = col[matched_idx]
+
+#         parallelize[fill_result_worker1](n_chunks, num_threads)
+
+#         col_data1.append(col_to_append)
+    
+#     var end = perf_counter()
+#     print("parallel fill time table 1:", end - start)
+
+#     # var col_data2 = List[Int32Array]()
+#     # var col_names2 = List[String]()
+
+#     # [0,1,2,3,4] [1,1,2,2,3]
+
+#     var start2 = perf_counter()
+
+#     for col_i in range (df2.column_names.__len__()):
+#         if df2.column_names[col_i] != key_column:
+#             col_names1.append(df2.column_names[col_i])
+#             # var row_input_idx = 0
+#             var col = df2[col_i]
+#             var col_to_append = Float64Array(num_final_rows)
+
+#             # for row_i in range(num_rows):
+#             #     #print("get:", col[(right_indexer[row_i]).__int__()])
+#             #     var matched_idx = new_right_indexer[row_i].__int__()
+#             #     col_to_append[row_i] = col[matched_idx.__int__()]
+#             #     # row_input_idx += 1
+        
+#             var n_chunks = (num_final_rows + chunk_size - 1) // chunk_size
+
+#             @parameter
+#             fn fill_result_worker2(chunk_id: Int):
+#                 var start_i = chunk_id * chunk_size
+#                 var end_i = min(start_i + chunk_size, num_final_rows)
+#                 var limit = ((end_i - start_i) // FLOAT_VEC_WIDTH) * FLOAT_VEC_WIDTH + start_i
+
+#                 for row_i in range(start_i, limit, FLOAT_VEC_WIDTH):
+#                     var matched_idxs = final_right_indices.data.load[width=FLOAT_VEC_WIDTH](row_i)
+
+#                     var values = SIMD[DType.float64, FLOAT_VEC_WIDTH]()
+
+#                     @parameter
+#                     for k in range(FLOAT_VEC_WIDTH):
+#                         values[k] = col[matched_idxs[k].__int__()]
+
+#                     col_to_append.data.store[width=FLOAT_VEC_WIDTH](row_i, values)
+#                     # col_to_append.data.store[width=8](row_i, SIMD[DType.float64, 8](
+#                     #     col[matched_idxs[0].__int__()], col[matched_idxs[1].__int__()],
+#                     #     col[matched_idxs[2].__int__()], col[matched_idxs[3].__int__()],
+#                     #     col[matched_idxs[4].__int__()], col[matched_idxs[5].__int__()],
+#                     #     col[matched_idxs[6].__int__()], col[matched_idxs[7].__int__()]
+#                     # ))
+
+
+#                 # Handle remaining elements
+#                 for row_i in range(limit, end_i):
+#                     var matched_idx = final_right_indices[row_i].__int__()
+#                     col_to_append[row_i] = col[matched_idx]
+
+#             parallelize[fill_result_worker2](n_chunks, num_threads)
+        
+#             col_data1.append(col_to_append)
+#     var end2 = perf_counter()
+#     print("parallel fill time table 2:", end2 - start2)
+    
+#     # # var built_columns = fill_joined_columns_parallel(df1, df2, new_left_indexer, new_right_indexer, plan)
+
+#     # end_time = monotonic()
+#     # print("fill data time:", (end_time - start_time) / 1000000000)
+
+#     # return DataFrameF64(built_columns.columns, built_columns.names)
+
+#     return DataFrameF64(col_data1,col_names1)
+
+
+
+# fn parallel_find_max(read column: Float64Array) raises -> SIMD[DType.float64, 1]:
+#     alias simd_width = simdwidthof[DType.float64]()
+#     var size = column.size
+
+#     var chunk_size = (size + 4 - 1) // 4
+#     chunk_size = (chunk_size // simd_width) * simd_width
+#     print("chunk size:", chunk_size)
+#     var n_chunks = (size + chunk_size - 1) // chunk_size
+#     print("n_chunks:", n_chunks)
+
+#     # Prepare partial maxima array
+#     var partial_max = Float64Array(n_chunks)
+
+#     @parameter
+#     fn max_worker(thread_id: Int):
+#         var start = thread_id * chunk_size
+#         var end = min(start + chunk_size, size)
+
+#         var local_max = column[start]
+
+#         # vectorized local max computation
+#         @parameter
+#         fn _max_chunk[width: Int](offset: Int):
+#             var col_data_slice = column.data.load[width=width](start + offset)
+#             var temp_max = col_data_slice.reduce_max()
+#             local_max = max(local_max, temp_max)
+
+#         var length = end - start
+#         # Run the vectorized pass
+#         vectorize[_max_chunk, simd_width](length)
+
+#         # leftover elements
+#         var leftover_start = start + (length // simd_width) * simd_width
+
+#         for i in range(leftover_start, end):
+#             local_max = max(local_max, column[i])
+
+#         # Store partial result
+#         partial_max[thread_id] = local_max
+
+#     # Launch threads
+#     parallelize[max_worker](n_chunks)
+
+#     var global_max = partial_max[0]
+#     for i in range(1, n_chunks):
+#         global_max = max(global_max, partial_max[i])
+
+#     return global_max
+
+
+
+fn inner_join_f64_reindex(read df1: DataFrameF64, read df2: DataFrameF64, key_column: String) raises -> DataFrameWithIndexers:
+    # find the max number of distinct groups in both join columns
+    # var key_column1 = df1[key_column]
+    # var key_column2 = df2[key_column]
+
+    # var max1 = key_column1[0]
+    # var max2 = key_column2[0]
+
+    # for i in range(key_column1.size):
+    #     max1 = max(max1, key_column1[i])
+
+    # for i in range(key_column2.size):
+    #     max2 = max(max2, key_column2[i])
+    
+    # var max_groups = max(max1, max2).__int__()
+    # var count = 0
+    
+    # # var left_count = List[Int]()
+    # # var right_count = List[Int]()
+    # # left_count.resize(max_groups + 1, 0)
+    # # right_count.resize(max_groups + 1, 0)
+
+    # var left_count = Int32Array(max_groups + 1)
+    # var right_count = Int32Array(max_groups + 1)
+
+    
+    # # # First pass to count frequencies of each group/key
+    # for i in range(key_column1.size):
+    #     left_count[key_column1[i].__int__()] += 1
+
+    # for i in range(key_column2.size):
+    #     right_count[key_column2[i].__int__()] += 1
+
+    # # Determine how many combinations will result from this group in the output
+    # # cartesion product
+    # # if the group has entries in both columns
+    # for i in range(1, max_groups+1):
+    #     var lc = (left_count[i].__int__())
+    #     var rc = (right_count[i].__int__())
+    #     if lc > 0 and rc > 0:
+    #         count += lc * rc
+
+    # var left_indexer = Int32Array(count)
+    # var right_indexer = Int32Array(count)
+
+    # var left_pos = left_count[0]
+    # var right_pos = right_count[0]
+    # var position = 0
+
+    # for i in range(1, max_groups+1):
+    #     var lc = (left_count[i].__int__())
+    #     var rc = (right_count[i].__int__())
+
+    #     if rc > 0 and lc > 0:
+    #         for j in range(lc):
+               
+    #             # Calculate the starting index in the result arrays
+    #             # for group left[i] and all elements from right belonging to the same group.
+    #             # 1,2,3      1,2,1,3,2
+    #             # 0,0,1,1,2          0,1,2,3,4
+    #             # Group 1 -> lc:1 rc:2
+
+    #             # offset = 0 + 0 * 2
+    #             var offset = position + j * rc
+    #             # print("offset:", offset)
+    
+    #             for k in range(rc):
+    #                 # left_indexer[0 + 0] = 0 + 0
+    #                 # left_indexer[0 + 1] = 0 + 0
+    #                 left_indexer[offset + k] = left_pos + j
+    #                 # right_indexer[0 + 0] = 0 + 0
+    #                 # right_indexer[0 + 1] = 0 + 1
+    #                 right_indexer[offset + k] = right_pos + k
+    #         # update pointer to skip to next location after all combinations in current group
+    #         position += lc * rc
+
+    #     # skip to next group
+    #     left_pos += lc
+    #     right_pos += rc
+    
+    # # print("left indexer:")
+    # # for i in range(left_indexer.size):
+    # #     print(left_indexer[i])
+
+    # # print("right indexer:")
+    # # for i in range(right_indexer.size):
+    # #     print(right_indexer[i])
+
+    # var new_left_indexer = groupsort_indexer(key_column1, left_indexer, left_count, max1.__int__())
+    # var new_right_indexer = groupsort_indexer(key_column2, right_indexer, right_count, max2.__int__())
 
     # # Use indexers to build DataFrame
-    var col_data1 = List[Float64Array]()
-    var col_names1 = List[String]((df1.column_names)^)
+    # var col_data1 = List[Float64Array]()
+    # var col_names1 = List[String]()
     
     # # [0,1,2,3,4] [1,1,2,2,3]
     # col_names1 = df1.column_names
     
-    # var chunk_size = 640000
+    # for col_i in range (df1.column_names.__len__()):
+    #     var row_input_idx = 0
+    #     var col = df1[col_i]
+    #     var col_to_append = Float64Array(left_indexer.size)
 
-    # var main_limit = (num_rows // 8) * 8
+    #     for row_i in range(left_indexer.size):
+    #         #print("get:", col[(left_indexer[row_i]).__int__()])
+    #         var matched_idx = new_left_indexer[row_i].__int__()
+    #         col_to_append[row_input_idx] = col[matched_idx.__int__()]
+    #         row_input_idx += 1
+    #     col_data1.append(col_to_append)
 
-    var start = perf_counter()
+    # # var col_data2 = List[Int32Array]()
+    # # var col_names2 = List[String]()
+
+    # # [0,1,2,3,4] [1,1,2,2,3]
+
+    # for col_i in range (df2.column_names.__len__()):
+    #     if df2.column_names[col_i] != key_column:
+    #         col_names1.append(df2.column_names[col_i])
+    #         var row_input_idx = 0
+    #         var col = df2[col_i]
+    #         var col_to_append = Float64Array(right_indexer.size)
+
+    #         for row_i in range(right_indexer.size):
+    #             #print("get:", col[(right_indexer[row_i]).__int__()])
+    #             var matched_idx = new_right_indexer[row_i].__int__()
+    #             col_to_append[row_input_idx] = col[matched_idx.__int__()]
+    #             row_input_idx += 1
+    #         col_data1.append(col_to_append)
     
-    for col_i in range (df1.column_names.__len__()):
-        
-        # var row_input_idx = 0
-        var col = df1[col_i]
-        var col_to_append = Float64Array(num_final_rows)
+    # return DataFrameWithIndexers(col_data1^, col_names1, List[Int32Array](new_left_indexer, new_right_indexer))
 
-        # var start = perf_counter()
+    var start_time = perf_counter()
+    var num_threads = 8
 
-        # for row_i in range(left_indexer.size):
-        #     #print("get:", col[(left_indexer[row_i]).__int__()])
-        #     col_to_append[row_i] = col[(left_indexer[row_i]).__int__()]
-        
-        
-        var n_chunks = (num_final_rows + chunk_size - 1) // chunk_size
-
-        # Copy a slice of rows using 4 SIMD registers
-
-        @parameter
-        fn fill_result_worker1(chunk_id: Int):
-            # var start_i = chunk_id * chunk_size
-            # var end_i = min(start_i + chunk_size, left_indexer.size)
-            # var limit = ((end_i - start_i) // 8) * 8 + start_i
-
-            # # Copy a slice of rows
-            # for row_i in range(start_i, limit, 8):
-            #     var matched_idxs = new_left_indexer.data.load[width=8](row_i)
-            #     col_to_append.data.store[width=8](row_i, SIMD[DType.float64, 8](col[matched_idxs[0].__int__()], col[matched_idxs[1].__int__()],
-            #                                           col[matched_idxs[2].__int__()], col[matched_idxs[3].__int__()],
-            #                                           col[matched_idxs[4].__int__()], col[matched_idxs[5].__int__()],
-            #                                           col[matched_idxs[6].__int__()], col[matched_idxs[7].__int__()]))
-            
-            # for row_i in range(limit, end_i):
-            #     var matched_idx = new_left_indexer[row_i].__int__()
-            #     col_to_append[row_i] = col[matched_idx]
-
-
-            var start_i = chunk_id * chunk_size
-            var end_i = min(start_i + chunk_size, num_final_rows)
-            var limit = ((end_i - start_i) // FLOAT_VEC_WIDTH) * FLOAT_VEC_WIDTH + start_i 
-
-            for row_i in range(start_i, limit, FLOAT_VEC_WIDTH):
-                var matched_idxs = final_left_indices.data.load[width=FLOAT_VEC_WIDTH](row_i)
-                var values = SIMD[DType.float64, FLOAT_VEC_WIDTH]()
-
-                @parameter
-                for k in range(FLOAT_VEC_WIDTH):
-                    values[k] = col[matched_idxs[k].__int__()]
-
-                col_to_append.data.store[width=FLOAT_VEC_WIDTH](row_i, values)
-                # col_to_append.data.store[width=8](row_i, SIMD[DType.float64, 8](
-                #     col[matched_idxs[0].__int__()], col[matched_idxs[1].__int__()],
-                #     col[matched_idxs[2].__int__()], col[matched_idxs[3].__int__()],
-                #     col[matched_idxs[4].__int__()], col[matched_idxs[5].__int__()],
-                #     col[matched_idxs[6].__int__()], col[matched_idxs[7].__int__()]
-                # ))
-
-            # handle remaining elements
-            for row_i in range(limit, end_i):
-                var matched_idx = final_left_indices[row_i].__int__()
-                col_to_append[row_i] = col[matched_idx]
-
-        parallelize[fill_result_worker1](n_chunks, num_threads)
-
-        col_data1.append(col_to_append)
-    
-    var end = perf_counter()
-    print("parallel fill time table 1:", end - start)
-
-    # var col_data2 = List[Int32Array]()
-    # var col_names2 = List[String]()
-
-    # [0,1,2,3,4] [1,1,2,2,3]
-
-    var start2 = perf_counter()
-
-    for col_i in range (df2.column_names.__len__()):
-        if df2.column_names[col_i] != key_column:
-            col_names1.append(df2.column_names[col_i])
-            # var row_input_idx = 0
-            var col = df2[col_i]
-            var col_to_append = Float64Array(num_final_rows)
-
-            # for row_i in range(num_rows):
-            #     #print("get:", col[(right_indexer[row_i]).__int__()])
-            #     var matched_idx = new_right_indexer[row_i].__int__()
-            #     col_to_append[row_i] = col[matched_idx.__int__()]
-            #     # row_input_idx += 1
-        
-            var n_chunks = (num_final_rows + chunk_size - 1) // chunk_size
-
-            @parameter
-            fn fill_result_worker2(chunk_id: Int):
-                var start_i = chunk_id * chunk_size
-                var end_i = min(start_i + chunk_size, num_final_rows)
-                var limit = ((end_i - start_i) // FLOAT_VEC_WIDTH) * FLOAT_VEC_WIDTH + start_i
-
-                for row_i in range(start_i, limit, FLOAT_VEC_WIDTH):
-                    var matched_idxs = final_right_indices.data.load[width=FLOAT_VEC_WIDTH](row_i)
-
-                    var values = SIMD[DType.float64, FLOAT_VEC_WIDTH]()
-
-                    @parameter
-                    for k in range(FLOAT_VEC_WIDTH):
-                        values[k] = col[matched_idxs[k].__int__()]
-
-                    col_to_append.data.store[width=FLOAT_VEC_WIDTH](row_i, values)
-                    # col_to_append.data.store[width=8](row_i, SIMD[DType.float64, 8](
-                    #     col[matched_idxs[0].__int__()], col[matched_idxs[1].__int__()],
-                    #     col[matched_idxs[2].__int__()], col[matched_idxs[3].__int__()],
-                    #     col[matched_idxs[4].__int__()], col[matched_idxs[5].__int__()],
-                    #     col[matched_idxs[6].__int__()], col[matched_idxs[7].__int__()]
-                    # ))
-
-
-                # Handle remaining elements
-                for row_i in range(limit, end_i):
-                    var matched_idx = final_right_indices[row_i].__int__()
-                    col_to_append[row_i] = col[matched_idx]
-
-            parallelize[fill_result_worker2](n_chunks, num_threads)
-        
-            col_data1.append(col_to_append)
-    var end2 = perf_counter()
-    print("parallel fill time table 2:", end2 - start2)
-    
-    # # var built_columns = fill_joined_columns_parallel(df1, df2, new_left_indexer, new_right_indexer, plan)
-
-    # end_time = monotonic()
-    # print("fill data time:", (end_time - start_time) / 1000000000)
-
-    # return DataFrameF64(built_columns.columns, built_columns.names)
-
-    return DataFrameF64(col_data1,col_names1)
-
-
-
-fn parallel_find_max(read column: Float64Array) raises -> SIMD[DType.float64, 1]:
-    alias simd_width = simdwidthof[DType.float64]()
-    var size = column.size
-
-    var chunk_size = (size + 4 - 1) // 4
-    chunk_size = (chunk_size // simd_width) * simd_width
-    print("chunk size:", chunk_size)
-    var n_chunks = (size + chunk_size - 1) // chunk_size
-    print("n_chunks:", n_chunks)
-
-    # Prepare partial maxima array
-    var partial_max = Float64Array(n_chunks)
-
-    @parameter
-    fn max_worker(thread_id: Int):
-        var start = thread_id * chunk_size
-        var end = min(start + chunk_size, size)
-
-        var local_max = column[start]
-
-        # vectorized local max computation
-        @parameter
-        fn _max_chunk[width: Int](offset: Int):
-            var col_data_slice = column.data.load[width=width](start + offset)
-            var temp_max = col_data_slice.reduce_max()
-            local_max = max(local_max, temp_max)
-
-        var length = end - start
-        # Run the vectorized pass
-        vectorize[_max_chunk, simd_width](length)
-
-        # leftover elements
-        var leftover_start = start + (length // simd_width) * simd_width
-
-        for i in range(leftover_start, end):
-            local_max = max(local_max, column[i])
-
-        # Store partial result
-        partial_max[thread_id] = local_max
-
-    # Launch threads
-    parallelize[max_worker](n_chunks)
-
-    var global_max = partial_max[0]
-    for i in range(1, n_chunks):
-        global_max = max(global_max, partial_max[i])
-
-    return global_max
-
-
-
-fn inner_join_f64_reindex(mut df1: DataFrameF64, mut df2: DataFrameF64, key_column: String) raises -> DataFrameWithIndexers:
-    # find the max number of distinct groups in both join columns
     var key_column1 = df1[key_column]
     var key_column2 = df2[key_column]
 
     var max1 = key_column1[0]
     var max2 = key_column2[0]
 
-    for i in range(key_column1.size):
+    var max_limit1 = (key_column1.size // 8) * 8
+    var max_limit2 = (key_column2.size // 8) * 8
+
+    for i in range(0, max_limit1, 8):
+        var maxs = key_column1.data.load[width=8](i, 0)
+        var temp_max = maxs.reduce_max()
+        max1 = max(max1, temp_max)
+    
+    for i in range(max_limit1, key_column1.size):
         max1 = max(max1, key_column1[i])
 
-    for i in range(key_column2.size):
+    for i in range(0, max_limit2, 8):
+        var maxs = key_column2.data.load[width=8](i, 0)
+        var temp_max = maxs.reduce_max()
+        max2 = max(max2, temp_max)
+    
+    for i in range(max_limit2, key_column2.size):
         max2 = max(max2, key_column2[i])
     
     var max_groups = max(max1, max2).__int__()
     var count = 0
     
-    # var left_count = List[Int]()
-    # var right_count = List[Int]()
-    # left_count.resize(max_groups + 1, 0)
-    # right_count.resize(max_groups + 1, 0)
+    var end_time = perf_counter()
+    print("find max time: ", (end_time - start_time))
 
+    start_time = perf_counter()
     var left_count = Int32Array(max_groups + 1)
     var right_count = Int32Array(max_groups + 1)
-
     
-    # # First pass to count frequencies of each group/key
     for i in range(key_column1.size):
         left_count[key_column1[i].__int__()] += 1
 
     for i in range(key_column2.size):
         right_count[key_column2[i].__int__()] += 1
 
-    # Determine how many combinations will result from this group in the output
-    # cartesion product
-    # if the group has entries in both columns
+    end_time = perf_counter()
+    print("count time:", (end_time - start_time))
+
+    start_time = perf_counter()
     for i in range(1, max_groups+1):
-        var lc = (left_count[i].__int__())
-        var rc = (right_count[i].__int__())
+        var lc = left_count[i].__int__()
+        var rc = right_count[i].__int__()
         if lc > 0 and rc > 0:
             count += lc * rc
 
@@ -3095,84 +3746,101 @@ fn inner_join_f64_reindex(mut df1: DataFrameF64, mut df2: DataFrameF64, key_colu
     var position = 0
 
     for i in range(1, max_groups+1):
-        var lc = (left_count[i].__int__())
-        var rc = (right_count[i].__int__())
+        var lc = left_count[i].__int__()
+        var rc = right_count[i].__int__()
 
         if rc > 0 and lc > 0:
             for j in range(lc):
-               
-                # Calculate the starting index in the result arrays
-                # for group left[i] and all elements from right belonging to the same group.
-                # 1,2,3      1,2,1,3,2
-                # 0,0,1,1,2          0,1,2,3,4
-                # Group 1 -> lc:1 rc:2
-
-                # offset = 0 + 0 * 2
                 var offset = position + j * rc
-                # print("offset:", offset)
     
                 for k in range(rc):
-                    # left_indexer[0 + 0] = 0 + 0
-                    # left_indexer[0 + 1] = 0 + 0
                     left_indexer[offset + k] = left_pos + j
-                    # right_indexer[0 + 0] = 0 + 0
-                    # right_indexer[0 + 1] = 0 + 1
                     right_indexer[offset + k] = right_pos + k
-            # update pointer to skip to next location after all combinations in current group
             position += lc * rc
 
-        # skip to next group
         left_pos += lc
         right_pos += rc
-    
-    # print("left indexer:")
-    # for i in range(left_indexer.size):
-    #     print(left_indexer[i])
 
-    # print("right indexer:")
-    # for i in range(right_indexer.size):
-    #     print(right_indexer[i])
+    end_time = perf_counter()
+    print("indexer time:", (end_time - start_time))
 
+    start_time = perf_counter()
     var new_left_indexer = groupsort_indexer(key_column1, left_indexer, left_count, max1.__int__())
     var new_right_indexer = groupsort_indexer(key_column2, right_indexer, right_count, max2.__int__())
+    end_time = perf_counter()
+    print("sort time:", (end_time - start_time))
 
-    # Use indexers to build DataFrame
+    # Optimized column building with SIMD and parallelization
+    start_time = perf_counter()
     var col_data1 = List[Float64Array]()
-    var col_names1 = List[String]()
+    var col_names1 = df1.column_names
     
-    # [0,1,2,3,4] [1,1,2,2,3]
-    col_names1 = df1.column_names
-    
-    for col_i in range (df1.column_names.__len__()):
-        var row_input_idx = 0
+    var chunk_size = 640000
+    var num_rows = left_indexer.size
+
+    # Build left DataFrame columns with SIMD + parallel
+    for col_i in range(df1.column_names.__len__()):
         var col = df1[col_i]
-        var col_to_append = Float64Array(left_indexer.size)
+        var col_to_append = Float64Array(num_rows)
 
-        for row_i in range(left_indexer.size):
-            #print("get:", col[(left_indexer[row_i]).__int__()])
-            var matched_idx = new_left_indexer[row_i].__int__()
-            col_to_append[row_input_idx] = col[matched_idx.__int__()]
-            row_input_idx += 1
-        col_data1.append(col_to_append)
+        var n_chunks = (num_rows + chunk_size - 1) // chunk_size
 
-    # var col_data2 = List[Int32Array]()
-    # var col_names2 = List[String]()
+        @parameter
+        fn worker_left(chunk_id: Int):
+            var start_i = chunk_id * chunk_size
+            var end_i = min(start_i + chunk_size, num_rows)
+            var limit = ((end_i - start_i) // 8) * 8 + start_i 
 
-    # [0,1,2,3,4] [1,1,2,2,3]
+            for row_i in range(start_i, limit, 8):
+                var matched_idxs = new_left_indexer.data.load[width=8](row_i, 0)
 
-    for col_i in range (df2.column_names.__len__()):
+                col_to_append.data.store[width=8](row_i, 0, SIMD[DType.float64, 8](
+                    col[matched_idxs[0].__int__()], col[matched_idxs[1].__int__()],
+                    col[matched_idxs[2].__int__()], col[matched_idxs[3].__int__()],
+                    col[matched_idxs[4].__int__()], col[matched_idxs[5].__int__()],
+                    col[matched_idxs[6].__int__()], col[matched_idxs[7].__int__()]
+                ))
+
+            for row_i in range(limit, end_i):
+                var matched_idx = new_left_indexer[row_i].__int__()
+                col_to_append[row_i] = col[matched_idx]
+
+        parallelize[worker_left](n_chunks, num_threads)
+        col_data1.append(col_to_append^)
+
+    for col_i in range(df2.column_names.__len__()):
         if df2.column_names[col_i] != key_column:
             col_names1.append(df2.column_names[col_i])
-            var row_input_idx = 0
             var col = df2[col_i]
-            var col_to_append = Float64Array(right_indexer.size)
+            var col_to_append = Float64Array(num_rows)
 
-            for row_i in range(right_indexer.size):
-                #print("get:", col[(right_indexer[row_i]).__int__()])
-                var matched_idx = new_right_indexer[row_i].__int__()
-                col_to_append[row_input_idx] = col[matched_idx.__int__()]
-                row_input_idx += 1
-            col_data1.append(col_to_append)
+            var n_chunks = (num_rows + chunk_size - 1) // chunk_size
+
+            @parameter
+            fn worker_right(chunk_id: Int):
+                var start_i = chunk_id * chunk_size
+                var end_i = min(start_i + chunk_size, num_rows)
+                var limit = ((end_i - start_i) // 8) * 8 + start_i
+
+                for row_i in range(start_i, limit, 8):
+                    var matched_idxs = new_right_indexer.data.load[width=8](row_i, 0)
+
+                    col_to_append.data.store[width=8](row_i, 0, SIMD[DType.float64, 8](
+                        col[matched_idxs[0].__int__()], col[matched_idxs[1].__int__()],
+                        col[matched_idxs[2].__int__()], col[matched_idxs[3].__int__()],
+                        col[matched_idxs[4].__int__()], col[matched_idxs[5].__int__()],
+                        col[matched_idxs[6].__int__()], col[matched_idxs[7].__int__()]
+                    ))
+
+                for row_i in range(limit, end_i):
+                    var matched_idx = new_right_indexer[row_i].__int__()
+                    col_to_append[row_i] = col[matched_idx]
+
+            parallelize[worker_right](n_chunks, num_threads)
+            col_data1.append(col_to_append^)
+    
+    end_time = perf_counter()
+    print("fill data time:", (end_time - start_time))
     
     return DataFrameWithIndexers(col_data1^, col_names1, List[Int32Array](new_left_indexer, new_right_indexer))
 
@@ -3186,11 +3854,12 @@ fn reindex_string_column(read original_col: List[String], read new_indexer: Int3
     return reindexed_string_col
 
 
-fn groupsort_indexer(mut index: Float64Array, mut indexer: Int32Array, mut counts: Int32Array, ngroups: Int) raises -> Int32Array:
+fn groupsort_indexer(read index: Float64Array, read indexer: Int32Array, read counts: Int32Array, ngroups: Int) raises -> Int32Array:
     var n = index.size
     var start_time = monotonic()
 
     var sorter = Int32Array(n)
+
     var where = Int32Array(ngroups + 1)
 
     end_time = monotonic()
@@ -3202,7 +3871,6 @@ fn groupsort_indexer(mut index: Float64Array, mut indexer: Int32Array, mut count
         where[i] = where[i - 1] + counts[i - 1]
 
     end_time = monotonic()
-
     
     start_time = monotonic()
     # indexer
@@ -3210,23 +3878,28 @@ fn groupsort_indexer(mut index: Float64Array, mut indexer: Int32Array, mut count
         var label = index[i].__int__()
         sorter[(where[label]).__int__()] = i
         where[label] += 1
+        #print(where[label])
 
     end_time = monotonic()
 
     print("sorter time:", (end_time - start_time) / 1000000000)
 
-    # print("sorter")
+    # print("sorter debug")
     # for i in range(sorter.size):
     #     print(sorter[i])
 
+    var result = Int32Array(indexer.size)
+
     start_time = monotonic()
     for i in range(indexer.size):
-        indexer[i] = sorter[(indexer[i]).__int__()]
+        var original_idx = indexer[i].__int__()
+        result[i] = sorter[original_idx]
     
     end_time = monotonic()
     print("reindex time:", (end_time - start_time) / 1000000000)
 
-    return indexer
+    return result
+    
 
 # fn count_group_freq_parallel(read key_column: Float64Array, max_groups: Int, chunk_size: Int = 64000) -> List[Int]:
 #     var n = key_column.size
@@ -3438,32 +4111,90 @@ fn parallel_argsort_f64(mut arr: Float64Array, num_threads: Int = 4) raises -> I
 
 #     return global_max
 
-@value
-struct ColumnPlan(CollectionElement):
-    var source_df_id: Int  
-    var src_col_index: Int 
-    var out_col_index: Int
-    var name: String
+# @value
+# struct ColumnPlan(CollectionElement):
+#     var source_df_id: Int  
+#     var src_col_index: Int 
+#     var out_col_index: Int
+#     var name: String
 
-    fn __init__(mut self, source_df_id: Int, src_col_index: Int, out_col_index: Int, name: String):
-        self.source_df_id = source_df_id
-        self.src_col_index = src_col_index
-        self.out_col_index = out_col_index
-        self.name = name
+#     fn __init__(mut self, source_df_id: Int, src_col_index: Int, out_col_index: Int, name: String):
+#         self.source_df_id = source_df_id
+#         self.src_col_index = src_col_index
+#         self.out_col_index = out_col_index
+#         self.name = name
 
-    fn __moveinit__(mut self, owned existing: Self):
-        self.source_df_id = existing.source_df_id
-        self.src_col_index = existing.src_col_index
-        self.out_col_index = existing.out_col_index
-        self.name = (existing.name)^
+#     fn __moveinit__(mut self, owned existing: Self):
+#         self.source_df_id = existing.source_df_id
+#         self.src_col_index = existing.src_col_index
+#         self.out_col_index = existing.out_col_index
+#         self.name = (existing.name)^
         
-    fn __copyinit__(mut self, existing: Self):
-        self.source_df_id = existing.source_df_id
-        self.src_col_index = existing.src_col_index
-        self.out_col_index = existing.out_col_index
-        self.name = existing.name
+#     fn __copyinit__(mut self, existing: Self):
+#         self.source_df_id = existing.source_df_id
+#         self.src_col_index = existing.src_col_index
+#         self.out_col_index = existing.out_col_index
+#         self.name = existing.name
 
+fn masked_count_parallel(read mask: List[Bool]) -> Int:
+    var n = len(mask)
+    var num_work_items = 8
+    var num_threads = 8
+    var chunk_size = (n + num_work_items - 1) // num_work_items
+    
+    var local_counts = List[Int]()
+    local_counts.resize(num_work_items, 0)
+    
+    @parameter
+    fn worker(thread_id: Int):
+        var start = thread_id * chunk_size
+        var end = min(start + chunk_size, n)
+        var local_count = 0
+        for i in range(start, end):
+            if mask[i]:
+                local_count += 1
+        local_counts[thread_id] = local_count
+    
+    parallelize[worker](num_work_items, num_threads)
+    
+    var total_count = 0
+    for i in range(num_work_items):
+        total_count += local_counts[i]
+    
+    return total_count
 
+fn masked_sum_parallel(read values: Float64Array, read mask: List[Bool]) -> Float64:
+    var n = values.size
+    var num_work_items = 8
+    var num_threads = 8
+    var chunk_size = (n + num_work_items - 1) // num_work_items
+    
+    var local_sums = List[Float64]()
+    local_sums.resize(num_work_items, 0.0)
+    
+    @parameter
+    fn worker(thread_id: Int):
+        var start = thread_id * chunk_size
+        var end = min(start + chunk_size, n)
+        var local_sum = 0.0
+        for i in range(start, end):
+            if mask[i]:
+                local_sum += values[i]
+        local_sums[thread_id] = local_sum
+    
+    parallelize[worker](num_work_items, num_threads)
+    
+    var total_sum = 0.0
+    for i in range(num_work_items):
+        total_sum += local_sums[i]
+    
+    return total_sum
+
+fn masked_avg_parallel(read values: Float64Array, read mask: List[Bool]) -> Float64:
+    var sum = masked_sum_parallel(values, mask)
+    var count = masked_count_parallel(mask)
+
+    return (sum / count) if count > 0 else 0.0
 
 def mergesort(mut arr: Float64Array, mut indices: List[Int]) -> List[Int]:
     var temp = List[Int](capacity=arr.size)
@@ -3475,34 +4206,49 @@ def mergesort(mut arr: Float64Array, mut indices: List[Int]) -> List[Int]:
 trait PredicateF64:
     fn evaluate(self, x: SIMD[DType.float64, 1], value_cmp: SIMD[DType.float64, 1]) -> Bool: ...
 
-@value
 struct EQPredF64(PredicateF64):
+    fn __init__(out self):
+        pass
+
     fn evaluate(self, x: SIMD[DType.float64, 1], value_cmp: SIMD[DType.float64, 1]) -> Bool:
         # return (x == value_cmp) or isclose(x, value_cmp)
         return (x == value_cmp)
-@value
 struct NEQPredF64(PredicateF64):
+    fn __init__(out self):
+        pass
+
     fn evaluate(self, x: SIMD[DType.float64, 1], value_cmp: SIMD[DType.float64, 1]) -> Bool:
         # return (x != value_cmp) and (isclose(x, value_cmp) == False)
         return (x != value_cmp)
 
-@value
 struct GTPredF64(PredicateF64):
+    fn __init__(out self):
+        pass
+
     fn evaluate(self, x: SIMD[DType.float64, 1], value_cmp: SIMD[DType.float64, 1]) -> Bool:
         # return (not isclose(x, value_cmp)) and (x > value_cmp)
         return x > value_cmp
-@value
+
 struct GTEPredF64(PredicateF64):
+    fn __init__(out self):
+        pass
+
     fn evaluate(self, x: SIMD[DType.float64, 1], value_cmp: SIMD[DType.float64, 1]) -> Bool:
         # return isclose(x, value_cmp) or (x > value_cmp)
         return x >= value_cmp
-@value
+
 struct LEPredF64(PredicateF64):
+    fn __init__(out self):
+        pass
+        
     fn evaluate(self, x: SIMD[DType.float64, 1], value_cmp: SIMD[DType.float64, 1]) -> Bool:
         # return isclose(x, value_cmp) or (x < value_cmp)
         return x <= value_cmp
-@value
+
 struct LTPredF64(PredicateF64):
+    fn __init__(out self):
+        pass
+
     fn evaluate(self, x: SIMD[DType.float64, 1], value_cmp: SIMD[DType.float64, 1]) -> Bool:
         # return (not isclose(x, value_cmp)) and (x < value_cmp)
         # var p = x * x * x + value_cmp * value_cmp + 42.0
@@ -3525,105 +4271,107 @@ struct DataFrameWithIndexers():
     var df: DataFrameF64
     var indexers: List[Int32Array]
 
-    fn __init__(mut self, owned df_data: List[Float64Array], df_col_names: List[String], owned indexers: List[Int32Array]) raises:
+    fn __init__(out self, owned df_data: List[Float64Array], owned df_col_names: List[String], owned indexers: List[Int32Array]) raises:
         self.df = DataFrameF64(df_data, df_col_names)
         self.indexers = indexers
 
-@value
-struct IntKey(KeyElement):
-    var i: SIMD[DType.int32, 1]
+# @value
+# struct IntKey(KeyElement):
+#     var i: SIMD[DType.int32, 1]
 
-    fn __init__(mut self, owned i: SIMD[DType.int32, 1]):
-        self.i = i
+#     fn __init__(mut self, owned i: SIMD[DType.int32, 1]):
+#         self.i = i
 
-    fn __hash__(self) -> UInt:
-        return hash(self.i)
+#     fn __hash__(self) -> UInt:
+#         return hash(self.i)
 
-    fn __eq__(self, other: Self) -> Bool:
-        return self.i == other.i
+#     fn __eq__(self, other: Self) -> Bool:
+#         return self.i == other.i
 
-    fn __ne__(self, other: Self) -> Bool:
-        return self.i != other.i
+#     fn __ne__(self, other: Self) -> Bool:
+#         return self.i != other.i
 
-
-@value
-struct DoubleTup(CollectionElement):
+struct DoubleTup(Copyable, Movable, ImplicitlyCopyable):
     var data: Tuple[SIMD[DType.float64, 1], SIMD[DType.float64, 1]]
 
-    fn __init__(mut self, data: Tuple[SIMD[DType.float64, 1], SIMD[DType.float64, 1]]):
+    fn __init__(out self, data: Tuple[SIMD[DType.float64, 1], SIMD[DType.float64, 1]]):
         self.data = Tuple[SIMD[DType.float64, 1], SIMD[DType.float64, 1]](data[0], data[1])
     
-    fn __moveinit__(mut self, owned existing: Self):
+    fn __moveinit__(out self, owned existing: Self):
         self.data = (existing.data)^
         
-    fn __copyinit__(mut self, existing: Self):
+    fn __copyinit__(out self, existing: Self):
         self.data = Tuple[SIMD[DType.float64, 1], SIMD[DType.float64, 1]](existing.data[0], existing.data[1])
 
-@value
-struct TripleTup(CollectionElement):
+struct TripleTup(Copyable, Movable, ImplicitlyCopyable):
     var data: Tuple[SIMD[DType.float64, 1], SIMD[DType.float64, 1], SIMD[DType.float64, 1]]
 
     # fn __init__(mut self):
     #     self.data = Tuple[SIMD[DType.float64, 1], SIMD[DType.float64, 1], SIMD[DType.float64, 1]](0, 0, 0)
 
-    fn __init__(mut self, data: Tuple[SIMD[DType.float64, 1], SIMD[DType.float64, 1], SIMD[DType.float64, 1]]):
+    fn __init__(out self, data: Tuple[SIMD[DType.float64, 1], SIMD[DType.float64, 1], SIMD[DType.float64, 1]]):
         self.data = Tuple[SIMD[DType.float64, 1], SIMD[DType.float64, 1], SIMD[DType.float64, 1]]
                             (data[0], data[1], data[2])
     
-    fn __moveinit__(mut self, owned existing: Self):
+    fn __moveinit__(out self, owned existing: Self):
         self.data = (existing.data)^
         
-    fn __copyinit__(mut self, existing: Self):
+    fn __copyinit__(out self, existing: Self):
         self.data = Tuple[SIMD[DType.float64, 1], SIMD[DType.float64, 1], SIMD[DType.float64, 1]]
                             (existing.data[0], existing.data[1], existing.data[2])
 
-@value
-struct QuadTup(CollectionElement):
+struct QuadTup(Copyable, Movable, ImplicitlyCopyable):
     var data: Tuple[SIMD[DType.float64, 1], SIMD[DType.float64, 1], SIMD[DType.float64, 1], SIMD[DType.float64, 1]]
 
-    fn __init__(mut self, data: Tuple[SIMD[DType.float64, 1], SIMD[DType.float64, 1], SIMD[DType.float64, 1], SIMD[DType.float64, 1]]):
+    fn __init__(out self, data: Tuple[SIMD[DType.float64, 1], SIMD[DType.float64, 1], SIMD[DType.float64, 1], SIMD[DType.float64, 1]]):
         self.data = Tuple[SIMD[DType.float64, 1], SIMD[DType.float64, 1], SIMD[DType.float64, 1], SIMD[DType.float64, 1]]
                             (data[0], data[1], data[2], data[3])
     
-    fn __moveinit__(mut self, owned existing: Self):
+    fn __moveinit__(out self, owned existing: Self):
         self.data = (existing.data)^
         
-    fn __copyinit__(mut self, existing: Self):
+    fn __copyinit__(out self, existing: Self):
         self.data = Tuple[SIMD[DType.float64, 1], SIMD[DType.float64, 1], SIMD[DType.float64, 1], SIMD[DType.float64, 1]]
                             (existing.data[0], existing.data[1], existing.data[2], existing.data[3])
 
-@value
-struct DoubleTupleKey(KeyElement):
+struct DoubleTupleKey(KeyElement, ImplicitlyCopyable):
     var i: DoubleTup
 
-    fn __moveinit__(mut self, owned existing: Self):
+    fn __init__(out self, data: DoubleTup):
+        self.i = data
+
+    fn __moveinit__(out self, owned existing: Self):
         self.i = (existing.i)^
 
-    fn __copyinit__(mut self, existing: Self):
+    fn __copyinit__(out self, existing: Self):
        self.i = existing.i
 
-    fn __hash__(self) -> UInt:
-        # Python hashing for a tuple
-        # https://github.com/python/cpython/blob/v3.7.0/Objects/tupleobject.c#L336-L369
-        var hash_val = 0x345678
-        var multiplier = 1000003
-        var add_const = 82520
+    fn __hash__[H: Hasher](self, mut hasher: H):
+        # hash each component separately
+        hasher.update(self.i.data[0])
+        hasher.update(self.i.data[1])
+    # fn __hash__(self) -> UInt:
+    #     # Python hashing for a tuple
+    #     # https://github.com/python/cpython/blob/v3.7.0/Objects/tupleobject.c#L336-L369
+    #     var hash_val = 0x345678
+    #     var multiplier = 1000003
+    #     var add_const = 82520
 
-        # Compute the hash of individual element in the compound key tuple
-        var compound_key0_hash = hash(self.i.data[0])
-        hash_val = (hash_val ^ compound_key0_hash) * multiplier
-        multiplier += (add_const + 0)
+    #     # Compute the hash of individual element in the compound key tuple
+    #     var compound_key0_hash = hash(self.i.data[0])
+    #     hash_val = (hash_val ^ compound_key0_hash) * multiplier
+    #     multiplier += (add_const + 0)
 
-        var compound_key1_hash = hash(self.i.data[1])
-        hash_val = (hash_val ^ compound_key1_hash) * multiplier
-        multiplier += (add_const + 2)
+    #     var compound_key1_hash = hash(self.i.data[1])
+    #     hash_val = (hash_val ^ compound_key1_hash) * multiplier
+    #     multiplier += (add_const + 2)
     
-        hash_val += 97531
+    #     hash_val += 97531
 
 
-        #### Define our own naive hash function to combine the values in the tuple into one value
-        return hash_val
-        #return hash(self.i.data[0] + ((10**6) * 1e-6) + self.i.data[1] + ((10**12) * 1e-6) + self.i.data[2])
+    #     #### Define our own naive hash function to combine the values in the tuple into one value
+    #     return hash_val
+    #     #return hash(self.i.data[0] + ((10**6) * 1e-6) + self.i.data[1] + ((10**12) * 1e-6) + self.i.data[2])
 
     fn __eq__(self, other: Self) -> Bool:
         return (self.i.data[0] == other.i.data[0]) and (self.i.data[1] == other.i.data[1])
@@ -3631,42 +4379,49 @@ struct DoubleTupleKey(KeyElement):
     fn __ne__(self, other: Self) -> Bool:
         return ((self.i.data[0] != other.i.data[0]) or (self.i.data[1] != other.i.data[1]))
 
-@value
-struct TupleKey(KeyElement):
+struct TupleKey(KeyElement, ImplicitlyCopyable):
     var i: TripleTup
 
-    fn __moveinit__(mut self, owned existing: Self):
+    fn __init__(out self, data: TripleTup):
+        self.i = data
+
+    fn __moveinit__(out self, owned existing: Self):
         self.i = (existing.i)^
 
-    fn __copyinit__(mut self, existing: Self):
+    fn __copyinit__(out self, existing: Self):
        self.i = existing.i
 
-    fn __hash__(self) -> UInt:
-        # Python hashing for a tuple
-        # https://github.com/python/cpython/blob/v3.7.0/Objects/tupleobject.c#L336-L369
-        var hash_val = 0x345678
-        var multiplier = 1000003
-        var add_const = 82520
+    fn __hash__[H: Hasher](self, mut hasher: H):
+        # hash each component separately
+        hasher.update(self.i.data[0])
+        hasher.update(self.i.data[1])
+        hasher.update(self.i.data[2])
+    # fn __hash__(self) -> UInt:
+    #     # Python hashing for a tuple
+    #     # https://github.com/python/cpython/blob/v3.7.0/Objects/tupleobject.c#L336-L369
+    #     var hash_val = 0x345678
+    #     var multiplier = 1000003
+    #     var add_const = 82520
 
-        # Compute the hash of individual element in the compound key tuple
-        var compound_key0_hash = hash(self.i.data[0])
-        hash_val = (hash_val ^ compound_key0_hash) * multiplier
-        multiplier += (add_const + 0)
+    #     # Compute the hash of individual element in the compound key tuple
+    #     var compound_key0_hash = hash(self.i.data[0])
+    #     hash_val = (hash_val ^ compound_key0_hash) * multiplier
+    #     multiplier += (add_const + 0)
 
-        var compound_key1_hash = hash(self.i.data[1])
-        hash_val = (hash_val ^ compound_key1_hash) * multiplier
-        multiplier += (add_const + 2)
+    #     var compound_key1_hash = hash(self.i.data[1])
+    #     hash_val = (hash_val ^ compound_key1_hash) * multiplier
+    #     multiplier += (add_const + 2)
 
-        var compound_key2_hash = hash(self.i.data[2])
-        hash_val = (hash_val ^ compound_key2_hash) * multiplier
-        multiplier += (add_const + 4)
+    #     var compound_key2_hash = hash(self.i.data[2])
+    #     hash_val = (hash_val ^ compound_key2_hash) * multiplier
+    #     multiplier += (add_const + 4)
     
-        hash_val += 97531
+    #     hash_val += 97531
 
 
-        #### Define our own naive hash function to combine the values in the tuple into one value
-        return hash_val
-        #return hash(self.i.data[0] + ((10**6) * 1e-6) + self.i.data[1] + ((10**12) * 1e-6) + self.i.data[2])
+    #     #### Define our own naive hash function to combine the values in the tuple into one value
+    #     return hash_val
+    #     #return hash(self.i.data[0] + ((10**6) * 1e-6) + self.i.data[1] + ((10**12) * 1e-6) + self.i.data[2])
 
     fn __eq__(self, other: Self) -> Bool:
         return (self.i.data[0] == other.i.data[0])
@@ -3678,7 +4433,6 @@ struct TupleKey(KeyElement):
                     or (self.i.data[1] != other.i.data[1])
                     or (self.i.data[2] != other.i.data[2]))
 
-# @value
 # struct TupleKeyWithHash(KeyElement):
 #     var i: TripleTup
 
@@ -3735,46 +4489,55 @@ struct TupleKey(KeyElement):
 #         return not (self == other)
 
 
-@value
-struct QuadTupleKey(KeyElement):
+struct QuadTupleKey(KeyElement, ImplicitlyCopyable):
     var i: QuadTup
 
-    fn __moveinit__(mut self, owned existing: Self):
+    fn __init__(out self, data: QuadTup):
+        self.i = data
+
+    fn __moveinit__(out self, owned existing: Self):
         self.i = (existing.i)^
 
-    fn __copyinit__(mut self, existing: Self):
+    fn __copyinit__(out self, existing: Self):
        self.i = existing.i
 
-    fn __hash__(self) -> UInt:
-        # Python hashing for a tuple
-        # https://github.com/python/cpython/blob/v3.7.0/Objects/tupleobject.c#L336-L369
-        var hash_val = 0x345678
-        var multiplier = 1000003
-        var add_const = 82520
+    fn __hash__[H: Hasher](self, mut hasher: H):
+        # hash each component separately
+        hasher.update(self.i.data[0])
+        hasher.update(self.i.data[1])
+        hasher.update(self.i.data[2])
+        hasher.update(self.i.data[3])
 
-        # Compute the hash of individual element in the compound key tuple
-        var compound_key0_hash = hash(self.i.data[0])
-        hash_val = (hash_val ^ compound_key0_hash) * multiplier
-        multiplier += (add_const + 0)
+    # fn __hash__(self) -> UInt:
+    #     # Python hashing for a tuple
+    #     # https://github.com/python/cpython/blob/v3.7.0/Objects/tupleobject.c#L336-L369
+    #     var hash_val = 0x345678
+    #     var multiplier = 1000003
+    #     var add_const = 82520
 
-        var compound_key1_hash = hash(self.i.data[1])
-        hash_val = (hash_val ^ compound_key1_hash) * multiplier
-        multiplier += (add_const + 2)
+    #     # Compute the hash of individual element in the compound key tuple
+    #     var compound_key0_hash = hash(self.i.data[0])
+    #     hash_val = (hash_val ^ compound_key0_hash) * multiplier
+    #     multiplier += (add_const + 0)
 
-        var compound_key2_hash = hash(self.i.data[2])
-        hash_val = (hash_val ^ compound_key2_hash) * multiplier
-        multiplier += (add_const + 4)
+    #     var compound_key1_hash = hash(self.i.data[1])
+    #     hash_val = (hash_val ^ compound_key1_hash) * multiplier
+    #     multiplier += (add_const + 2)
 
-        var compound_key3_hash = hash(self.i.data[3])
-        hash_val = (hash_val ^ compound_key3_hash) * multiplier
-        multiplier += (add_const + 6)
+    #     var compound_key2_hash = hash(self.i.data[2])
+    #     hash_val = (hash_val ^ compound_key2_hash) * multiplier
+    #     multiplier += (add_const + 4)
+
+    #     var compound_key3_hash = hash(self.i.data[3])
+    #     hash_val = (hash_val ^ compound_key3_hash) * multiplier
+    #     multiplier += (add_const + 6)
     
-        hash_val += 97531
+    #     hash_val += 97531
 
 
-        #### Define our own naive hash function to combine the values in the tuple into one value
-        return hash_val
-        #return hash(self.i.data[0] + ((10**6) * 1e-6) + self.i.data[1] + ((10**12) * 1e-6) + self.i.data[2])
+    #     #### Define our own naive hash function to combine the values in the tuple into one value
+    #     return hash_val
+    #     #return hash(self.i.data[0] + ((10**6) * 1e-6) + self.i.data[1] + ((10**12) * 1e-6) + self.i.data[2])
 
     fn __eq__(self, other: Self) -> Bool:
         return (self.i.data[0] == other.i.data[0])
@@ -3788,80 +4551,80 @@ struct QuadTupleKey(KeyElement):
                     or (self.i.data[2] != other.i.data[2])
                     or (self.i.data[3] != other.i.data[3]))
 
-@value
-struct MultiFloatKeyIncremental(KeyElement):
-    var values: List[Float64]
+# @value
+# struct MultiFloatKeyIncremental(KeyElement):
+#     var values: List[Float64]
    
-    var _hash_value: UInt
+#     var _hash_value: UInt
    
-    var _hash_multiplier: UInt
+#     var _hash_multiplier: UInt
 
-    var _elements_added: Int
-    # var HASH_SEED : UInt
-    # var HASH_MULTIPLIER_INIT : UInt 
-    # var HASH_ADD_CONST : UInt 
-    # var HASH_FINAL_ADD : UInt
+#     var _elements_added: Int
+#     # var HASH_SEED : UInt
+#     # var HASH_MULTIPLIER_INIT : UInt 
+#     # var HASH_ADD_CONST : UInt 
+#     # var HASH_FINAL_ADD : UInt
 
-    fn __init__(mut self, num_groupby_cols: Int):
-        self.values = List[Float64]()
-        self._hash_value = HASH_SEED
-        self._hash_multiplier = HASH_MULTIPLIER_INIT
-        self._elements_added = 0
+#     fn __init__(mut self, num_groupby_cols: Int):
+#         self.values = List[Float64]()
+#         self._hash_value = HASH_SEED
+#         self._hash_multiplier = HASH_MULTIPLIER_INIT
+#         self._elements_added = 0
 
-    fn __moveinit__(mut self, owned existing: Self):
-        self.values = existing.values^
-        self._hash_value = existing._hash_value
-        self._hash_multiplier = existing._hash_multiplier
-        self._elements_added = existing._elements_added
+#     fn __moveinit__(mut self, owned existing: Self):
+#         self.values = existing.values^
+#         self._hash_value = existing._hash_value
+#         self._hash_multiplier = existing._hash_multiplier
+#         self._elements_added = existing._elements_added
 
-    fn __copyinit__(mut self, existing: Self):
-        self.values = List[Float64]()
-        for i in range(len(existing.values)):
-            self.values.append(existing.values[i])
+#     fn __copyinit__(mut self, existing: Self):
+#         self.values = List[Float64]()
+#         for i in range(len(existing.values)):
+#             self.values.append(existing.values[i])
             
-        self._hash_value = existing._hash_value
-        self._hash_multiplier = existing._hash_multiplier
-        self._elements_added = existing._elements_added
+#         self._hash_value = existing._hash_value
+#         self._hash_multiplier = existing._hash_multiplier
+#         self._elements_added = existing._elements_added
 
-    # add a new value and update the hash
-    fn update(mut self, value: Float64):
-        self.values.append(value)
-        var value_hash = hash(value)
+#     # add a new value and update the hash
+#     fn update(mut self, value: Float64):
+#         self.values.append(value)
+#         var value_hash = hash(value)
 
-        self._hash_value = (self._hash_value ^ value_hash) * self._hash_multiplier
+#         self._hash_value = (self._hash_value ^ value_hash) * self._hash_multiplier
         
-        self._hash_multiplier += (HASH_ADD_CONST + (self._elements_added * 2))
+#         self._hash_multiplier += (HASH_ADD_CONST + (self._elements_added * 2))
 
-        self._elements_added += 1
+#         self._elements_added += 1
 
-    fn finalize_hash(mut self):
-        self._hash_value += HASH_FINAL_ADD
+#     fn finalize_hash(mut self):
+#         self._hash_value += HASH_FINAL_ADD
 
-    # return the incrementally computed hash value
-    fn __hash__(self) -> UInt:
-        return self._hash_value
+#     # return the incrementally computed hash value
+#     fn __hash__(self) -> UInt:
+#         return self._hash_value
 
-    fn __eq__(self, other: Self) -> Bool:
-        for i in range(len(self.values)):
-            if self.values[i] != other.values[i]:
-                return False
-        return True
+#     fn __eq__(self, other: Self) -> Bool:
+#         for i in range(len(self.values)):
+#             if self.values[i] != other.values[i]:
+#                 return False
+#         return True
 
-    fn __ne__(self, other: Self) -> Bool:
-        return not (self == other)
+#     fn __ne__(self, other: Self) -> Bool:
+#         return not (self == other)
 
-@value
+@register_passable("trivial")
 struct FloatKey(KeyElement):
     var i: SIMD[DType.float64, 1]
-
-    fn __init__(mut self, owned i: SIMD[DType.float64, 1]):
+    
+    fn __init__(out self, owned i: SIMD[DType.float64, 1]):
         self.i = i
-
-    fn __hash__(self) -> UInt:
-        return _hash_simd[DType.float64, 1](self.i)
-
+    
+    fn __hash__[H: Hasher](self, mut hasher: H):
+        hasher.update(self.i)
+    
     fn __eq__(self, other: Self) -> Bool:
         return self.i == other.i
-
+    
     fn __ne__(self, other: Self) -> Bool:
         return self.i != other.i
