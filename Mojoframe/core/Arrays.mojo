@@ -1,83 +1,220 @@
-from max.tensor import Tensor
-from utils.numerics import neg_inf
-from pathlib import Path
+from std.sys.info import size_of
+from std.memory import unsafe_memcpy
 
-# Array wrapper classes
-# DataFrame initialization requires defined type
-# @value decorator used to generate Trait methods not used in Array
 
-@value
-struct Float64Array(CollectionElement):
-    var data: Tensor[DType.float64]
+def _resolve_data_path(file_path: String) -> String:
+    var prefix = "/datadrive/tpch_large/"
+    if file_path.startswith(prefix):
+        var fname = file_path[byte=len(prefix.bytes()):]
+        return "Data/" + fname
+    return file_path
+
+
+struct Float64Array(ImplicitlyCopyable, Copyable, Movable):
+    var data: List[Float64]
     var size: Int
-    
-    fn __init__(mut self, num_elements: Int) raises:
+
+    def __init__(out self):
+        self.size = 0
+        self.data = List[Float64]()
+
+    def __init__(out self, num_elements: Int):
         self.size = num_elements
-        self.data = Tensor[DType.float64] (self.size)
-    
-    fn __init__(mut self, num_elements: Int, as_min: Bool) raises:
+        self.data = List[Float64]()
+        self.data.resize(num_elements, 0.0)
+
+    def __init__(out self, num_elements: Int, as_min: Bool):
         self.size = num_elements
-        self.data = Tensor[DType.float64] (self.size)
-        var neg_inf = neg_inf[DType.float64]()
-        if as_min:
-            for i in range(self.size):
-                self.data[i] = neg_inf
-                
-    fn __init__(mut self, file_path: String) raises:
-        self.data = Tensor[DType.float64].fromfile(Path(file_path))
-        self.size = self.data.num_elements()
+        self.data = List[Float64]()
+        var val: Float64 = -Float64.MAX_FINITE if as_min else 0.0
+        self.data.resize(num_elements, val)
 
-    fn __copyinit__(mut self, existing: Self):
-        self.size = existing.size
-        self.data = Tensor[DType.float64] (self.size)
-        for i in range(self.size):
-            self.data[i] = existing.data[i]
+    def __init__(out self, file_path: String) raises:
+        var path = file_path
+        try:
+            with open(path, "r") as f:
+                var bytes_list = f.read_bytes()
+                var byte_len = len(bytes_list)
+                self.size = byte_len // size_of[Float64]()
+                self.data = List[Float64]()
+                self.data.resize(self.size, 0.0)
+                if self.size > 0:
+                    var src_ptr = bytes_list.unsafe_ptr().unsafe_bitcast[Float64]()
+                    var dst_ptr = self.data.unsafe_ptr()
+                    unsafe_memcpy(dest=dst_ptr, src=src_ptr, count=self.size)
+        except:
+            path = _resolve_data_path(file_path)
+            with open(path, "r") as f:
+                var bytes_list = f.read_bytes()
+                var byte_len = len(bytes_list)
+                self.size = byte_len // size_of[Float64]()
+                self.data = List[Float64]()
+                self.data.resize(self.size, 0.0)
+                if self.size > 0:
+                    var src_ptr = bytes_list.unsafe_ptr().unsafe_bitcast[Float64]()
+                    var dst_ptr = self.data.unsafe_ptr()
+                    unsafe_memcpy(dest=dst_ptr, src=src_ptr, count=self.size)
 
-    fn __getitem__(self, i: Int) -> SIMD[DType.float64, 1]:
-        return self.data[i]
-    
-    fn __setitem__(mut self, i: Int, owned value: SIMD[DType.float64, 1]):
-        self.data[i] = value
+    def __init__(out self, *, copy: Self):
+        self.size = copy.size
+        self.data = copy.data.copy()
 
-@value
-struct Float32Array(CollectionElement):
-    var data: Tensor[DType.float32]
-    var size: Int
-    
-    fn __init__(mut self, num_elements: Int) raises:
-        self.size = num_elements
-        self.data = Tensor[DType.float32] (self.size)
-        
-    fn __copyinit__(mut self, existing: Self):
-        self.size = existing.size
-        self.data = Tensor[DType.float32] (self.size)
-        for i in range(self.size):
-            self.data[i] = existing.data[i]
+    def __init__(out self, *, deinit move: Self):
+        self.size = move.size
+        self.data = move.data^
 
-    fn __getitem__(self, i: Int) -> SIMD[DType.float32, 1]:
-        return self.data[i]
-
-    fn __setitem__(mut self, i: Int, value: SIMD[DType.float32, 1]):
-        self.data[i] = value
-
-@value
-struct Int32Array(CollectionElement):
-    var data: Tensor[DType.int32]
-    var size: Int
-    
-    fn __init__(mut self, num_elements: Int) raises:
-        self.size = num_elements
-        self.data = Tensor[DType.int32] (self.size)
-        
-    fn __copyinit__(mut self, existing: Self):
-        self.size = existing.size
-        self.data = Tensor[DType.int32] (self.size)
-        for i in range(self.size):
-            self.data[i] = existing.data[i]
-
-    fn __getitem__(self, i: Int) -> SIMD[DType.int32, 1]:
+    def __getitem__(self, i: Int) -> Float64:
         return self.data[i]
 
-    fn __setitem__(mut self, i: Int, value: SIMD[DType.int32, 1]):
+    def __setitem__(mut self, i: Int, value: Float64):
         self.data[i] = value
-    
+
+    def num_elements(self) -> Int:
+        return self.size
+
+    def unsafe_ptr(self) -> Pointer[Float64, origin_of(self.data)]:
+        return self.data.unsafe_ptr()
+
+    def load[width: Int](self, idx: Int) -> SIMD[DType.float64, width]:
+        return self.data.unsafe_ptr().unsafe_load[width=width](idx)
+
+    def store[width: Int](mut self, idx: Int, val: SIMD[DType.float64, width]):
+        self.data.unsafe_ptr().unsafe_store[width=width](idx, val)
+
+
+struct Float32Array(ImplicitlyCopyable, Copyable, Movable):
+    var data: List[Float32]
+    var size: Int
+
+    def __init__(out self):
+        self.size = 0
+        self.data = List[Float32]()
+
+    def __init__(out self, num_elements: Int):
+        self.size = num_elements
+        self.data = List[Float32]()
+        self.data.resize(num_elements, 0.0)
+
+    def __init__(out self, num_elements: Int, as_min: Bool):
+        self.size = num_elements
+        self.data = List[Float32]()
+        var val: Float32 = -Float32.MAX_FINITE if as_min else 0.0
+        self.data.resize(num_elements, val)
+
+    def __init__(out self, file_path: String) raises:
+        var path = file_path
+        try:
+            with open(path, "r") as f:
+                var bytes_list = f.read_bytes()
+                var byte_len = len(bytes_list)
+                self.size = byte_len // size_of[Float32]()
+                self.data = List[Float32]()
+                self.data.resize(self.size, 0.0)
+                if self.size > 0:
+                    var src_ptr = bytes_list.unsafe_ptr().unsafe_bitcast[Float32]()
+                    var dst_ptr = self.data.unsafe_ptr()
+                    unsafe_memcpy(dest=dst_ptr, src=src_ptr, count=self.size)
+        except:
+            path = _resolve_data_path(file_path)
+            with open(path, "r") as f:
+                var bytes_list = f.read_bytes()
+                var byte_len = len(bytes_list)
+                self.size = byte_len // size_of[Float32]()
+                self.data = List[Float32]()
+                self.data.resize(self.size, 0.0)
+                if self.size > 0:
+                    var src_ptr = bytes_list.unsafe_ptr().unsafe_bitcast[Float32]()
+                    var dst_ptr = self.data.unsafe_ptr()
+                    unsafe_memcpy(dest=dst_ptr, src=src_ptr, count=self.size)
+
+    def __init__(out self, *, copy: Self):
+        self.size = copy.size
+        self.data = copy.data.copy()
+
+    def __init__(out self, *, deinit move: Self):
+        self.size = move.size
+        self.data = move.data^
+
+    def __getitem__(self, i: Int) -> Float32:
+        return self.data[i]
+
+    def __setitem__(mut self, i: Int, value: Float32):
+        self.data[i] = value
+
+    def num_elements(self) -> Int:
+        return self.size
+
+    def unsafe_ptr(self) -> Pointer[Float32, origin_of(self.data)]:
+        return self.data.unsafe_ptr()
+
+    def load[width: Int](self, idx: Int) -> SIMD[DType.float32, width]:
+        return self.data.unsafe_ptr().unsafe_load[width=width](idx)
+
+    def store[width: Int](mut self, idx: Int, val: SIMD[DType.float32, width]):
+        self.data.unsafe_ptr().unsafe_store[width=width](idx, val)
+
+
+struct Int32Array(ImplicitlyCopyable, Copyable, Movable):
+    var data: List[Int32]
+    var size: Int
+
+    def __init__(out self):
+        self.size = 0
+        self.data = List[Int32]()
+
+    def __init__(out self, num_elements: Int):
+        self.size = num_elements
+        self.data = List[Int32]()
+        self.data.resize(num_elements, 0)
+
+    def __init__(out self, file_path: String) raises:
+        var path = file_path
+        try:
+            with open(path, "r") as f:
+                var bytes_list = f.read_bytes()
+                var byte_len = len(bytes_list)
+                self.size = byte_len // size_of[Int32]()
+                self.data = List[Int32]()
+                self.data.resize(self.size, 0)
+                if self.size > 0:
+                    var src_ptr = bytes_list.unsafe_ptr().unsafe_bitcast[Int32]()
+                    var dst_ptr = self.data.unsafe_ptr()
+                    unsafe_memcpy(dest=dst_ptr, src=src_ptr, count=self.size)
+        except:
+            path = _resolve_data_path(file_path)
+            with open(path, "r") as f:
+                var bytes_list = f.read_bytes()
+                var byte_len = len(bytes_list)
+                self.size = byte_len // size_of[Int32]()
+                self.data = List[Int32]()
+                self.data.resize(self.size, 0)
+                if self.size > 0:
+                    var src_ptr = bytes_list.unsafe_ptr().unsafe_bitcast[Int32]()
+                    var dst_ptr = self.data.unsafe_ptr()
+                    unsafe_memcpy(dest=dst_ptr, src=src_ptr, count=self.size)
+
+    def __init__(out self, *, copy: Self):
+        self.size = copy.size
+        self.data = copy.data.copy()
+
+    def __init__(out self, *, deinit move: Self):
+        self.size = move.size
+        self.data = move.data^
+
+    def __getitem__(self, i: Int) -> Int32:
+        return self.data[i]
+
+    def __setitem__(mut self, i: Int, value: Int32):
+        self.data[i] = value
+
+    def num_elements(self) -> Int:
+        return self.size
+
+    def unsafe_ptr(self) -> Pointer[Int32, origin_of(self.data)]:
+        return self.data.unsafe_ptr()
+
+    def load[width: Int](self, idx: Int) -> SIMD[DType.int32, width]:
+        return self.data.unsafe_ptr().unsafe_load[width=width](idx)
+
+    def store[width: Int](mut self, idx: Int, val: SIMD[DType.int32, width]):
+        self.data.unsafe_ptr().unsafe_store[width=width](idx, val)
