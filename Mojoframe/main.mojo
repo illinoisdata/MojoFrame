@@ -1,90 +1,31 @@
 from core.Arrays import Float64Array, Float32Array, Int32Array
-from core.Calculations import pairwise_sum_f64
-from core.Calculations import pairwise_sum_f64, pairwise_sum_f32, pairwise_sum_i32,
-aggregation_sum_i32, aggregation_mean_f64,aggregation_all_f64,
-filter_string_equal, filter_string_contains, filter_string_endwith, filter_string_startwith, filter_not_string_exists_before, filter_string_equal_mask, filter_string_not_equal_mask, filter_string_not_startwith_mask, filter_f64_IN_mask, filter_string_IN_mask,
-reindex_string_column, combine_masks,
-evaluate_i32, aggregation_sum_f64, evaluate_f64, evaluate_f32, evaluate_query6, cast_as_float64,
-PredicateF64, EQPredF64, NEQPredF64, GTPredF64, GTEPredF64, LEPredF64, LTPredF64, inner_join_i32, left_join_f64, inner_join_f64, inner_join_f64_reindex, element_mult_f64, mergesort, TripleTup, TupleKey, parallel_argsort_f64, inner_join_sort_merge_f64
-from core.DataFrame import DataFrameF64, DataFrameF32, DataFrameI32, SetElement
-from random import random_si64, random_float64
-from tensor import Tensor
-from python import Python, PythonObject
-from time import monotonic, perf_counter
-from utils.numerics import neg_inf
-from pathlib import Path
-from sys.info import simdwidthof
-# from core.dict import CompactDict
-# from core.keys_container import KeysBuilder, KeyRef, Keyable
-# from hashlib import _hasher
+from core.DataFrame import DataFrameF64, DataFrameF32, DataFrameI32
+from core.Calculations import (
+    pairwise_sum_f64, pairwise_sum_f32, pairwise_sum_i32,
+    aggregation_sum_i32, aggregation_mean_f64, aggregation_all_f64,
+    filter_string_equal, filter_string_contains, filter_string_endwith,
+    filter_string_startwith, filter_not_string_exists_before,
+    filter_string_equal_mask, filter_string_not_equal_mask,
+    filter_string_not_startwith_mask, filter_f64_IN_mask, filter_string_IN_mask,
+    reindex_string_column, combine_masks,
+    evaluate_i32, aggregation_sum_f64, evaluate_f64, evaluate_f32, evaluate_query6, cast_as_float64,
+    PredicateF64, EQPredF64, NEQPredF64, GTPredF64, GTEPredF64, LEPredF64, LTPredF64,
+    inner_join_i32, left_join_f64, inner_join_f64, inner_join_f64_reindex,
+    element_mult_f64, mergesort, TripleTup, TupleKey, parallel_argsort_f64, inner_join_sort_merge_f64,
+    FloatKey
+)
+from std.collections import List, Dict, Set
+from std.random import random_si64, random_float64
+from std.time import monotonic, perf_counter
+from std.sys.info import simd_width_of
+from std.python import Python, PythonObject
 
-# import numojo as nm
-# from numojo.prelude import *
-
-
-# from core.Calculations import pairwise_sum_f64, pairwise_sum_f32, pairwise_sum_i32,
-# filter_string_equal, filter_string_contains, filter_string_endwith, filter_string_startwith, filter_not_string_exists_before, filter_string_equal_mask, filter_string_not_equal_mask, filter_string_not_startwith_mask, filter_string_IN_mask,
-# reindex_string_column, combine_masks,
-# evaluate_i32, evaluate_f64, evaluate_f32, evaluate_query6,
-# PredicateF64, EQPredF64, NEQPredF64, GTPredF64, GTEPredF64, LEPredF64, LTPredF64, inner_join_f64, inner_join_f64_reindex, element_mult_f64, mergesort, TripleTup, TupleKey
-
-fn main() raises:
-    # test_array_creation()
-    #print()
-    # test_array_vector_creation()
-    # # print()
-    #test_pairwise_sum()
-    # print()
-    # test_df_creation()
-    # print()
-    # test_df_sum()
-    # print()
-    # #test_groupby_all()
-    # test_groupby_sum()
-    # print()
-    # test_groupby_mean()
-    # print()
-    # test_groupby_sum_large()
-    # print()
-    # test_sum_large()
-    # print()
-    # test_filter_large_i32()
-    # print()
-    # test_filter_large_f64()
-    # print()
-    # test_filter_small_f32()
-    # print()
-    # test_inner_join_f64()
-    # test_left_join_f64()
-    # test_inner_join_f64_large()
-    # test_merge_sort()
-    # test_sort_by_large()
-    # test_lexsort()
-    # test_lexsort_large()
-   
-
-    # test_query_1()
-    # test_query_2()
-    # test_query_3()
-    # test_query_4()
-    test_query_5()
-    # test_query_6()
-    # test_query_7()
-    # test_query_8()
-    # test_query_9()
-    # test_query_10()
-    # test_query_11()
-    # test_query_12()
-    # test_query_13()
-    # test_query_14()
-    # test_query_15()
-    # test_query_16()
-    # test_query_17()
-    # test_query_18()
-    # test_query_19()
-    # test_query_20()
-    # test_query_21()
-    # test_query_22()
+def main() raises:
+    test_parallel_sort()
+    test_filter_large_f64()
+    test_left_join_f64()
+    test_inner_join_f64()
+    test_inner_join_f64_large()
     # test_groupby_multiple()
     # var list_sets = List[SetElement]()
     # var ele = SIMD[DType.float64, 1](2.5)
@@ -139,7 +80,7 @@ fn main() raises:
     # test_parallel_sort()
     # test_parallel_sort_large()
 
-fn test_parallel_sort() raises:
+def test_parallel_sort() raises:
     var arr = Float64Array(8)
     arr[0] = 5.0
     arr[1] = 2.0
@@ -155,7 +96,7 @@ fn test_parallel_sort() raises:
     for i in range(sorted_arg_list.size):
         print(sorted_arg_list[i])
 
-fn test_parallel_sort_large() raises:
+def test_parallel_sort_large() raises:
     # var start_load = perf_counter()
     # var l_orderkey = Float64Array("/datadrive/tpch_large/l_orderkey_tensor")
     # var l_quantity = Float64Array("/datadrive/tpch_large/l_quantity_tensor")
@@ -167,9 +108,9 @@ fn test_parallel_sort_large() raises:
         
     # print(l_orderkey.size)
 
-    # var col_data = List[Float64Array](l_orderkey, l_quantity)
+    # var col_data: List[Float64Array] = [l_orderkey, l_quantity]
 
-    # var col_names = List[String]("orderkey", "l_quantity")
+    # var col_names: List[String] = ["orderkey", "l_quantity"]
 
     # var df_lineitem = DataFrameF64(col_data, col_names)
 
@@ -205,9 +146,9 @@ fn test_parallel_sort_large() raises:
 
     # # o_totalprice.data.tofile(Path("../Data/tpch_med/o_totalprice_tensor"))
 
-    # var orders_col_data = List[Float64Array](o_orderkey, o_orderdate, o_totalprice, o_custkey)
+    # var orders_col_data: List[Float64Array] = [o_orderkey, o_orderdate, o_totalprice, o_custkey]
     
-    # var orders_col_names = List[String]("orderkey", "o_orderdate", "o_totalprice", "custkey")
+    # var orders_col_names: List[String] = ["orderkey", "o_orderdate", "o_totalprice", "custkey"]
 
     # var df_orders = DataFrameF64(orders_col_data, orders_col_names)
 
@@ -227,9 +168,9 @@ fn test_parallel_sort_large() raises:
     
     # print(c_custkey.size)
 
-    # var cust_col_data = List[Float64Array](c_custkey)
+    # var cust_col_data: List[Float64Array] = [c_custkey]
     
-    # var cust_col_names = List[String]("custkey")
+    # var cust_col_names: List[String] = ["custkey"]
 
     # var df_customer = DataFrameF64(cust_col_data, cust_col_names)
 
@@ -261,13 +202,13 @@ fn test_parallel_sort_large() raises:
 
     for i in range(2000000):
         # p_partkey[i] = p_partkey_arr[i].to_float64()
-        p_type[i] = p_type_arr[i].__str__()
+        p_type[i] = String(p_type_arr[i])
     
     print(p_partkey.size)
 
-    var part_col_data = List[Float64Array](p_partkey)
+    var part_col_data: List[Float64Array] = [p_partkey]
     
-    var part_col_names = List[String]("partkey")
+    var part_col_names: List[String] = ["partkey"]
 
     var df_part = DataFrameF64(part_col_data, part_col_names)
 
@@ -308,9 +249,9 @@ fn test_parallel_sort_large() raises:
         
     print(l_orderkey.size)
 
-    var col_data = List[Float64Array](l_orderkey, l_extendedprice, l_discount, l_volume, l_suppkey, l_partkey)
+    var col_data: List[Float64Array] = [l_orderkey, l_extendedprice, l_discount, l_volume, l_suppkey, l_partkey]
 
-    var col_names = List[String]("orderkey", "l_extendedprice", "l_discount", "l_volume", "suppkey", "partkey")
+    var col_names: List[String] = ["orderkey", "l_extendedprice", "l_discount", "l_volume", "suppkey", "partkey"]
 
     var df_lineitem = DataFrameF64(col_data, col_names)
 
@@ -337,9 +278,9 @@ fn test_parallel_sort_large() raises:
     
     print(s_suppkey.size)
 
-    var supp_col_data = List[Float64Array](s_suppkey, s_nationkey)
+    var supp_col_data: List[Float64Array] = [s_suppkey, s_nationkey]
      
-    var supp_col_names = List[String]("suppkey", "nationkey2")
+    var supp_col_names: List[String] = ["suppkey", "nationkey2"]
 
     var df_supplier = DataFrameF64(supp_col_data, supp_col_names)
 
@@ -368,11 +309,11 @@ fn test_parallel_sort_large() raises:
     
     print(n_nationkey.size)
 
-    var nation_col_data = List[Float64Array](n_nationkey, n_name, n_regionkey)
+    var nation_col_data: List[Float64Array] = [n_nationkey, n_name, n_regionkey]
     
-    var nation_col_names = List[String]("nationkey1", "n_name1", "regionkey1")
+    var nation_col_names: List[String] = ["nationkey1", "n_name1", "regionkey1"]
     
-    var nation2_col_names = List[String]("nationkey2", "n_name2", "regionkey2")
+    var nation2_col_names: List[String] = ["nationkey2", "n_name2", "regionkey2"]
 
     var df_nation1 = DataFrameF64(nation_col_data, nation_col_names)
     var df_nation2 = DataFrameF64(nation_col_data, nation2_col_names)
@@ -398,9 +339,9 @@ fn test_parallel_sort_large() raises:
     
     print(c_custkey.size)
 
-    var cust_col_data = List[Float64Array](c_custkey, c_nationkey)
+    var cust_col_data: List[Float64Array] = [c_custkey, c_nationkey]
     
-    var cust_col_names = List[String]("custkey", "nationkey1")
+    var cust_col_names: List[String] = ["custkey", "nationkey1"]
 
     var df_customer = DataFrameF64(cust_col_data, cust_col_names)
 
@@ -431,9 +372,9 @@ fn test_parallel_sort_large() raises:
     
     print(o_custkey.size)
 
-    var orders_col_data = List[Float64Array](o_custkey, o_orderkey, o_orderdate)
+    var orders_col_data: List[Float64Array] = [o_custkey, o_orderkey, o_orderdate]
     
-    var orders_col_names = List[String]("custkey", "orderkey", "o_orderdate")
+    var orders_col_names: List[String] = ["custkey", "orderkey", "o_orderdate"]
 
     var df_orders = DataFrameF64(orders_col_data, orders_col_names)
 
@@ -459,16 +400,14 @@ fn test_parallel_sort_large() raises:
     
     print(r_regionkey.size)
 
-    var region_col_data = List[Float64Array](r_regionkey, r_name)
+    var region_col_data: List[Float64Array] = [r_regionkey, r_name]
     
-    var region_col_names = List[String]("regionkey1", "r_name")
+    var region_col_names: List[String] = ["regionkey1", "r_name"]
 
     var df_region = DataFrameF64(region_col_data, region_col_names)
 
     var end_load = perf_counter()
     print("Data loading time:", end_load - start_load)
-
-    var start_time = monotonic()
     # Subquery to get shipping table
     df_orders.select("o_orderdate", "o_orderdate", GTEPredF64(), LEPredF64(), 788918400.0, 852076800.0, "AND")
     filter_string_equal(df_part, p_type, "ECONOMY ANODIZED STEEL")
@@ -479,7 +418,7 @@ fn test_parallel_sort_large() raises:
     var joined_pl_df = inner_join_sort_merge_f64(df_part, df_lineitem, "partkey")
 
 
-# fn test_array_creation() raises:
+# def test_array_creation() raises:
 #     # Creating a small Float64 array with 2 elements
 #     var small_arr_f64 = Float64Array(2)
 #     small_arr_f64[0] = 5
@@ -496,9 +435,9 @@ fn test_parallel_sort_large() raises:
 #     print("Small array with 2 elements")
 #     print(small_arr_f64[0], small_arr_f64[1], small_arr_f32[0], small_arr_f32[1],  small_arr_i32[0], small_arr_i32[1])
 
-# # fn test_array_vector_creation() raises:
+# # def test_array_vector_creation() raises:
 # #     # Creating a vector of two arrays
-# #     var vector = List[Float64Array]()
+# #     var vector = List[String]()
 # #     var arr_ele1 = Float64Array(2)
 # #     var arr_ele2 = Float64Array(2)
 
@@ -513,7 +452,7 @@ fn test_parallel_sort_large() raises:
 # #     print("Print elements from the vector of arrays")
 # #     print(vector[0][0], vector[0][1], vector[1][0], vector[1][1])
 
-# fn test_pairwise_sum() raises:
+# def test_pairwise_sum() raises:
 #     # Test that pairwise sum works and its compare its accuracy against naive, Numpy, and high precision sum
 #     var np = Python.import_module("numpy")
 #     var decimal = Python.import_module("decimal")
@@ -547,7 +486,7 @@ fn test_parallel_sort_large() raises:
 #     print("Numpy sum:", np_sum)
 #     print("Pairwise sum:", pairwise_sum)
 
-# # fn test_df_creation() raises:
+# # def test_df_creation() raises:
 # #     var size = 100000
 # #     var col1 = Float64Array(size)
 # #     var col2 = Float64Array(size)
@@ -574,7 +513,7 @@ fn test_parallel_sort_large() raises:
 # #     print("DataFrame first column first element:", df_col1_using_index)
 # #     print("DataFrame second column first element:", df_col2_using_name)
 
-# # fn test_df_sum() raises:
+# # def test_df_sum() raises:
 # #     var col1 = Int32Array(3)
 # #     var col2 = Int32Array(3)
 # #     col1[0] = 1
@@ -601,7 +540,7 @@ fn test_parallel_sort_large() raises:
 # #     print("DataFrame 1st column sum:", df_sums[0])
 # #     print("DataFrame 2nd column sum:", df_sums[1])
 
-# # # fn test_groupby_all() raises:
+# # # def test_groupby_all() raises:
 # # #     var col1 = Float64Array(6)
 # # #     var col2 = Float64Array(6)
 # # #     var col3 = Float64Array(6)
@@ -658,7 +597,7 @@ fn test_parallel_sort_large() raises:
 # # #         for j in range(df.columns[i].size):
 # # #             print("Aggregated sum for the current group: ", df.columns[i][j])
 
-# # fn test_groupby_sum() raises:
+# # def test_groupby_sum() raises:
 # #     var col1 = Int32Array(6)
 # #     var col2 = Int32Array(6)
 # #     var col3 = Int32Array(6)
@@ -711,16 +650,16 @@ fn test_parallel_sort_large() raises:
 
 # #     var end_time = monotonic()
 
-# #     var execution_time_nanoseconds = end_time - start_time
+# #     execution_time_nanoseconds = end_time - start_time
 
-# #     var execution_time_seconds = execution_time_nanoseconds / 1000000000
+# #     execution_time_seconds = execution_time_nanoseconds / 1000000000
 # #     print("Execution time: ", execution_time_seconds, "seconds or ", execution_time_nanoseconds, "nanoseconds")
 
 # #     for i in range(df.columns.size):
 # #         for j in range(df.columns[i].size):
 # #             print("Aggregated sum for the current group: ", df.columns[i][j])
 
-# # fn test_groupby_mean() raises:
+# # def test_groupby_mean() raises:
 # #     var col1 = Float64Array(6)
 # #     var col2 = Float64Array(6)
 # #     var col3 = Float64Array(6)
@@ -767,9 +706,9 @@ fn test_parallel_sort_large() raises:
 
 # #     var end_time = monotonic()
 
-# #     var execution_time_nanoseconds = end_time - start_time
+# #     execution_time_nanoseconds = end_time - start_time
 
-# #     var execution_time_seconds = execution_time_nanoseconds / 1000000000
+# #     execution_time_seconds = execution_time_nanoseconds / 1000000000
 # #     print("Execution time: ", execution_time_seconds, "seconds or ", execution_time_nanoseconds, "nanoseconds")
 
 # #     for i in range(df.columns.size):
@@ -778,7 +717,7 @@ fn test_parallel_sort_large() raises:
    
 
 
-# # fn test_groupby_sum_large() raises:
+# # def test_groupby_sum_large() raises:
 # #     var size = 10000000
 
 # #     var col1 = Int32Array(size)
@@ -813,9 +752,9 @@ fn test_parallel_sort_large() raises:
 # #     df.groupby("Customer Group", "sum")
 # #     var end_time = monotonic()
 
-# #     var execution_time_nanoseconds = end_time - start_time
+# #     execution_time_nanoseconds = end_time - start_time
 
-# #     var execution_time_seconds = execution_time_nanoseconds / 1000000000
+# #     execution_time_seconds = execution_time_nanoseconds / 1000000000
 # #     print("Execution time: ", execution_time_seconds, "seconds or ", execution_time_nanoseconds, "nanoseconds")
     
 # #     print(df.columns.size, df.columns[0].size)
@@ -823,7 +762,7 @@ fn test_parallel_sort_large() raises:
 # #         for j in range(df.columns[i].size):
 # #             print("Aggregated sum for the current group: ", df.columns[i][j])
 
-# # fn test_sum_large() raises:
+# # def test_sum_large() raises:
 # #     var size = 100000000
 
 # #     var col1 = Int32Array(size)
@@ -855,13 +794,13 @@ fn test_parallel_sort_large() raises:
 # #     var sums = df.sum(0)
 # #     var end_time = monotonic()
 
-# #     var execution_time_nanoseconds = end_time - start_time
+# #     execution_time_nanoseconds = end_time - start_time
 
-# #     var execution_time_seconds = execution_time_nanoseconds / 1000000000
+# #     execution_time_seconds = execution_time_nanoseconds / 1000000000
 # #     print(sums[0], sums[1], sums[2])
 # #     print("Execution time: ", execution_time_seconds, "seconds or ", execution_time_nanoseconds, "nanoseconds")
 
-fn test_filter_large_f64() raises:
+def test_filter_large_f64() raises:
     var size = 8
 
     var col1 = Float64Array(size)
@@ -875,7 +814,7 @@ fn test_filter_large_f64() raises:
         col1[i] = SIMD[DType.float64, 1](i)
         # data[i] = col1[i]
         #col3[i] = SIMD[DType.float64, 1](3.5) * i
-    col1.data.store[width=8](8, SIMD[DType.float64, 1](8, 9, 10, 11, 12, 13, 14, 15))
+    col1.store[8](8, SIMD[DType.float64, 8](8, 9, 10, 11, 12, 13, 14, 15))
     # var start_time = monotonic()
     # for i in range(size):
     #     # col3._setitem(i, val=SIMD[DType.float64, 1](1.0))
@@ -883,7 +822,7 @@ fn test_filter_large_f64() raises:
     # var load_ele = col1.data.load[width=8](0)
     print(col1.data)
     # var ele = SIMD[DType.float64, 8](4, 5, 6, 7, 8, 9, 10, 11)
-    #col1.data.store[width=8](0, ele)
+    #col1.store[width=8](0, ele)
     #print(col1.data)
     # var end_time = monotonic()
     # print(col3[Item(10000)])
@@ -923,7 +862,7 @@ fn test_filter_large_f64() raises:
     # # print("Rows satisfying filter condition:", df.columns[0].size)
     # print("Execution time: ", execution_time_seconds, "seconds or ", execution_time_nanoseconds, "nanoseconds")
 
-# # fn test_filter_small_f32() raises:
+# # def test_filter_small_f32() raises:
 # #     var col1 = Float32Array(6)
 # #     var col2 = Float32Array(6)
 # #     var col3 = Float32Array(6)
@@ -970,14 +909,14 @@ fn test_filter_large_f64() raises:
 
 # #     var end_time = monotonic()
 
-# #     var execution_time_nanoseconds = end_time - start_time
+# #     execution_time_nanoseconds = end_time - start_time
 
-# #     var execution_time_seconds = execution_time_nanoseconds / 1000000000
+# #     execution_time_seconds = execution_time_nanoseconds / 1000000000
 
 # #     print("Rows satisfying filter condition:", df.columns[0].size)
 # #     print("Execution time: ", execution_time_seconds, "seconds or ", execution_time_nanoseconds, "nanoseconds")
 
-# # fn test_filter_large_i32() raises:
+# # def test_filter_large_i32() raises:
 # #     var size = 10000000
 
 # #     var col1 = Int32Array(size)
@@ -1011,15 +950,15 @@ fn test_filter_large_f64() raises:
 # #     df.select("Units Sold", ">", 500)
 # #     var end_time = monotonic()
 
-# #     var execution_time_nanoseconds = end_time - start_time
+# #     execution_time_nanoseconds = end_time - start_time
 
-# #     var execution_time_seconds = execution_time_nanoseconds / 1000000000
+# #     execution_time_seconds = execution_time_nanoseconds / 1000000000
 
 # #     print("Rows satisfying filter condition:", df.columns[0].size)
 # #     print("Execution time: ", execution_time_seconds, "seconds or ", execution_time_nanoseconds, "nanoseconds")
 
 
-# # # fn test_inner_join_i32() raises:
+# # # def test_inner_join_i32() raises:
 # # #     var col1 = Int32Array(3)
 # # #     var col2 = Int32Array(3)
   
@@ -1091,9 +1030,9 @@ fn test_filter_large_f64() raises:
 
 # # #     var end_time = monotonic()
 
-# # #     var execution_time_nanoseconds = end_time - start_time
+# # #     execution_time_nanoseconds = end_time - start_time
 
-# # #     var execution_time_seconds = execution_time_nanoseconds / 1000000000
+# # #     execution_time_seconds = execution_time_nanoseconds / 1000000000
 
 # # #     for i in range(joined_df.columns.size):
 # # #         print("Column: ", i)
@@ -1102,7 +1041,7 @@ fn test_filter_large_f64() raises:
 
 # # #     print("Execution time: ", execution_time_seconds, "seconds or ", execution_time_nanoseconds, "nanoseconds")
 
-fn test_left_join_f64() raises:
+def test_left_join_f64() raises:
     var col1 = Float64Array(4)
     var col2 = Float64Array(4)
   
@@ -1172,7 +1111,6 @@ fn test_left_join_f64() raises:
     var df2 = DataFrameF64(col_data2, col_names2)
 
     # Record start time
-    var start_time = monotonic()
 
     # Perform LEFT JOIN on the "Employee ID" column
     var joined_df = left_join_f64(df, df2, "Employee ID")
@@ -1181,7 +1119,6 @@ fn test_left_join_f64() raises:
     var end_time = monotonic()
 
     var execution_time_nanoseconds = end_time - start_time
-    var execution_time_seconds     = execution_time_nanoseconds / 1000000000
 
     # Print the results
     print("Result of LEFT JOIN on 'Employee ID'")
@@ -1193,7 +1130,7 @@ fn test_left_join_f64() raises:
     print("Execution time:", execution_time_seconds)
 
 
-fn test_inner_join_f64() raises:
+def test_inner_join_f64() raises:
     var col1 = Float64Array(3)
     var col2 = Float64Array(3)
   
@@ -1303,16 +1240,12 @@ fn test_inner_join_f64() raises:
     var df2 = DataFrameF64(col_data2, col_names2)
     #var df3 = DataFrameF64(col_data3, col_names3)
 
-    var start_time = monotonic()
-
     var joined_df = inner_join_f64(df, df2, "Employee ID")
     #var final = inner_join_f64(joined_df, df3, "Employee ID")
 
     var end_time = monotonic()
 
     var execution_time_nanoseconds = end_time - start_time
-
-    var execution_time_seconds = execution_time_nanoseconds / 1000000000
 
     for i in range(len(joined_df.columns)):
         print("Col: ", i)
@@ -1321,14 +1254,14 @@ fn test_inner_join_f64() raises:
 
     print("Execution time: ", execution_time_seconds, "seconds or ", execution_time_nanoseconds, "nanoseconds")
 
-fn test_inner_join_f64_large() raises:
+def test_inner_join_f64_large() raises:
     var size = 500000000
 
     var col1 = Float64Array(size)
     var col2 = Float64Array(size)
 
     for i in range(size):
-        col1[i] = i + 1
+        col1[i] = Float64(i + 1)
         col2[i] = random_float64(SIMD[DType.float64, 1](1.0), SIMD[DType.float64, 1](1000.0))
 
 
@@ -1352,7 +1285,7 @@ fn test_inner_join_f64_large() raises:
     var df2_col3 = Float64Array(size2)
 
     for i in range(size2):
-        df2_col1[i] = i + 1
+        df2_col1[i] = Float64(i + 1)
         df2_col2[i] = random_si64(SIMD[DType.int64, 1](1), SIMD[DType.int64, 1](5000000)).cast[DType.float64]()
         df2_col3[i] = random_float64(SIMD[DType.float64, 1](100.0), SIMD[DType.float64, 1](1000.0))
 
@@ -1390,7 +1323,7 @@ fn test_inner_join_f64_large() raises:
     print("Execution time: ", execution_time)
 
 
-# # fn test_merge_sort() raises:
+# # def test_merge_sort() raises:
 # #     var size = 8
 # #     var indices = List[Int](capacity=size)
 # #     for i in range(size):
@@ -1452,7 +1385,7 @@ fn test_inner_join_f64_large() raises:
 # #         print(indices[i])
 
 
-# # fn test_sort_by_large() raises:
+# # def test_sort_by_large() raises:
 # #     var size = 10000000
 # #     var df1_col1 = Float64Array(size)
 
@@ -1472,7 +1405,7 @@ fn test_inner_join_f64_large() raises:
 # #     var execution_time_seconds = execution_time_nanoseconds / 1000000000
 # #     print("Time: ", execution_time_seconds)
 
-# # fn test_lexsort() raises:
+# # def test_lexsort() raises:
 # #     var col1 = Float64Array(3)
 # #     var col2 = Float64Array(3)
 # #     var col3 = Float64Array(3)
@@ -1503,14 +1436,14 @@ fn test_inner_join_f64_large() raises:
 # #     col_names.append(col3_name)
 
 # #     var df = DataFrameF64(col_data, col_names)
-# #     df.sort_by(List[String]("key1", "key2", "key3"))
+# #     df.sort_by(["key1", "key2", "key3"])
 
 # #     for i in range(df.columns.size):
 # #         print("Current column:", df.column_names[i])
 # #         for j in range(df.columns[i].size):
 # #             print(df.columns[i][j])
 
-# fn test_lexsort_large() raises:
+# def test_lexsort_large() raises:
 #     var size = 10000000
 
 #     var col1 = Float64Array(size)
@@ -1541,15 +1474,15 @@ fn test_inner_join_f64_large() raises:
 #     var df = DataFrameF64(col_data, col_names)
 
 #     var start_time = monotonic()
-#     df.sort_by(List[String]("key1", "key2", "key3"))
+#     df.sort_by(["key1", "key2", "key3"])
 #     var end_time = monotonic()
 
-#     var execution_time_nanoseconds = end_time - start_time
-#     var execution_time_seconds = execution_time_nanoseconds / 1000000000
+#     execution_time_nanoseconds = end_time - start_time
+#     execution_time_seconds = execution_time_nanoseconds / 1000000000
 #     print("Df sort by time: ", execution_time_seconds)
 
 
-fn test_query_1() raises:
+def test_query_1() raises:
     var start_time = perf_counter()
     
     var l_extendedprice = Float64Array("/datadrive/tpch_large/l_extendedprice_tensor")
@@ -1566,11 +1499,11 @@ fn test_query_1() raises:
 
     print(l_linestatus.size)
 
-    var col_data = List[Float64Array](l_quantity, l_extendedprice, l_discount, l_returnflag,
-                                      l_shipdate, l_linestatus, l_tax, l_discprice, l_charge)
+    var col_data: List[Float64Array] = [l_quantity, l_extendedprice, l_discount, l_returnflag,
+                                      l_shipdate, l_linestatus, l_tax, l_discprice, l_charge]
 
-    var col_names = List[String]("l_quantity", "l_extendedprice", "l_discount", "l_returnflag",
-                                 "l_shipdate", "l_linestatus", "l_tax", "l_discprice", "l_charge")
+    var col_names: List[String] = ["l_quantity", "l_extendedprice", "l_discount", "l_returnflag",
+                                 "l_shipdate", "l_linestatus", "l_tax", "l_discprice", "l_charge"]
 
     var df_lineitem = DataFrameF64(col_data, col_names)
     
@@ -1579,12 +1512,12 @@ fn test_query_1() raises:
 
     start_time = perf_counter()
 
-    var group_by_cols = List[String]("l_returnflag", "l_linestatus")
-    var aggregated_col_names = List[String]("l_returnflag", "l_linestatus", "sum_qty", "sum_base_price",
+    var group_by_cols: List[String] = ["l_returnflag", "l_linestatus"]
+    var aggregated_col_names: List[String] = ["l_returnflag", "l_linestatus", "sum_qty", "sum_base_price",
                                             "sum_discount", "sum_date", "sum_tax",
                                             "sum_discount_price", "sum_charge", "avg_qty", "avg_base_price",
                                             "avg_discount", "avg_date", "avg_tax", "avg_discount_price",
-                                            "avg_charge", "group_count")
+                                            "avg_charge", "group_count"]
 
     df_lineitem.select("l_shipdate", "l_shipdate", LEPredF64(), LEPredF64(), 904608000.0, 904608000.0, "")
 
@@ -1605,7 +1538,7 @@ fn test_query_1() raises:
 
     
 
-fn test_query_3() raises:
+def test_query_3() raises:
     var start_time = perf_counter()
 
     var l_orderkey = Float64Array("/datadrive/tpch_large/l_orderkey_tensor")
@@ -1618,12 +1551,12 @@ fn test_query_3() raises:
 
     print(l_orderkey.size)
 
-    var col_data = List[Float64Array](l_orderkey, l_quantity, l_extendedprice,
-                                      l_discount, l_returnflag, l_shipdate, l_revenue)
+    var col_data: List[Float64Array] = [l_orderkey, l_quantity, l_extendedprice,
+                                      l_discount, l_returnflag, l_shipdate, l_revenue]
 
 
-    var col_names = List[String]("orderkey", "l_quantity", "l_extendedprice", "l_discount",
-                                 "l_returnflag", "l_shipdate", "l_revenue")
+    var col_names: List[String] = ["orderkey", "l_quantity", "l_extendedprice", "l_discount",
+                                 "l_returnflag", "l_shipdate", "l_revenue"]
 
     var df_lineitem = DataFrameF64(col_data, col_names)
 
@@ -1634,9 +1567,9 @@ fn test_query_3() raises:
 
     print(c_custkey.size)
 
-    var cust_col_data = List[Float64Array](c_custkey, c_mktsegment)
+    var cust_col_data: List[Float64Array] = [c_custkey, c_mktsegment]
     
-    var cust_col_names = List[String]("custkey", "c_mktsegment")
+    var cust_col_names: List[String] = ["custkey", "c_mktsegment"]
 
     var df_customer = DataFrameF64(cust_col_data, cust_col_names)
 
@@ -1649,10 +1582,10 @@ fn test_query_3() raises:
 
     print(o_orderdate.size)
 
-    var orders_col_data = List[Float64Array](o_custkey, o_orderkey, o_orderdate, o_shippriority)
+    var orders_col_data: List[Float64Array] = [o_custkey, o_orderkey, o_orderdate, o_shippriority]
 
     
-    var orders_col_names = List[String]("custkey", "orderkey", "o_orderdate", "o_shippriority")
+    var orders_col_names: List[String] = ["custkey", "orderkey", "o_orderdate", "o_shippriority"]
 
 
     var df_orders = DataFrameF64(orders_col_data, orders_col_names)
@@ -1676,19 +1609,19 @@ fn test_query_3() raises:
 
     print("joined_df_final size: ", joined_df_final[0].size)
     
-    var aggregated_col_names = List[String]("orderkey", "o_orderdate", "o_shippriority", "quantity", 
+    var aggregated_col_names: List[String] = ["orderkey", "o_orderdate", "o_shippriority", "quantity", 
                                             "price", "discount", "return_flag", "shipdate", "revenue",
-                                            "custkey", "mktsegment")
+                                            "custkey", "mktsegment"]
 
        
-    var group_by_cols = List[String]("orderkey", "o_orderdate", "o_shippriority")
+    var group_by_cols: List[String] = ["orderkey", "o_orderdate", "o_shippriority"]
 
     var start_groupby_time = perf_counter()
     joined_df_final.groupby_multicol(group_by_cols, "sum", aggregated_col_names)
     var end_groupby_time = perf_counter()
     print("groupby aggregation time: ", end_groupby_time - start_groupby_time)
 
-    joined_df_final.sort_by(List[String]("revenue", "o_orderdate"))
+    joined_df_final.sort_by(["revenue", "o_orderdate"])
 
     end_time = perf_counter()
 
@@ -1705,7 +1638,7 @@ fn test_query_3() raises:
         print("Aggregation for the current group: ", joined_df_final.columns[i][joined_df_final.columns[0].size - 1])
 
 
-fn test_query_6() raises:
+def test_query_6() raises:
     # print("Current system time:", monotonic())
     ### TPC-H Query 6
     
@@ -1754,7 +1687,7 @@ fn test_query_6() raises:
     # var indices = List[Int]()
     # for num in selected_indices:
     #     indices.append(int(num))
-    #print(selected_indices[0:10])
+    #print(selected_indices[byte=0:10])
     #print("select len:", indices.__len__())
     # var l_extendedprice_arr = df['l_extendedprice'].to_numpy()
     # var l_discount_arr = df['l_discount'].to_numpy()
@@ -1784,17 +1717,15 @@ fn test_query_6() raises:
     #print("disc idx 5:", l_discount[5])
 
     #print(l_discount[3333])
-    var col_data = List[Float64Array](l_extendedprice, l_discount, l_shipdate, l_quantity)
+    var col_data: List[Float64Array] = [l_extendedprice, l_discount, l_shipdate, l_quantity]
 
-    var col_names = List[String]("l_extendedprice", "l_discount", "l_shipdate", "l_quantity")
+    var col_names: List[String] = ["l_extendedprice", "l_discount", "l_shipdate", "l_quantity"]
 
     var df_lineitem = DataFrameF64(col_data, col_names)
 
     var end_load = perf_counter()
 
     print("Data loading time:", end_load - start_load)
-
-    var start_time = monotonic()
     # var start_filter = perf_counter()
     # df_lineitem.select("l_shipdate", "l_discount", "l_quantity",
     #                     GTEPredF64(), LTPredF64(), GTEPredF64(), LEPredF64(), LTPredF64(),
@@ -1818,12 +1749,11 @@ fn test_query_6() raises:
     var end_time = monotonic()
     print(df_lineitem["l_discount"].size)
     var execution_time_nanoseconds = end_time - start_time
-    var execution_time_seconds = execution_time_nanoseconds / 1000000000
     
     print("Revenue:", revenue)
     print("exec time:", execution_time_seconds)
 
-# fn test_query_3() raises:
+# def test_query_3() raises:
 #     var pd = Python.import_module("pandas")
 #     # var np = Python.import_module("numpy")
 
@@ -1971,15 +1901,15 @@ fn test_query_6() raises:
 #     var joined_df_final = inner_join_f64(df_lineitem, joined_df, "orderkey")
     
 
-#     var group_by_cols = List[String]("orderkey", "o_orderdate", "o_shippriority")
-#     var aggregated_col_names = List[String]("orderkey", "o_orderdate", "o_shippriority",
+#     var group_by_cols: List[String] = ["orderkey", "o_orderdate", "o_shippriority"]
+#     var aggregated_col_names: List[String] = ["orderkey", "o_orderdate", "o_shippriority",
 #                                             "quantity", "price", "discount", 
-#                                             "return_flag", "shipdate", "revenue", "custkey", "mktsegment")
+#                                             "return_flag", "shipdate", "revenue", "custkey", "mktsegment"]
     
 
 #     var end_time = monotonic()
-#     var execution_time_nanoseconds = end_time - start_time
-#     var execution_time_seconds = execution_time_nanoseconds / 1000000000
+#     execution_time_nanoseconds = end_time - start_time
+#     execution_time_seconds = execution_time_nanoseconds / 1000000000
 
 #     print("perform groupby on multiple cols, not aggregating yet!")
 #     print("num records after join and filter: ", joined_df_final.columns[0].size)
@@ -1987,7 +1917,7 @@ fn test_query_6() raises:
 #     print("exec time after join and filter: ", execution_time_seconds)
 
 #     joined_df_final.groupby_multicol(group_by_cols, "sum", aggregated_col_names)
-#     joined_df_final.sort_by(List[String]("revenue", "o_orderdate"))
+#     joined_df_final.sort_by(["revenue", "o_orderdate"])
 
 #     end_time = monotonic()
 #     execution_time_nanoseconds = end_time - start_time
@@ -2020,7 +1950,7 @@ fn test_query_6() raises:
 #         print(joined_df_final[joined_df_final.column_names[i]][joined_df_final.columns[0].size - 1])
 
 
-fn test_query_4() raises:
+def test_query_4() raises:
     var start_time = perf_counter()
 
     var l_orderkey = Float64Array("/datadrive/tpch_large/l_orderkey_tensor")
@@ -2032,12 +1962,12 @@ fn test_query_4() raises:
 
     print(l_receiptdate.size)
 
-    var col_data = List[Float64Array](l_orderkey, l_quantity, l_extendedprice,
-                                      l_shipdate, l_commitdate, l_receiptdate)
+    var col_data: List[Float64Array] = [l_orderkey, l_quantity, l_extendedprice,
+                                      l_shipdate, l_commitdate, l_receiptdate]
 
 
-    var col_names = List[String]("orderkey", "l_quantity", "l_extendedprice", "l_shipdate",
-                                 "l_commitdate", "l_receiptdate")
+    var col_names: List[String] = ["orderkey", "l_quantity", "l_extendedprice", "l_shipdate",
+                                 "l_commitdate", "l_receiptdate"]
 
     var df_lineitem = DataFrameF64(col_data, col_names)
 
@@ -2050,9 +1980,9 @@ fn test_query_4() raises:
 
     print(o_orderpriority.size)
 
-    var orders_col_data = List[Float64Array](o_custkey, o_orderkey, o_orderdate, o_shippriority, o_orderpriority)
+    var orders_col_data: List[Float64Array] = [o_custkey, o_orderkey, o_orderdate, o_shippriority, o_orderpriority]
     
-    var orders_col_names = List[String]("custkey", "orderkey", "o_orderdate", "o_shippriority", "o_orderpriority")
+    var orders_col_names: List[String] = ["custkey", "orderkey", "o_orderdate", "o_shippriority", "o_orderpriority"]
 
     var df_orders = DataFrameF64(orders_col_data, orders_col_names)
 
@@ -2068,8 +1998,7 @@ fn test_query_4() raises:
     df_orders.select("o_orderdate", "o_orderdate", GTEPredF64(), LTPredF64(), 741484800.0, 749433600.0, "AND")
 
     end_time = perf_counter()
-    execution_time_nanoseconds = end_time - start_time
-    execution_time_seconds = execution_time_nanoseconds / 1000000000
+    var execution_time_nanoseconds = end_time - start_time
 
     print("filter time:", execution_time_seconds)
 
@@ -2091,7 +2020,7 @@ fn test_query_4() raises:
 
     start_time = perf_counter()
 
-    var aggregated_col_names = List[String]("order_priority", "order_count")
+    var aggregated_col_names: List[String] = ["order_priority", "order_count"]
    
     joined_df.groupby("o_orderpriority", "count", aggregated_col_names)
 
@@ -2101,7 +2030,7 @@ fn test_query_4() raises:
 
     start_time = perf_counter()
 
-    joined_df.sort_by(List[String]("order_priority"))
+    joined_df.sort_by(["order_priority"])
    
     end_time = perf_counter()
     execution_time_nanoseconds = end_time - start_time
@@ -2118,7 +2047,7 @@ fn test_query_4() raises:
             print(joined_df[joined_df.column_names[i]][j])
 
 
-fn test_query_5() raises:
+def test_query_5() raises:
     var start_load = perf_counter()
 
     var l_orderkey = Float64Array("/datadrive/tpch_large/l_orderkey_tensor")
@@ -2130,9 +2059,9 @@ fn test_query_5() raises:
         
     print(l_orderkey.size)
 
-    var col_data = List[Float64Array](l_orderkey, l_extendedprice, l_discount, l_discprice, l_suppkey)
+    var col_data: List[Float64Array] = [l_orderkey, l_extendedprice, l_discount, l_discprice, l_suppkey]
 
-    var col_names = List[String]("orderkey", "l_extendedprice", "l_discount", "l_discprice", "suppkey")
+    var col_names: List[String] = ["orderkey", "l_extendedprice", "l_discount", "l_discprice", "suppkey"]
 
     var df_lineitem = DataFrameF64(col_data, col_names)
 
@@ -2142,9 +2071,9 @@ fn test_query_5() raises:
     
     print(c_custkey.size)
 
-    var cust_col_data = List[Float64Array](c_custkey, c_nationkey)
+    var cust_col_data: List[Float64Array] = [c_custkey, c_nationkey]
     
-    var cust_col_names = List[String]("custkey", "c_nationkey")
+    var cust_col_names: List[String] = ["custkey", "c_nationkey"]
 
     var df_customer = DataFrameF64(cust_col_data, cust_col_names)
 
@@ -2157,9 +2086,9 @@ fn test_query_5() raises:
     print(o_orderdate.size)
     
 
-    var orders_col_data = List[Float64Array](o_custkey, o_orderkey, o_orderdate)
+    var orders_col_data: List[Float64Array] = [o_custkey, o_orderkey, o_orderdate]
     
-    var orders_col_names = List[String]("custkey", "orderkey", "o_orderdate")
+    var orders_col_names: List[String] = ["custkey", "orderkey", "o_orderdate"]
 
     var df_orders = DataFrameF64(orders_col_data, orders_col_names)
 
@@ -2169,9 +2098,9 @@ fn test_query_5() raises:
 
     print(s_suppkey.size)
 
-    var supp_col_data = List[Float64Array](s_suppkey, s_nationkey)
+    var supp_col_data: List[Float64Array] = [s_suppkey, s_nationkey]
     
-    var supp_col_names = List[String]("suppkey", "nationkey")
+    var supp_col_names: List[String] = ["suppkey", "nationkey"]
 
     var df_supplier = DataFrameF64(supp_col_data, supp_col_names)
 
@@ -2183,9 +2112,9 @@ fn test_query_5() raises:
 
     print(n_nationkey.size)
 
-    var nation_col_data = List[Float64Array](n_nationkey, n_regionkey, n_name)
+    var nation_col_data: List[Float64Array] = [n_nationkey, n_regionkey, n_name]
     
-    var nation_col_names = List[String]("nationkey", "regionkey", "n_name")
+    var nation_col_names: List[String] = ["nationkey", "regionkey", "n_name"]
 
     var df_nation = DataFrameF64(nation_col_data, nation_col_names)
 
@@ -2196,9 +2125,9 @@ fn test_query_5() raises:
 
     print(r_regionkey.size)
 
-    var region_col_data = List[Float64Array](r_regionkey, r_name)
+    var region_col_data: List[Float64Array] = [r_regionkey, r_name]
     
-    var region_col_names = List[String]("regionkey", "r_name")
+    var region_col_names: List[String] = ["regionkey", "r_name"]
 
     var df_region = DataFrameF64(region_col_data, region_col_names)
 
@@ -2228,20 +2157,19 @@ fn test_query_5() raises:
 
     print("join time:", end_time - start_time)
 
-    var aggregated_col_names = List[String]("n_name", "orderkey", "extendedprice",
+    var aggregated_col_names: List[String] = ["n_name", "orderkey", "extendedprice",
                                             "discount", "revenue", "suppkey", 
                                             "custkey", "c_nationkey", "o_orderdate",
-                                            "nationkey", "regionkey", "r_name")
+                                            "nationkey", "regionkey", "r_name"]
     joined_df_final.groupby("n_name", "sum", aggregated_col_names)
     
 
     end_time = perf_counter()
-    execution_time_nanoseconds = end_time - start_time
-    execution_time_seconds = execution_time_nanoseconds / 1000000000
+    var execution_time_nanoseconds = end_time - start_time
 
     print("aggregation time: ", end_time - start_time)
 
-    joined_df_final.sort_by(List[String]("revenue"))
+    joined_df_final.sort_by(["revenue"])
 
     end_time = perf_counter()
 
@@ -2276,7 +2204,7 @@ fn test_query_5() raises:
         print(joined_df_final[joined_df_final.column_names[i]][joined_df_final.columns[0].size - 5])
 
 
-fn test_query_2() raises:
+def test_query_2() raises:
     var pd = Python.import_module("pandas")
     var start_time = perf_counter()
 
@@ -2286,9 +2214,9 @@ fn test_query_2() raises:
 
     print(ps_partkey.size)
 
-    var ps_col_data = List[Float64Array](ps_partkey, ps_suppkey, ps_supplycost)
+    var ps_col_data: List[Float64Array] = [ps_partkey, ps_suppkey, ps_supplycost]
     
-    var ps_col_names = List[String]("partkey", "suppkey", "ps_supplycost")
+    var ps_col_names: List[String] = ["partkey", "suppkey", "ps_supplycost"]
 
     var df_partsupp = DataFrameF64(ps_col_data, ps_col_names)
     # var df_partsupp_outer = DataFrameF64(ps_col_data, ps_col_names)
@@ -2303,13 +2231,13 @@ fn test_query_2() raises:
     p_type.resize(2000000, "")
 
     for i in range(2000000):
-        p_type[i] = (p_type_arr[i].__str__())
+        p_type[i] = (String(p_type_arr[i]))
     
     print(p_partkey.size)
 
-    var part_col_data = List[Float64Array](p_partkey, p_size)
+    var part_col_data: List[Float64Array] = [p_partkey, p_size]
     
-    var part_col_names = List[String]("partkey", "p_size")
+    var part_col_names: List[String] = ["partkey", "p_size"]
 
     var df_part = DataFrameF64(part_col_data, part_col_names)
     # var df_part_outer = DataFrameF64(part_col_data, part_col_names)
@@ -2321,9 +2249,9 @@ fn test_query_2() raises:
 
     print(s_suppkey.size)
 
-    var supp_col_data = List[Float64Array](s_suppkey, s_nationkey, s_acctbal, s_name)
+    var supp_col_data: List[Float64Array] = [s_suppkey, s_nationkey, s_acctbal, s_name]
     
-    var supp_col_names = List[String]("suppkey", "nationkey", "s_acctbal", "s_name")
+    var supp_col_names: List[String] = ["suppkey", "nationkey", "s_acctbal", "s_name"]
 
 
     var df_supplier = DataFrameF64(supp_col_data, supp_col_names)
@@ -2336,9 +2264,9 @@ fn test_query_2() raises:
 
     print(n_nationkey.size)
 
-    var nation_col_data = List[Float64Array](n_nationkey, n_regionkey, n_name)
+    var nation_col_data: List[Float64Array] = [n_nationkey, n_regionkey, n_name]
     
-    var nation_col_names = List[String]("nationkey", "regionkey", "n_name")
+    var nation_col_names: List[String] = ["nationkey", "regionkey", "n_name"]
 
     var df_nation = DataFrameF64(nation_col_data, nation_col_names)
     # var df_nation_outer = DataFrameF64(nation_col_data, nation_col_names)
@@ -2348,10 +2276,10 @@ fn test_query_2() raises:
 
     print(r_regionkey.size)
 
-    var region_col_data = List[Float64Array](r_regionkey, r_name)
+    var region_col_data: List[Float64Array] = [r_regionkey, r_name]
 
     
-    var region_col_names = List[String]("regionkey", "r_name")
+    var region_col_names: List[String] = ["regionkey", "r_name"]
 
     var df_region = DataFrameF64(region_col_data, region_col_names)
     # var df_region_outer = DataFrameF64(region_col_data, region_col_names)
@@ -2378,9 +2306,9 @@ fn test_query_2() raises:
    
     var min_supplycost = inner_join_f64(df_part, joined_pss_df, "partkey")
     
-    var aggregated_col_names = List[String]("partkey", "p_size_min", "suppkey_min",
+    var aggregated_col_names: List[String] = ["partkey", "p_size_min", "suppkey_min",
                                             "ps_supplycost_min", "nationkey_min", "s_acctbal_min", 
-                                            "s_name_min", "regionkey_min", "n_name_min", "r_name_min")
+                                            "s_name_min", "regionkey_min", "n_name_min", "r_name_min"]
 
     # min supply cost for each part
     min_supplycost.groupby("partkey", "min", aggregated_col_names)
@@ -2391,7 +2319,7 @@ fn test_query_2() raises:
     # retain only the rows where the supply cost for a part is equal to the minimum supply cost for that part
     min_supplycost_final.select("ps_supplycost", "ps_supplycost_min", EQPredF64(), EQPredF64(), 0, 0, "COL")
 
-    min_supplycost_final.sort_by(List[String]("s_acctbal", "n_name", "s_name", "partkey"))
+    min_supplycost_final.sort_by(["s_acctbal", "n_name", "s_name", "partkey"])
 
     end_time = perf_counter()
     
@@ -2451,7 +2379,7 @@ fn test_query_2() raises:
             print(min_supplycost_final[min_supplycost_final.col_name_to_idx["s_acctbal"]][min_supplycost_final.columns[0].size - 3])
     
 
-fn test_query_7() raises:
+def test_query_7() raises:
     # var pd = Python.import_module("pandas")
     # pd.set_option('display.max_columns', None)
 
@@ -2492,9 +2420,9 @@ fn test_query_7() raises:
         
     print(l_orderkey.size)
 
-    var col_data = List[Float64Array](l_orderkey, l_extendedprice, l_discount, l_volume, l_suppkey, l_shipdate)
+    var col_data: List[Float64Array] = [l_orderkey, l_extendedprice, l_discount, l_volume, l_suppkey, l_shipdate]
 
-    var col_names = List[String]("orderkey", "l_extendedprice", "l_discount", "l_volume", "suppkey", "l_shipdate")
+    var col_names: List[String] = ["orderkey", "l_extendedprice", "l_discount", "l_volume", "suppkey", "l_shipdate"]
 
     var df_lineitem = DataFrameF64(col_data, col_names)
 
@@ -2521,9 +2449,9 @@ fn test_query_7() raises:
     
     print(s_suppkey.size)
 
-    var supp_col_data = List[Float64Array](s_suppkey, s_nationkey)
+    var supp_col_data: List[Float64Array] = [s_suppkey, s_nationkey]
     
-    var supp_col_names = List[String]("suppkey", "nationkey1")
+    var supp_col_names: List[String] = ["suppkey", "nationkey1"]
 
 
     var df_supplier = DataFrameF64(supp_col_data, supp_col_names)
@@ -2550,11 +2478,11 @@ fn test_query_7() raises:
     
     print(n_nationkey.size)
 
-    var nation_col_data = List[Float64Array](n_nationkey, n_name)
+    var nation_col_data: List[Float64Array] = [n_nationkey, n_name]
     
-    var nation_col_names = List[String]("nationkey1", "n_name1")
+    var nation_col_names: List[String] = ["nationkey1", "n_name1"]
 
-    var nation2_col_names = List[String]("nationkey2", "n_name2")
+    var nation2_col_names: List[String] = ["nationkey2", "n_name2"]
 
     var df_nation1 = DataFrameF64(nation_col_data, nation_col_names)
     var df_nation2 = DataFrameF64(nation_col_data, nation2_col_names)
@@ -2580,9 +2508,9 @@ fn test_query_7() raises:
     
     print(c_custkey.size)
 
-    var cust_col_data = List[Float64Array](c_custkey, c_nationkey)
+    var cust_col_data: List[Float64Array] = [c_custkey, c_nationkey]
     
-    var cust_col_names = List[String]("custkey", "nationkey2")
+    var cust_col_names: List[String] = ["custkey", "nationkey2"]
 
     var df_customer = DataFrameF64(cust_col_data, cust_col_names)
 
@@ -2610,16 +2538,14 @@ fn test_query_7() raises:
     
     print(o_custkey.size)
 
-    var orders_col_data = List[Float64Array](o_custkey, o_orderkey)
+    var orders_col_data: List[Float64Array] = [o_custkey, o_orderkey]
 
-    var orders_col_names = List[String]("custkey", "orderkey")
+    var orders_col_names: List[String] = ["custkey", "orderkey"]
 
     var df_orders = DataFrameF64(orders_col_data, orders_col_names)
     
     var end_load = perf_counter()
     print("Data loading time:", end_load - start_load)
-
-    var start_time = monotonic()
 
     var start = perf_counter()
     # Subquery to get shipping table
@@ -2642,8 +2568,8 @@ fn test_query_7() raises:
     var masks = List[List[Bool]]()
     var france_germany_mask = shipping.select_mask("n_name1", "n_name2", EQPredF64(), EQPredF64(), 38075.0, 52342.0, "AND")
     var germany_france_mask = shipping.select_mask("n_name1", "n_name2", EQPredF64(), EQPredF64(), 52342.0, 38075.0, "AND")
-    masks.append(france_germany_mask)
-    masks.append(germany_france_mask)
+    masks.append(france_germany_mask.copy())
+    masks.append(germany_france_mask.copy())
     shipping.select_complex(masks, "OR")
     
     end = perf_counter()
@@ -2660,19 +2586,18 @@ fn test_query_7() raises:
 	# supp_nation,
 	# cust_nation,
 	# l_year
-    var group_by_cols = List[String]("n_name1", "n_name2", "l_shipdate")
+    var group_by_cols: List[String] = ["n_name1", "n_name2", "l_shipdate"]
 
-    var aggregated_col_names = List[String]("supp_nation", "cust_nation", "l_year", "sum_suppkey",
+    var aggregated_col_names: List[String] = ["supp_nation", "cust_nation", "l_year", "sum_suppkey",
                                             "sum_nationkey1", "sum_orderkey", "sum_l_extendedprice",
                                             "sum_l_discount", "revenue", "sum_custkey",
-                                            "sum_nationkey2")
+                                            "sum_nationkey2"]
 
     shipping.groupby_multicol(group_by_cols, "sum", aggregated_col_names)
-    shipping.sort_by(List[String]("supp_nation", "cust_nation", "l_year"))
+    shipping.sort_by(["supp_nation", "cust_nation", "l_year"])
 
     var end_time = monotonic()
     var execution_time_nanoseconds = end_time - start_time
-    var execution_time_seconds = execution_time_nanoseconds / 1000000000
 
     print("exec time: ", execution_time_seconds)
 
@@ -2704,7 +2629,7 @@ fn test_query_7() raises:
         print(shipping.columns[i][5])
 
 
-fn test_query_8() raises:
+def test_query_8() raises:
     var pd = Python.import_module("pandas")
     pd.set_option('display.max_columns', None)
 
@@ -2725,13 +2650,13 @@ fn test_query_8() raises:
 
     for i in range(2000000):
         # p_partkey[i] = p_partkey_arr[i].to_float64()
-        p_type[i] = p_type_arr[i].__str__()
+        p_type[i] = String(p_type_arr[i])
     
     print(p_partkey.size)
 
-    var part_col_data = List[Float64Array](p_partkey)
+    var part_col_data: List[Float64Array] = [p_partkey]
     
-    var part_col_names = List[String]("partkey")
+    var part_col_names: List[String] = ["partkey"]
 
     var df_part = DataFrameF64(part_col_data, part_col_names)
 
@@ -2772,9 +2697,9 @@ fn test_query_8() raises:
         
     print(l_orderkey.size)
 
-    var col_data = List[Float64Array](l_orderkey, l_extendedprice, l_discount, l_volume, l_suppkey, l_partkey)
+    var col_data: List[Float64Array] = [l_orderkey, l_extendedprice, l_discount, l_volume, l_suppkey, l_partkey]
 
-    var col_names = List[String]("orderkey", "l_extendedprice", "l_discount", "l_volume", "suppkey", "partkey")
+    var col_names: List[String] = ["orderkey", "l_extendedprice", "l_discount", "l_volume", "suppkey", "partkey"]
 
     var df_lineitem = DataFrameF64(col_data, col_names)
 
@@ -2801,9 +2726,9 @@ fn test_query_8() raises:
     
     print(s_suppkey.size)
 
-    var supp_col_data = List[Float64Array](s_suppkey, s_nationkey)
+    var supp_col_data: List[Float64Array] = [s_suppkey, s_nationkey]
      
-    var supp_col_names = List[String]("suppkey", "nationkey2")
+    var supp_col_names: List[String] = ["suppkey", "nationkey2"]
 
     var df_supplier = DataFrameF64(supp_col_data, supp_col_names)
 
@@ -2832,11 +2757,11 @@ fn test_query_8() raises:
     
     print(n_nationkey.size)
 
-    var nation_col_data = List[Float64Array](n_nationkey, n_name, n_regionkey)
+    var nation_col_data: List[Float64Array] = [n_nationkey, n_name, n_regionkey]
     
-    var nation_col_names = List[String]("nationkey1", "n_name1", "regionkey1")
+    var nation_col_names: List[String] = ["nationkey1", "n_name1", "regionkey1"]
     
-    var nation2_col_names = List[String]("nationkey2", "n_name2", "regionkey2")
+    var nation2_col_names: List[String] = ["nationkey2", "n_name2", "regionkey2"]
 
     var df_nation1 = DataFrameF64(nation_col_data, nation_col_names)
     var df_nation2 = DataFrameF64(nation_col_data, nation2_col_names)
@@ -2862,9 +2787,9 @@ fn test_query_8() raises:
     
     print(c_custkey.size)
 
-    var cust_col_data = List[Float64Array](c_custkey, c_nationkey)
+    var cust_col_data: List[Float64Array] = [c_custkey, c_nationkey]
     
-    var cust_col_names = List[String]("custkey", "nationkey1")
+    var cust_col_names: List[String] = ["custkey", "nationkey1"]
 
     var df_customer = DataFrameF64(cust_col_data, cust_col_names)
 
@@ -2895,9 +2820,9 @@ fn test_query_8() raises:
     
     print(o_custkey.size)
 
-    var orders_col_data = List[Float64Array](o_custkey, o_orderkey, o_orderdate)
+    var orders_col_data: List[Float64Array] = [o_custkey, o_orderkey, o_orderdate]
     
-    var orders_col_names = List[String]("custkey", "orderkey", "o_orderdate")
+    var orders_col_names: List[String] = ["custkey", "orderkey", "o_orderdate"]
 
     var df_orders = DataFrameF64(orders_col_data, orders_col_names)
 
@@ -2923,16 +2848,14 @@ fn test_query_8() raises:
     
     print(r_regionkey.size)
 
-    var region_col_data = List[Float64Array](r_regionkey, r_name)
+    var region_col_data: List[Float64Array] = [r_regionkey, r_name]
     
-    var region_col_names = List[String]("regionkey1", "r_name")
+    var region_col_names: List[String] = ["regionkey1", "r_name"]
 
     var df_region = DataFrameF64(region_col_data, region_col_names)
 
     var end_load = perf_counter()
     print("Data loading time:", end_load - start_load)
-
-    var start_time = monotonic()
     # Subquery to get shipping table
     df_orders.select("o_orderdate", "o_orderdate", GTEPredF64(), LEPredF64(), 788918400.0, 852076800.0, "AND")
     filter_string_equal(df_part, p_type, "ECONOMY ANODIZED STEEL")
@@ -2959,10 +2882,10 @@ fn test_query_8() raises:
     
     var brazil_mask = all_nations.select_mask("n_name2", "n_name2", EQPredF64(), EQPredF64(), 62514.0, 62514.0, "")
 
-    var aggregated_col_names = List[String]("o_year", "suppkey", "nationkey2", "partkey", 
+    var aggregated_col_names: List[String] = ["o_year", "suppkey", "nationkey2", "partkey", 
                                             "orderkey", "l_extendedprice", "l_discount", 
                                             "mkt_share", "custkey", "nationkey1", "n_name1", "regionkey1", 
-                                            "n_name2", "regionkey2", "r_name")
+                                            "n_name2", "regionkey2", "r_name"]
 
 
     
@@ -2973,11 +2896,10 @@ fn test_query_8() raises:
     for i in range(brazil[brazil.col_name_to_idx["mkt_share"]].size):
         brazil[brazil.col_name_to_idx["mkt_share"]][i] /= all_nations[all_nations.col_name_to_idx["mkt_share"]][i]
 
-    brazil.sort_by(List[String]("o_year"))
+    brazil.sort_by(["o_year"])
 
     var end_time = monotonic()
     var execution_time_nanoseconds = end_time - start_time
-    var execution_time_seconds = execution_time_nanoseconds / 1000000000
 
     print("exec time: ", execution_time_seconds)
 
@@ -3007,7 +2929,7 @@ fn test_query_8() raises:
        
 
 
-fn test_query_9() raises:
+def test_query_9() raises:
     var pd = Python.import_module("pandas")
     pd.set_option('display.max_columns', None)
 
@@ -3027,13 +2949,13 @@ fn test_query_9() raises:
 
     for i in range(2000000):
         #p_partkey[i] = p_partkey_arr[i].to_float64()
-        p_name[i] = (p_name_arr[i].__str__())
+        p_name[i] = (String(p_name_arr[i]))
     
     print(p_partkey.size)
 
-    var part_col_data = List[Float64Array](p_partkey)
+    var part_col_data: List[Float64Array] = [p_partkey]
     
-    var part_col_names = List[String]("partkey")
+    var part_col_names: List[String] = ["partkey"]
 
     var df_part = DataFrameF64(part_col_data, part_col_names)
 
@@ -3075,7 +2997,7 @@ fn test_query_9() raises:
 
     print(l_partkey.size)
 
-    var col_data = List[Float64Array](l_orderkey, l_extendedprice, l_discount, l_quantity, l_suppkey, l_partkey)
+    var col_data: List[Float64Array] = [l_orderkey, l_extendedprice, l_discount, l_quantity, l_suppkey, l_partkey]
 
     # var col1_name = "orderkey"
     # var col2_name = "l_extendedprice"
@@ -3084,7 +3006,7 @@ fn test_query_9() raises:
     # var col5_name = "suppkey"
     # var col6_name = "partkey"
 
-    var col_names = List[String]("orderkey", "l_extendedprice", "l_discount", "l_quantity", "suppkey", "partkey")
+    var col_names: List[String] = ["orderkey", "l_extendedprice", "l_discount", "l_quantity", "suppkey", "partkey"]
 
     var df_lineitem = DataFrameF64(col_data, col_names)
 
@@ -3113,9 +3035,9 @@ fn test_query_9() raises:
     
     print(ps_partkey.size)
 
-    var ps_col_data = List[Float64Array](ps_partkey, ps_suppkey, ps_supplycost)
+    var ps_col_data: List[Float64Array] = [ps_partkey, ps_suppkey, ps_supplycost]
     
-    var ps_col_names = List[String]("partkey", "ps_suppkey", "ps_supplycost")
+    var ps_col_names: List[String] = ["partkey", "ps_suppkey", "ps_supplycost"]
 
     var df_partsupp = DataFrameF64(ps_col_data, ps_col_names)
 
@@ -3141,9 +3063,9 @@ fn test_query_9() raises:
     
     print(s_suppkey.size)
 
-    var supp_col_data = List[Float64Array](s_suppkey, s_nationkey)
+    var supp_col_data: List[Float64Array] = [s_suppkey, s_nationkey]
     
-    var supp_col_names = List[String]("suppkey", "nationkey")
+    var supp_col_names: List[String] = ["suppkey", "nationkey"]
 
     var df_supplier = DataFrameF64(supp_col_data, supp_col_names)
 
@@ -3168,9 +3090,9 @@ fn test_query_9() raises:
     
     print(n_nationkey.size)
 
-    var nation_col_data = List[Float64Array](n_nationkey, n_name)
+    var nation_col_data: List[Float64Array] = [n_nationkey, n_name]
     
-    var nation_col_names = List[String]("nationkey", "n_name")
+    var nation_col_names: List[String] = ["nationkey", "n_name"]
 
     var df_nation = DataFrameF64(nation_col_data, nation_col_names)
     
@@ -3197,18 +3119,15 @@ fn test_query_9() raises:
     
     print(o_orderkey.size)
 
-    var orders_col_data = List[Float64Array](o_orderkey, o_orderdate)
+    var orders_col_data: List[Float64Array] = [o_orderkey, o_orderdate]
     
-    var orders_col_names = List[String]("orderkey", "o_orderdate")
+    var orders_col_names: List[String] = ["orderkey", "o_orderdate"]
 
     var df_orders = DataFrameF64(orders_col_data, orders_col_names)
 
     var load_end = perf_counter()
 
     print("load time: ", load_end - load_start)
-
-
-    var start_time = monotonic()
 
     var filter_start_time = monotonic()
 
@@ -3240,20 +3159,19 @@ fn test_query_9() raises:
         
     joined_final.append_column(amount^, "amount")
 
-    var aggregated_col_names = List[String]("nation", "o_year", "orderkey", "l_extendedprice", 
+    var aggregated_col_names: List[String] = ["nation", "o_year", "orderkey", "l_extendedprice", 
                                             "l_discount", "l_quantity", "suppkey", 
-                                            "partkey", "nationkey", "ps_suppkey", "ps_supplycost", "sum_profit")
+                                            "partkey", "nationkey", "ps_suppkey", "ps_supplycost", "sum_profit"]
 
        
-    var group_by_cols = List[String]("n_name", "o_orderdate")
+    var group_by_cols: List[String] = ["n_name", "o_orderdate"]
     joined_final.groupby_multicol(group_by_cols, "sum", aggregated_col_names)
     
 
-    joined_final.sort_by(List[String]("nation", "o_year"))
+    joined_final.sort_by(["nation", "o_year"])
 
     var end_time = monotonic()
     var execution_time_nanoseconds = end_time - start_time
-    var execution_time_seconds = execution_time_nanoseconds / 1000000000
 
     print("exec time: ", execution_time_seconds)
     print("final joined size: ", joined_final.columns[0].size)
@@ -3292,7 +3210,7 @@ fn test_query_9() raises:
             print(joined_final[joined_final.col_name_to_idx["sum_profit"]][2])
 
 
-fn test_query_10() raises:
+def test_query_10() raises:
     # var pd = Python.import_module("pandas")
     # pd.set_option('display.max_columns', None)
 
@@ -3329,9 +3247,9 @@ fn test_query_10() raises:
         
     print(l_orderkey.size)
 
-    var col_data = List[Float64Array](l_orderkey, l_extendedprice, l_discount, l_returnflag)
+    var col_data: List[Float64Array] = [l_orderkey, l_extendedprice, l_discount, l_returnflag]
 
-    var col_names = List[String]("orderkey", "l_extendedprice", "l_discount", "l_returnflag")
+    var col_names: List[String] = ["orderkey", "l_extendedprice", "l_discount", "l_returnflag"]
 
     var df_lineitem = DataFrameF64(col_data, col_names)
 
@@ -3357,12 +3275,10 @@ fn test_query_10() raises:
     
     print(n_nationkey.size)
 
-    var nation_col_data = List[Float64Array](n_nationkey, n_name)
+    var nation_col_data: List[Float64Array] = [n_nationkey, n_name]
 
-    var nation_col1_name = "nationkey"
-    var nation_col2_name = "n_name"
-    
-    var nation_col_names = List[String]("nationkey", "n_name")
+            
+    var nation_col_names: List[String] = ["nationkey", "n_name"]
 
     var df_nation = DataFrameF64(nation_col_data, nation_col_names)
     
@@ -3395,9 +3311,9 @@ fn test_query_10() raises:
     
     print(o_orderkey.size)
 
-    var orders_col_data = List[Float64Array](o_orderkey, o_custkey, o_orderdate) 
+    var orders_col_data: List[Float64Array] = [o_orderkey, o_custkey, o_orderdate] 
     
-    var orders_col_names = List[String]("orderkey", "custkey", "o_orderdate")
+    var orders_col_names: List[String] = ["orderkey", "custkey", "o_orderdate"]
 
     var df_orders = DataFrameF64(orders_col_data, orders_col_names)
 
@@ -3426,17 +3342,14 @@ fn test_query_10() raises:
     
     print(c_custkey.size)
 
-    var cust_col_data = List[Float64Array](c_custkey, c_nationkey, c_acctbal)
+    var cust_col_data: List[Float64Array] = [c_custkey, c_nationkey, c_acctbal]
     
-    var cust_col_names = List[String]("custkey", "nationkey", "c_acctbal")
+    var cust_col_names: List[String] = ["custkey", "nationkey", "c_acctbal"]
 
     var df_customer = DataFrameF64(cust_col_data, cust_col_names)
 
     var end_load = perf_counter()
     print("load time: ", end_load - start_load)
-
-
-    var start_time = monotonic()
 
     df_lineitem.select("l_returnflag", "l_returnflag", EQPredF64(), EQPredF64(), 82.0, 82.0, "")
     df_orders.select("o_orderdate", "o_orderdate", GTEPredF64(), LTPredF64(), 750643200.0, 757382400.0, "AND")
@@ -3455,19 +3368,18 @@ fn test_query_10() raises:
     
     joined_final.append_column(revenue^, "revenue")
     
-    var aggregated_col_names = List[String]("custkey", "c_acctbal", "n_name", "orderkey",
+    var aggregated_col_names: List[String] = ["custkey", "c_acctbal", "n_name", "orderkey",
                                             "l_extendedprice", "l_discount", "l_returnflag", 
-                                            "o_orderdate", "nationkey", "revenue")
+                                            "o_orderdate", "nationkey", "revenue"]
 
        
-    var group_by_cols = List[String]("custkey", "c_acctbal", "n_name")
+    var group_by_cols: List[String] = ["custkey", "c_acctbal", "n_name"]
     joined_final.groupby_multicol(group_by_cols, "sum", aggregated_col_names)
     
-    joined_final.sort_by(List[String]("revenue"))
+    joined_final.sort_by(["revenue"])
 
     var end_time = monotonic()
     var execution_time_nanoseconds = end_time - start_time
-    var execution_time_seconds = execution_time_nanoseconds / 1000000000
 
     print("exec time: ", execution_time_seconds)
     print("final joined size: ", joined_final.columns[0].size)
@@ -3516,7 +3428,7 @@ fn test_query_10() raises:
             print(joined_final[joined_final.col_name_to_idx["revenue"]][joined_final.columns[0].size - 3])
    
 
-fn test_query_11() raises:
+def test_query_11() raises:
     # var pd = Python.import_module("pandas")
     # pd.set_option('display.max_columns', None)
 
@@ -3550,14 +3462,14 @@ fn test_query_11() raises:
     print(ps_availqty.size)
     # ps_availqty.data.tofile(Path("../Data/tpch_med/ps_availqty_tensor"))
 
-    var ps_col_data = List[Float64Array](ps_partkey, ps_suppkey, ps_supplycost, ps_availqty)
+    var ps_col_data: List[Float64Array] = [ps_partkey, ps_suppkey, ps_supplycost, ps_availqty]
 
     # var ps_col1_name = "ps_partkey"
     # var ps_col2_name = "suppkey"
     # var ps_col3_name = "ps_supplycost"
     # var ps_col4_name = "ps_availqty"
     
-    var ps_col_names = List[String]("ps_partkey", "suppkey", "ps_supplycost", "ps_availqty")
+    var ps_col_names: List[String] = ["ps_partkey", "suppkey", "ps_supplycost", "ps_availqty"]
 
     var df_partsupp = DataFrameF64(ps_col_data, ps_col_names)
 
@@ -3583,9 +3495,9 @@ fn test_query_11() raises:
     
     print(s_suppkey.size)
 
-    var supp_col_data = List[Float64Array](s_suppkey, s_nationkey)
+    var supp_col_data: List[Float64Array] = [s_suppkey, s_nationkey]
    
-    var supp_col_names = List[String]("suppkey", "nationkey")
+    var supp_col_names: List[String] = ["suppkey", "nationkey"]
 
     var df_supplier = DataFrameF64(supp_col_data, supp_col_names)
 
@@ -3611,18 +3523,15 @@ fn test_query_11() raises:
     
     print(n_nationkey.size)
 
-    var nation_col_data = List[Float64Array](n_nationkey, n_name)
+    var nation_col_data: List[Float64Array] = [n_nationkey, n_name]
     
-    var nation_col_names = List[String]("nationkey", "n_name")
+    var nation_col_names: List[String] = ["nationkey", "n_name"]
 
 
     var df_nation = DataFrameF64(nation_col_data, nation_col_names)
 
     var end_load = perf_counter()
     print("load time: ", end_load - start_load)
-
-
-    var start_time = monotonic()
 
     # n_name = 'GERMANY'
     df_nation.select("n_name", "n_name", EQPredF64(), EQPredF64(), 52342.0, 52342.0, "")
@@ -3647,18 +3556,17 @@ fn test_query_11() raises:
     joined_pss_df.append_column(value_percent^, "value_percent")
 
 
-    var aggregated_col_names = List[String]("ps_partkey", "suppkey", "ps_supplycost", "ps_availqty",
-                                            "nationkey", "n_name", "value_sum", "value_percent_sum")
+    var aggregated_col_names: List[String] = ["ps_partkey", "suppkey", "ps_supplycost", "ps_availqty",
+                                            "nationkey", "n_name", "value_sum", "value_percent_sum"]
 
 
     joined_pss_df.groupby("ps_partkey", "sum", aggregated_col_names)
     joined_pss_df.select("value_sum", "value_sum", GTPredF64(), GTPredF64(), value_percent_sum, value_percent_sum, "")
     
-    joined_pss_df.sort_by(List[String]("value_sum"))
+    joined_pss_df.sort_by(["value_sum"])
 
     var end_time = monotonic()
     var execution_time_nanoseconds = end_time - start_time
-    var execution_time_seconds = execution_time_nanoseconds / 1000000000
 
     print("exec time: ", execution_time_seconds)
     print("final joined size: ", joined_pss_df.columns[0].size)
@@ -3696,7 +3604,7 @@ fn test_query_11() raises:
 
 
 
-fn test_query_12() raises:
+def test_query_12() raises:
     # var pd = Python.import_module("pandas")
     # # var np = Python.import_module("numpy")
 
@@ -3735,9 +3643,9 @@ fn test_query_12() raises:
     print(l_shipmode.size)
     # l_shipmode.data.tofile(Path("../Data/tpch_med/l_shipmode_tensor"))
 
-    var col_data = List[Float64Array](l_orderkey, l_shipdate, l_commitdate, l_receiptdate, l_shipmode)
+    var col_data: List[Float64Array] = [l_orderkey, l_shipdate, l_commitdate, l_receiptdate, l_shipmode]
 
-    var col_names = List[String]("orderkey", "l_shipdate", "l_commitdate", "l_receiptdate", "l_shipmode")
+    var col_names: List[String] = ["orderkey", "l_shipdate", "l_commitdate", "l_receiptdate", "l_shipmode"]
 
     var df_lineitem = DataFrameF64(col_data, col_names)
 
@@ -3762,9 +3670,9 @@ fn test_query_12() raises:
     
     print(o_orderkey.size)
 
-    var orders_col_data = List[Float64Array](o_orderkey, o_orderpriority)
+    var orders_col_data: List[Float64Array] = [o_orderkey, o_orderpriority]
     
-    var orders_col_names = List[String]("orderkey", "o_orderpriority")
+    var orders_col_names: List[String] = ["orderkey", "o_orderpriority"]
 
     var df_orders = DataFrameF64(orders_col_data, orders_col_names)
 
@@ -3780,8 +3688,6 @@ fn test_query_12() raises:
     #     'SHIP': 6,
     #     'RAIL': 7
     # }
-
-    var start_time = monotonic()
 
     # l_shipmode in ('MAIL', 'SHIP')
     # l_shipmode in (5, 6)
@@ -3813,17 +3719,16 @@ fn test_query_12() raises:
     joined_lo_df.append_column(high_line^, "high_line")
     joined_lo_df.append_column(low_line^, "low_line")
 
-    var aggregated_col_names = List[String]("l_shipmode", "orderkey", "l_shipdate", "l_commitdate",
-                                            "l_receiptdate", "o_orderpriority", "high_line_count", "low_line_count")
+    var aggregated_col_names: List[String] = ["l_shipmode", "orderkey", "l_shipdate", "l_commitdate",
+                                            "l_receiptdate", "o_orderpriority", "high_line_count", "low_line_count"]
 
     # print("final joined size: ", joined_lo_df.columns[0].size)
     joined_lo_df.groupby("l_shipmode", "sum", aggregated_col_names)
     
-    joined_lo_df.sort_by(List[String]("l_shipmode"))
+    joined_lo_df.sort_by(["l_shipmode"])
 
     var end_time = monotonic()
     var execution_time_nanoseconds = end_time - start_time
-    var execution_time_seconds = execution_time_nanoseconds / 1000000000
 
     print("exec time: ", execution_time_seconds)
     print("grouped size: ", joined_lo_df.columns[0].size)
@@ -3855,7 +3760,7 @@ fn test_query_12() raises:
                 print(joined_lo_df[joined_lo_df.col_name_to_idx["low_line_count"]][1])
 
 
-fn test_query_13() raises:
+def test_query_13() raises:
     var pd = Python.import_module("pandas")
     pd.set_option('display.max_columns', None)
 
@@ -3876,9 +3781,9 @@ fn test_query_13() raises:
     
     print(c_custkey.size)
 
-    var cust_col_data = List[Float64Array](c_custkey)
+    var cust_col_data: List[Float64Array] = [c_custkey]
     
-    var cust_col_names = List[String]("custkey")
+    var cust_col_names: List[String] = ["custkey"]
 
     var df_customer = DataFrameF64(cust_col_data, cust_col_names)
 
@@ -3899,22 +3804,19 @@ fn test_query_13() raises:
 
     for i in range(15000000):
         #o_custkey[i] = o_custkey_arr[i].to_float64()
-        o_comment[i] = (o_comment_arr[i].__str__())
+        o_comment[i] = (String(o_comment_arr[i]))
 
     print(o_custkey.size)
 
-    var orders_col_data = List[Float64Array](o_custkey)
+    var orders_col_data: List[Float64Array] = [o_custkey]
     
-    var orders_col_names = List[String]("custkey")
+    var orders_col_names: List[String] = ["custkey"]
 
     var df_orders = DataFrameF64(orders_col_data, orders_col_names)
     
     var end_load = perf_counter()
 
     print("load time ORD: ", end_load - start_load)
-
-
-    var start_time = monotonic()
 
     var start_udf_filter = perf_counter()
 
@@ -3924,21 +3826,20 @@ fn test_query_13() raises:
     print("udf filter time: ", end_udf_filter - start_udf_filter)
 
     var joined_co_df = inner_join_f64(df_customer, df_orders, "custkey")
-    var aggregated_col_names = List[String]("custkey", "customer_order_count")
+    var aggregated_col_names: List[String] = ["custkey", "customer_order_count"]
 
     print("final joined size: ", joined_co_df.columns[0].size)
 
     joined_co_df.groupby("custkey", "count", aggregated_col_names)
 
-    var aggregated_col_names2 = List[String]("c_count", "custdist")
+    var aggregated_col_names2: List[String] = ["c_count", "custdist"]
 
     joined_co_df.groupby("customer_order_count", "count", aggregated_col_names2)
     
-    joined_co_df.sort_by(List[String]("custdist", "c_count"))
+    joined_co_df.sort_by(["custdist", "c_count"])
 
     var end_time = monotonic()
     var execution_time_nanoseconds = end_time - start_time
-    var execution_time_seconds = execution_time_nanoseconds / 1000000000
 
     print("exec time: ", execution_time_seconds)
     print("grouped size: ", joined_co_df.columns[0].size)
@@ -3972,7 +3873,7 @@ fn test_query_13() raises:
                 print(joined_co_df[joined_co_df.col_name_to_idx["custdist"]][joined_co_df.columns[0].size - 3])
     
 
-fn test_query_14() raises:
+def test_query_14() raises:
     var pd = Python.import_module("pandas")
     # pd.set_option('display.max_columns', None)
 
@@ -4007,9 +3908,9 @@ fn test_query_14() raises:
         
     print(l_partkey.size)
 
-    var col_data = List[Float64Array](l_extendedprice, l_discount, l_partkey, l_shipdate)
+    var col_data: List[Float64Array] = [l_extendedprice, l_discount, l_partkey, l_shipdate]
 
-    var col_names = List[String]("l_extendedprice", "l_discount", "partkey", "l_shipdate")
+    var col_names: List[String] = ["l_extendedprice", "l_discount", "partkey", "l_shipdate"]
 
     var df_lineitem = DataFrameF64(col_data, col_names)
 
@@ -4029,13 +3930,13 @@ fn test_query_14() raises:
 
     for i in range(2000000):
         # p_partkey[i] = p_partkey_arr[i].to_float64()
-        p_type[i] = p_type_arr[i].__str__()
+        p_type[i] = String(p_type_arr[i])
     
     print(p_partkey.size)
 
-    var part_col_data = List[Float64Array](p_partkey)
+    var part_col_data: List[Float64Array] = [p_partkey]
     
-    var part_col_names = List[String]("partkey")
+    var part_col_names: List[String] = ["partkey"]
 
     var df_part = DataFrameF64(part_col_data, part_col_names)
 
@@ -4043,8 +3944,6 @@ fn test_query_14() raises:
 
     var end_load = perf_counter()
     print("load time: ", end_load - start_load)
-
-    var start_time = monotonic()
 
     df_lineitem.select("l_shipdate", "l_shipdate", GTEPredF64(), LTPredF64(), 809913600.0, 812505600.0, "AND")
     filter_string_startwith(df_part_promo, p_type, "PROMO")
@@ -4076,7 +3975,6 @@ fn test_query_14() raises:
 
     var end_time = monotonic()
     var execution_time_nanoseconds = end_time - start_time
-    var execution_time_seconds = execution_time_nanoseconds / 1000000000
 
     print("exec time: ", execution_time_seconds)
     print("total_revenue: ", total_revenue)
@@ -4085,7 +3983,7 @@ fn test_query_14() raises:
     
 
 
-fn test_query_15() raises:
+def test_query_15() raises:
     # var pd = Python.import_module("pandas")
     # pd.set_option('display.max_columns', None)
 
@@ -4120,9 +4018,9 @@ fn test_query_15() raises:
     print(l_shipdate.size)
 
     # Prepare `lineitem` columns
-    var col_data = List[Float64Array](l_suppkey, l_extendedprice, l_discount, l_shipdate)
+    var col_data: List[Float64Array] = [l_suppkey, l_extendedprice, l_discount, l_shipdate]
 
-    var col_names = List[String]("suppkey", "l_extendedprice", "l_discount", "l_shipdate")
+    var col_names: List[String] = ["suppkey", "l_extendedprice", "l_discount", "l_shipdate"]
 
     var df_lineitem = DataFrameF64(col_data, col_names)
 
@@ -4146,17 +4044,15 @@ fn test_query_15() raises:
     #     s_name[i] = s_name_arr[i].to_float64()
 
     # Prepare `supplier` columns
-    var supplier_col_data = List[Float64Array](s_suppkey, s_name)
+    var supplier_col_data: List[Float64Array] = [s_suppkey, s_name]
 
-    var supplier_col_names = List[String]("suppkey", "s_name")
+    var supplier_col_names: List[String] = ["suppkey", "s_name"]
 
     var df_supplier = DataFrameF64(supplier_col_data, supplier_col_names)
 
     var end_load = perf_counter()
     
     print("load time: ", end_load - start_load)
-
-    var start_time = monotonic()
 
     # Filter `lineitem` by `l_shipdate` between January 1, 1996, and April 1, 1996
     df_lineitem.select("l_shipdate", "l_shipdate", GTEPredF64(), LTPredF64(), 820454400.0, 828230400.0, "AND")
@@ -4176,10 +4072,10 @@ fn test_query_15() raises:
 
 
     # Group by `l_suppkey` and calculate the sum of `total_revenue`
-    var aggregated_col_names = List[String]("suppkey", "s_name", "l_extendedprice",
-                                            "l_discount", "l_shipdate", "total_revenue")
+    var aggregated_col_names: List[String] = ["suppkey", "s_name", "l_extendedprice",
+                                            "l_discount", "l_shipdate", "total_revenue"]
 
-    joined_ls_df.groupby_multicol(List[String]("suppkey", "s_name"), "sum", aggregated_col_names)
+    joined_ls_df.groupby_multicol(["suppkey", "s_name"], "sum", aggregated_col_names)
     
     print("joined_ls_df size after groupby: ", joined_ls_df.columns[0].size)
 
@@ -4195,7 +4091,6 @@ fn test_query_15() raises:
 
     var end_time = monotonic()
     var execution_time_nanoseconds = end_time - start_time
-    var execution_time_seconds = execution_time_nanoseconds / 1000000000
 
     print("Execution time: ", execution_time_seconds)
     print("Max revenue: ", max_revenue)
@@ -4215,7 +4110,7 @@ fn test_query_15() raises:
 
 
 
-fn test_query_16() raises:
+def test_query_16() raises:
     var pd = Python.import_module("pandas")
     pd.set_option('display.max_columns', None)
 
@@ -4236,13 +4131,13 @@ fn test_query_16() raises:
 
     for i in range(100000):
         # s_suppkey[i] = s_suppkey_arr[i].to_float64()
-        s_comment[i] = s_comment_arr[i].__str__()
+        s_comment[i] = String(s_comment_arr[i])
 
     print(s_suppkey.size)
 
-    var supp_col_data = List[Float64Array](s_suppkey)
+    var supp_col_data: List[Float64Array] = [s_suppkey]
   
-    var supp_col_names = List[String]("suppkey")
+    var supp_col_names: List[String] = ["suppkey"]
 
     var df_supplier = DataFrameF64(supp_col_data, supp_col_names)
 
@@ -4269,14 +4164,14 @@ fn test_query_16() raises:
     for i in range(2000000):
         # p_partkey[i] = p_partkey_arr[i].to_float64()
         # p_size[i] = p_size_arr[i].to_float64()
-        p_type[i] = p_type_arr[i].__str__()
-        p_brand[i] = p_brand_arr[i].__str__()
+        p_type[i] = String(p_type_arr[i])
+        p_brand[i] = String(p_brand_arr[i])
     
     print(p_partkey.size)
 
-    var part_col_data = List[Float64Array](p_partkey, p_size)
+    var part_col_data: List[Float64Array] = [p_partkey, p_size]
     
-    var part_col_names = List[String]("partkey", "p_size")
+    var part_col_names: List[String] = ["partkey", "p_size"]
 
     var df_part = DataFrameF64(part_col_data, part_col_names)
 
@@ -4302,17 +4197,15 @@ fn test_query_16() raises:
     
     print(ps_partkey.size)
 
-    var ps_col_data = List[Float64Array](ps_partkey, ps_suppkey)
+    var ps_col_data: List[Float64Array] = [ps_partkey, ps_suppkey]
     
-    var ps_col_names = List[String]("partkey", "suppkey")
+    var ps_col_names: List[String] = ["partkey", "suppkey"]
 
     var df_partsupp = DataFrameF64(ps_col_data, ps_col_names)
 
     var end_load = perf_counter()
     
     print("load time: ", end_load - start_load)
-
-    var start_time = monotonic()
 
     # filter by p_brand and p_type and p_size first
     # filter out invalid suppliers, where s_comment has customer complaint
@@ -4332,9 +4225,9 @@ fn test_query_16() raises:
 
     var part_masks = List[List[Bool]]()
     
-    part_masks.append(p_brand_mask)
-    part_masks.append(p_type_mask)
-    part_masks.append(p_size_mask)
+    part_masks.append(p_brand_mask.copy())
+    part_masks.append(p_type_mask.copy())
+    part_masks.append(p_size_mask.copy())
 
     df_part.select_complex(part_masks, "AND")
 
@@ -4345,15 +4238,14 @@ fn test_query_16() raises:
     var joined_psp_df = inner_join_f64(joined_pss_df, df_part, "partkey")
 
 
-    var aggregated_col_names = List[String]("p_size", "suppkey")
+    var aggregated_col_names: List[String] = ["p_size", "suppkey"]
     joined_psp_df.groupby("p_size", "count_distinct", aggregated_col_names)
 
-    joined_psp_df.sort_by(List[String]("suppkey", "p_size"))
+    joined_psp_df.sort_by(["suppkey", "p_size"])
 
 
     var end_time = monotonic()
     var execution_time_nanoseconds = end_time - start_time
-    var execution_time_seconds = execution_time_nanoseconds / 1000000000
 
     print("exec time: ", execution_time_seconds)
 
@@ -4384,7 +4276,7 @@ fn test_query_16() raises:
                 print(joined_psp_df[joined_psp_df.col_name_to_idx["suppkey"]][joined_psp_df.columns[0].size - 3])
     
 
-fn test_query_17() raises:
+def test_query_17() raises:
     var pd = Python.import_module("pandas")
     pd.set_option('display.max_columns', None)
 
@@ -4413,9 +4305,9 @@ fn test_query_17() raises:
 
     print(l_partkey.size)
 
-    var lineitem_col_data = List[Float64Array](l_partkey, l_quantity, l_extendedprice)
+    var lineitem_col_data: List[Float64Array] = [l_partkey, l_quantity, l_extendedprice]
 
-    var lineitem_col_names = List[String]("partkey", "l_quantity", "l_extendedprice")
+    var lineitem_col_names: List[String] = ["partkey", "l_quantity", "l_extendedprice"]
 
     var df_lineitem = DataFrameF64(lineitem_col_data, lineitem_col_names)
 
@@ -4438,29 +4330,27 @@ fn test_query_17() raises:
 
     for i in range(2000000):
         # p_partkey[i] = p_partkey_arr[i].to_float64()
-        p_brand[i] = p_brand_arr[i].__str__()
-        p_container[i] = p_container_arr[i].__str__()
+        p_brand[i] = String(p_brand_arr[i])
+        p_container[i] = String(p_container_arr[i])
 
     print(p_partkey.size)
 
-    var part_col_data = List[Float64Array](p_partkey)
+    var part_col_data: List[Float64Array] = [p_partkey]
 
-    var part_col_names = List[String]("partkey")
+    var part_col_names: List[String] = ["partkey"]
 
     var df_part = DataFrameF64(part_col_data, part_col_names)
 
     var end_load = perf_counter()
     print("load time: ", end_load - start_load)
 
-    var start_time = monotonic()
-
     # Filter `part` table by `p_brand` and `p_container`
     var p_brand_mask = filter_string_equal_mask(p_brand, "Brand#23")
     var p_container_mask = filter_string_equal_mask(p_container, "MED BOX")
     
     var masks = List[List[Bool]]()
-    masks.append(p_brand_mask)
-    masks.append(p_container_mask)
+    masks.append(p_brand_mask.copy())
+    masks.append(p_container_mask.copy())
     df_part.select_complex(masks, "AND")
 
     var joined_lp_df = inner_join_f64(df_lineitem, df_part, "partkey")
@@ -4470,7 +4360,7 @@ fn test_query_17() raises:
    
     # sum up extended_price and divide by 7
 
-    var aggregated_col_names = List[String]("partkey", "l_quantity_avg", "l_extendedprice_avg")
+    var aggregated_col_names: List[String] = ["partkey", "l_quantity_avg", "l_extendedprice_avg"]
     lp_df_grouped.groupby("partkey", "mean", aggregated_col_names)
     
     print("grouped size: ", lp_df_grouped.columns[0].size)
@@ -4493,13 +4383,12 @@ fn test_query_17() raises:
 
     var end_time = monotonic()
     var execution_time_nanoseconds = end_time - start_time
-    var execution_time_seconds = execution_time_nanoseconds / 1000000000
 
     print("exec time: ", execution_time_seconds)
     print("joined size: ", joined_ll_df.columns[0].size)
     print("Yearly Average: ", avg_yearly)
 
-fn test_query_18() raises:
+def test_query_18() raises:
     # var pd = Python.import_module("pandas")
     # pd.set_option('display.max_columns', None)
 
@@ -4524,9 +4413,9 @@ fn test_query_18() raises:
         
     print(l_orderkey.size)
 
-    var col_data = List[Float64Array](l_orderkey, l_quantity)
+    var col_data: List[Float64Array] = [l_orderkey, l_quantity]
 
-    var col_names = List[String]("orderkey", "l_quantity")
+    var col_names: List[String] = ["orderkey", "l_quantity"]
 
     var df_lineitem = DataFrameF64(col_data, col_names)
 
@@ -4562,9 +4451,9 @@ fn test_query_18() raises:
 
     # o_totalprice.data.tofile(Path("../Data/tpch_med/o_totalprice_tensor"))
 
-    var orders_col_data = List[Float64Array](o_orderkey, o_orderdate, o_totalprice, o_custkey)
+    var orders_col_data: List[Float64Array] = [o_orderkey, o_orderdate, o_totalprice, o_custkey]
     
-    var orders_col_names = List[String]("orderkey", "o_orderdate", "o_totalprice", "custkey")
+    var orders_col_names: List[String] = ["orderkey", "o_orderdate", "o_totalprice", "custkey"]
 
     var df_orders = DataFrameF64(orders_col_data, orders_col_names)
 
@@ -4584,16 +4473,14 @@ fn test_query_18() raises:
     
     print(c_custkey.size)
 
-    var cust_col_data = List[Float64Array](c_custkey)
+    var cust_col_data: List[Float64Array] = [c_custkey]
     
-    var cust_col_names = List[String]("custkey")
+    var cust_col_names: List[String] = ["custkey"]
 
     var df_customer = DataFrameF64(cust_col_data, cust_col_names)
 
     var end_load = perf_counter()
     print("load time: ", end_load - start_load)
-
-    var start_time = monotonic()
 
     var start_join = perf_counter()
     var joined_lo_df = inner_join_f64(df_lineitem, df_orders, "orderkey")
@@ -4602,7 +4489,7 @@ fn test_query_18() raises:
 
     # groupby l_orderkey, sum l_quantity, filter, then join back with the lineitem orders df
     var group_start = perf_counter()
-    var aggregated_col_names = List[String]("orderkey", "l_quantity_sum")
+    var aggregated_col_names: List[String] = ["orderkey", "l_quantity_sum"]
     df_lineitem.groupby("orderkey", "sum", aggregated_col_names)
     var group_end = perf_counter()
     print("groupby time: ", group_end - group_start)
@@ -4614,18 +4501,17 @@ fn test_query_18() raises:
     var joined_oc_df = inner_join_f64(filtered_lo_df, df_customer, "custkey")
 
 
-    var group_by_cols = List[String]("custkey", "orderkey", "o_orderdate", "o_totalprice")
+    var group_by_cols: List[String] = ["custkey", "orderkey", "o_orderdate", "o_totalprice"]
 
-    var aggregated_col_names2 = List[String]("custkey", "orderkey", "o_orderdate", "o_totalprice",
-                                             "l_quantity_sum", "quantity_sum_grouped")
+    var aggregated_col_names2: List[String] = ["custkey", "orderkey", "o_orderdate", "o_totalprice",
+                                             "l_quantity_sum", "quantity_sum_grouped"]
 
     joined_oc_df.groupby_multicol(group_by_cols, "sum", aggregated_col_names2)
-    joined_oc_df.sort_by(List[String]("o_totalprice", "o_orderdate"))
+    joined_oc_df.sort_by(["o_totalprice", "o_orderdate"])
 
 
     var end_time = monotonic()
     var execution_time_nanoseconds = end_time - start_time
-    var execution_time_seconds = execution_time_nanoseconds / 1000000000
 
     print("exec time: ", execution_time_seconds)
     print("final grouped size: ", joined_oc_df.columns[0].size)
@@ -4686,7 +4572,7 @@ fn test_query_18() raises:
 
 
 
-fn test_query_19() raises:
+def test_query_19() raises:
     var pd = Python.import_module("pandas")
     pd.set_option('display.max_columns', None)
 
@@ -4733,15 +4619,15 @@ fn test_query_19() raises:
         # l_quantity[i] = l_quantity_arr[i].to_float64()
         # l_partkey[i] = l_partkey_arr[i].to_float64()
         # l_shipmode[i] = l_shipmode_arr[i].to_float64()
-        l_shipinstruct[i] = l_shipinstruct_arr[i].__str__()
+        l_shipinstruct[i] = String(l_shipinstruct_arr[i])
     var end_conv = perf_counter()
     print("conversion time: ", end_conv - start_conv)
         
     print(l_partkey.size)
 
-    var col_data = List[Float64Array](l_extendedprice, l_discount, l_quantity, l_partkey, l_shipmode)
+    var col_data: List[Float64Array] = [l_extendedprice, l_discount, l_quantity, l_partkey, l_shipmode]
 
-    var col_names = List[String]("l_extendedprice", "l_discount", "l_quantity", "partkey", "l_shipmode")
+    var col_names: List[String] = ["l_extendedprice", "l_discount", "l_quantity", "partkey", "l_shipmode"]
 
     var df_lineitem = DataFrameF64(col_data, col_names)
 
@@ -4770,26 +4656,21 @@ fn test_query_19() raises:
     for i in range(2000000):
         # p_partkey[i] = p_partkey_arr[i].to_float64()
         # p_size[i] = p_size_arr[i].to_float64()
-        p_brand[i] = p_brand_arr[i].__str__()
-        p_container[i] = p_container_arr[i].__str__()
+        p_brand[i] = String(p_brand_arr[i])
+        p_container[i] = String(p_container_arr[i])
     
     print(p_partkey.size)
 
-    var part_col_data = List[Float64Array](p_partkey, p_size)
+    var part_col_data: List[Float64Array] = [p_partkey, p_size]
     
-    var part_col_names = List[String]("partkey", "p_size")
+    var part_col_names: List[String] = ["partkey", "p_size"]
 
     var df_part = DataFrameF64(part_col_data, part_col_names)
-
-   
-
-    
-    var start_time = monotonic()
 
     var ship_mode_mask = df_lineitem.select_mask("l_shipmode", "l_shipmode", EQPredF64(), EQPredF64(), 2.0, 4.0, "OR")
     var shipinstruct_mask = filter_string_equal_mask(l_shipinstruct, "DELIVER IN PERSON")
     
-    var ship_masks = List[List[Bool]](ship_mode_mask, shipinstruct_mask)
+    var ship_masks: List[List[Bool]] = [ship_mode_mask.copy(), shipinstruct_mask.copy()]
 
     df_lineitem.select_complex(ship_masks, "AND")
 
@@ -4805,24 +4686,24 @@ fn test_query_19() raises:
     var p_brand_reindexed = reindex_string_column(p_brand, part_indexers)
     
     var p_brand12_mask = filter_string_equal_mask(p_brand_reindexed, "Brand#12")
-    var p_container_small_mask = filter_string_IN_mask(p_container_reindexed, List[String]("SM CASE", "SM BOX", "SM PACK", "SM PKG"))
+    var p_container_small_mask = filter_string_IN_mask(p_container_reindexed, ["SM CASE", "SM BOX", "SM PACK", "SM PKG"])
     var l_quantity_mask1 = joined_lp_df_with_indexers.df.select_mask("l_quantity", "l_quantity", GTEPredF64(), LEPredF64(), 1.0, 11.0, "AND")
     var p_size_mask1 = joined_lp_df_with_indexers.df.select_mask("p_size", "p_size", GTEPredF64(), LEPredF64(), 1.0, 5.0, "AND")
-    var combined_mask1 = combine_masks(List[List[Bool]](p_brand12_mask, p_container_small_mask, l_quantity_mask1, p_size_mask1), "AND")
+    var combined_mask1 = combine_masks([p_brand12_mask.copy(), p_container_small_mask.copy(), l_quantity_mask1.copy(), p_size_mask1.copy()], "AND")
 
     var p_brand23_mask = filter_string_equal_mask(p_brand_reindexed, "Brand#23")
-    var p_container_med_mask = filter_string_IN_mask(p_container_reindexed, List[String]("MED BAG", "MED BOX", "MED PKG", "MED PACK"))
+    var p_container_med_mask = filter_string_IN_mask(p_container_reindexed, ["MED BAG", "MED BOX", "MED PKG", "MED PACK"])
     var l_quantity_mask2 = joined_lp_df_with_indexers.df.select_mask("l_quantity", "l_quantity", GTEPredF64(), LEPredF64(), 10.0, 20.0, "AND")
     var p_size_mask2 = joined_lp_df_with_indexers.df.select_mask("p_size", "p_size", GTEPredF64(), LEPredF64(), 1.0, 10.0, "AND")
-    var combined_mask2 = combine_masks(List[List[Bool]](p_brand23_mask, p_container_med_mask, l_quantity_mask2, p_size_mask2), "AND")
+    var combined_mask2 = combine_masks([p_brand23_mask.copy(), p_container_med_mask.copy(), l_quantity_mask2.copy(), p_size_mask2.copy()], "AND")
 
     var p_brand34_mask = filter_string_equal_mask(p_brand_reindexed, "Brand#34")
-    var p_container_large_mask = filter_string_IN_mask(p_container_reindexed, List[String]("LG CASE", "LG BOX", "LG PACK", "LG PKG"))
+    var p_container_large_mask = filter_string_IN_mask(p_container_reindexed, ["LG CASE", "LG BOX", "LG PACK", "LG PKG"])
     var l_quantity_mask3 = joined_lp_df_with_indexers.df.select_mask("l_quantity", "l_quantity", GTEPredF64(), LEPredF64(), 20.0, 30.0, "AND")
     var p_size_mask3 = joined_lp_df_with_indexers.df.select_mask("p_size", "p_size", GTEPredF64(), LEPredF64(), 1.0, 15.0, "AND")
-    var combined_mask3 = combine_masks(List[List[Bool]](p_brand34_mask, p_container_large_mask, l_quantity_mask3, p_size_mask3), "AND")
+    var combined_mask3 = combine_masks([p_brand34_mask.copy(), p_container_large_mask.copy(), l_quantity_mask3.copy(), p_size_mask3.copy()], "AND")
 
-    joined_lp_df_with_indexers.df.select_complex(List[List[Bool]](combined_mask1, combined_mask2, combined_mask3),"OR")
+    joined_lp_df_with_indexers.df.select_complex([combined_mask1.copy(), combined_mask2.copy(), combined_mask3.copy()],"OR")
 
 
     var extended_price = joined_lp_df_with_indexers.df["l_extendedprice"]
@@ -4836,7 +4717,6 @@ fn test_query_19() raises:
 
     var end_time = monotonic()
     var execution_time_nanoseconds = end_time - start_time
-    var execution_time_seconds = execution_time_nanoseconds / 1000000000
 
     print("exec time: ", execution_time_seconds)
     print("final joined size after all filter: ", joined_lp_df_with_indexers.df.columns[0].size)
@@ -4844,7 +4724,7 @@ fn test_query_19() raises:
     print("REVENUE: ", revenue)
 
 
-fn test_query_20() raises:
+def test_query_20() raises:
     var pd = Python.import_module("pandas")
     # pd.set_option('display.max_columns', None)
 
@@ -4877,9 +4757,9 @@ fn test_query_20() raises:
         
     print(l_partkey.size)
 
-    var col_data = List[Float64Array](l_partkey, l_quantity, l_suppkey, l_shipdate)
+    var col_data: List[Float64Array] = [l_partkey, l_quantity, l_suppkey, l_shipdate]
 
-    var col_names = List[String]("partkey", "l_quantity", "l_suppkey", "l_shipdate")
+    var col_names: List[String] = ["partkey", "l_quantity", "l_suppkey", "l_shipdate"]
 
     var df_lineitem = DataFrameF64(col_data, col_names)
 
@@ -4899,13 +4779,13 @@ fn test_query_20() raises:
 
     for i in range(2000000):
         # p_partkey[i] = p_partkey_arr[i].to_float64()
-        p_name[i] = p_name_arr[i].__str__()
+        p_name[i] = String(p_name_arr[i])
     
     print(p_partkey.size)
 
-    var part_col_data = List[Float64Array](p_partkey)
+    var part_col_data: List[Float64Array] = [p_partkey]
     
-    var part_col_names = List[String]("partkey")
+    var part_col_names: List[String] = ["partkey"]
 
     var df_part = DataFrameF64(part_col_data, part_col_names)
 
@@ -4934,9 +4814,9 @@ fn test_query_20() raises:
     
     print(s_suppkey.size)
 
-    var supp_col_data = List[Float64Array](s_suppkey, s_nationkey, s_name)
+    var supp_col_data: List[Float64Array] = [s_suppkey, s_nationkey, s_name]
     
-    var supp_col_names = List[String]("s_suppkey", "nationkey", "s_name")
+    var supp_col_names: List[String] = ["s_suppkey", "nationkey", "s_name"]
 
     var df_supplier = DataFrameF64(supp_col_data, supp_col_names)
 
@@ -4965,9 +4845,9 @@ fn test_query_20() raises:
     
     print(ps_partkey.size)
 
-    var ps_col_data = List[Float64Array](ps_partkey, ps_suppkey, ps_availqty)
+    var ps_col_data: List[Float64Array] = [ps_partkey, ps_suppkey, ps_availqty]
     
-    var ps_col_names = List[String]("partkey", "s_suppkey", "ps_availqty")
+    var ps_col_names: List[String] = ["partkey", "s_suppkey", "ps_availqty"]
 
     var df_partsupp = DataFrameF64(ps_col_data, ps_col_names)
 
@@ -4992,18 +4872,15 @@ fn test_query_20() raises:
     
     print(n_nationkey.size)
 
-    var nation_col_data = List[Float64Array](n_nationkey, n_name)
+    var nation_col_data: List[Float64Array] = [n_nationkey, n_name]
     
-    var nation_col_names = List[String]("nationkey", "n_name")
+    var nation_col_names: List[String] = ["nationkey", "n_name"]
 
     var df_nation = DataFrameF64(nation_col_data, nation_col_names)
 
     var end_load = perf_counter()
 
     print("load time: ", end_load - start_load)
-
-
-    var start_time = monotonic()
 
     filter_string_startwith(df_part, p_name, "forest")
     df_lineitem.select("l_shipdate", "l_shipdate", GTEPredF64(), LTPredF64(), 757382400.0, 788918400.0, "AND")
@@ -5012,7 +4889,6 @@ fn test_query_20() raises:
 
     var end_time = monotonic()
     var execution_time_nanoseconds = end_time - start_time
-    var execution_time_seconds = execution_time_nanoseconds / 1000000000
 
     print("exec time after string filter: ", execution_time_seconds)
 
@@ -5020,7 +4896,7 @@ fn test_query_20() raises:
     df_nation.select("n_name", "n_name", EQPredF64(), EQPredF64(), 35480.0, 35480.0, "")
 
     # lineitem groupby sum
-    df_lineitem.groupby_multicol(List[String]("partkey", "l_suppkey"), "sum", List[String]("partkey", "l_suppkey", "l_quantity_sum", "l_shipdate_sum"))
+    df_lineitem.groupby_multicol(["partkey", "l_suppkey"], "sum", ["partkey", "l_suppkey", "l_quantity_sum", "l_shipdate_sum"])
 
     end_time = monotonic()
     execution_time_nanoseconds = end_time - start_time
@@ -5046,7 +4922,7 @@ fn test_query_20() raises:
 
     joined_lpss_df.select("ps_availqty", "scaled_l_quantity_sum", GTPredF64(), GTPredF64(), 0.0, 0.0, "COL")
 
-    joined_lpss_df.sort_by(List[String]("s_name"))
+    joined_lpss_df.sort_by(["s_name"])
 
 
     end_time = monotonic()
@@ -5097,7 +4973,7 @@ fn test_query_20() raises:
 
 
 
-fn test_query_21() raises:
+def test_query_21() raises:
     # var pd = Python.import_module("pandas")
     # var np = Python.import_module("numpy")
 
@@ -5131,12 +5007,12 @@ fn test_query_21() raises:
     
     print(l_receiptdate.size)
 
-    var col_data = List[Float64Array](l_orderkey, l_suppkey, l_commitdate, l_receiptdate)
+    var col_data: List[Float64Array] = [l_orderkey, l_suppkey, l_commitdate, l_receiptdate]
 
-    var col_names = List[String]("orderkey", "suppkey", "l_commitdate", "l_receiptdate")
+    var col_names: List[String] = ["orderkey", "suppkey", "l_commitdate", "l_receiptdate"]
 
     var df_lineitem = DataFrameF64(col_data, col_names)
-    var df_lineitem_late = DataFrameF64(col_data, List[String]("orderkey", "suppkey_late", "l_commitdate", "l_receiptdate"))
+    var df_lineitem_late = DataFrameF64(col_data, ["orderkey", "suppkey_late", "l_commitdate", "l_receiptdate"])
 
 
     # var file_path_supp = 'supplier.csv'
@@ -5163,9 +5039,9 @@ fn test_query_21() raises:
     
     print(s_suppkey.size)
 
-    var supp_col_data = List[Float64Array](s_suppkey, s_nationkey, s_name)
+    var supp_col_data: List[Float64Array] = [s_suppkey, s_nationkey, s_name]
     
-    var supp_col_names = List[String]("suppkey", "nationkey", "s_name")
+    var supp_col_names: List[String] = ["suppkey", "nationkey", "s_name"]
 
     var df_supplier = DataFrameF64(supp_col_data, supp_col_names)
 
@@ -5193,9 +5069,9 @@ fn test_query_21() raises:
     print(o_orderstatus.size)
     # o_orderstatus.data.tofile(Path("../Data/tpch_med/o_orderstatus_tensor"))
 
-    var orders_col_data = List[Float64Array](o_orderstatus, o_orderkey)
+    var orders_col_data: List[Float64Array] = [o_orderstatus, o_orderkey]
     
-    var orders_col_names = List[String]("o_orderstatus", "orderkey")
+    var orders_col_names: List[String] = ["o_orderstatus", "orderkey"]
 
     var df_orders = DataFrameF64(orders_col_data, orders_col_names)
 
@@ -5220,17 +5096,14 @@ fn test_query_21() raises:
     
     print(n_nationkey.size)
 
-    var nation_col_data = List[Float64Array](n_nationkey, n_name)
+    var nation_col_data: List[Float64Array] = [n_nationkey, n_name]
     
-    var nation_col_names = List[String]("nationkey", "n_name")
+    var nation_col_names: List[String] = ["nationkey", "n_name"]
 
     var df_nation = DataFrameF64(nation_col_data, nation_col_names)
 
     var end_load = perf_counter()
     print("data load time: ", end_load - start_load)
-
-
-    var start_time = monotonic()
 
     # o_orderstatus = 'F', 70 is the integer ASCII value of F
     df_orders.select("o_orderstatus", "o_orderstatus", EQPredF64(), EQPredF64(), 70.0, 70.0, "")
@@ -5244,13 +5117,13 @@ fn test_query_21() raises:
     late_suppliers_per_order.select("l_receiptdate", "l_commitdate", GTPredF64(), GTPredF64(), 0.0, 0.0, "COL")
 
     # compute the number of distinct suppliers per order
-    suppliers_per_order.groupby("orderkey", "count_distinct", List[String]("orderkey", "suppkey"))
+    suppliers_per_order.groupby("orderkey", "count_distinct", ["orderkey", "suppkey"])
     suppliers_per_order.rename_column("suppkey", "num_total_suppliers")
 
     print("suppliers_per_order size:", suppliers_per_order.columns[0].size)
 
     # compute the number of distinct faulty suppliers per order
-    late_suppliers_per_order.groupby("orderkey", "count_distinct", List[String]("orderkey", "suppkey_late"))
+    late_suppliers_per_order.groupby("orderkey", "count_distinct", ["orderkey", "suppkey_late"])
     print("late_suppliers_per_order size:", late_suppliers_per_order.columns[0].size)
     late_suppliers_per_order.rename_column("suppkey_late", "num_faulty_supplier")
 
@@ -5274,19 +5147,18 @@ fn test_query_21() raises:
     #     print(valid_lineitems_sa.column_names[i])
 
     # compute number of late lineitems per order for each supplier
-    valid_lineitems_sa.groupby_multicol(List[String]("s_name", "orderkey"), "count", List[String]("s_name", "orderkey", "count_per_order"))
+    valid_lineitems_sa.groupby_multicol(["s_name", "orderkey"], "count", ["s_name", "orderkey", "count_per_order"])
     print("count per order size:", valid_lineitems_sa.columns[0].size)
 
     # # compute total number of late lineitems per supplier
-    valid_lineitems_sa.groupby("s_name", "sum", List[String]("s_name", "orderkey", "numwait"))
+    valid_lineitems_sa.groupby("s_name", "sum", ["s_name", "orderkey", "numwait"])
     print("total num per supp size:", valid_lineitems_sa.columns[0].size)
     
-    valid_lineitems_sa.sort_by(List[String]("numwait", "s_name"))
+    valid_lineitems_sa.sort_by(["numwait", "s_name"])
 
 
     var end_time = monotonic()
     var execution_time_nanoseconds = end_time - start_time
-    var execution_time_seconds = execution_time_nanoseconds / 1000000000
 
     print("exec time: ", execution_time_seconds)
 
@@ -5307,7 +5179,7 @@ fn test_query_21() raises:
             print(valid_lineitems_sa[valid_lineitems_sa.col_name_to_idx["numwait"]][valid_lineitems_sa.columns[0].size - 1])
 
 
-fn test_query_22() raises:
+def test_query_22() raises:
     var pd = Python.import_module("pandas")
     # var tm = Python.import_module("time")
 
@@ -5323,15 +5195,15 @@ fn test_query_22() raises:
     c_phone.resize(1500000, "")
 
     for i in range(1500000):
-        c_phone[i] = (c_phone_arr[i].__str__())
+        c_phone[i] = (String(c_phone_arr[i]))
     
     var c_custkey = Float64Array("/datadrive/tpch_large/c_custkey_tensor")
     var c_nationkey = Float64Array("/datadrive/tpch_large/c_nationkey_tensor")
     var c_acctbal = Float64Array("/datadrive/tpch_large/c_acctbal_tensor")
 
-    var cust_col_data = List[Float64Array](c_custkey, c_nationkey, c_acctbal)
+    var cust_col_data: List[Float64Array] = [c_custkey, c_nationkey, c_acctbal]
     
-    var cust_col_names = List[String]("custkey", "nationkey", "c_acctbal")
+    var cust_col_names: List[String] = ["custkey", "nationkey", "c_acctbal"]
 
     var df_customer = DataFrameF64(cust_col_data, cust_col_names)
     var df_customer2 = DataFrameF64(cust_col_data, cust_col_names)
@@ -5340,9 +5212,9 @@ fn test_query_22() raises:
     var o_custkey = Float64Array("/datadrive/tpch_large/o_custkey_tensor")
     var o_orderkey = Float64Array("/datadrive/tpch_large/o_orderkey_tensor")
 
-    var orders_col_data = List[Float64Array](o_custkey, o_orderkey)
+    var orders_col_data: List[Float64Array] = [o_custkey, o_orderkey]
     
-    var orders_col_names = List[String]("custkey", "o_orderkey")
+    var orders_col_names: List[String] = ["custkey", "o_orderkey"]
 
     var df_orders = DataFrameF64(orders_col_data, orders_col_names)
 
@@ -5351,9 +5223,7 @@ fn test_query_22() raises:
     
     print("data load end time: ", monotonic())
 
-    var start_time = monotonic()
-
-    var null_value = neg_inf[DType.float64]()
+    var null_value = -Float64.MAX_FINITE
     var valid_country_code = Float64Array(7)
     valid_country_code[0] = 13.0
     valid_country_code[1] = 31.0
@@ -5368,7 +5238,7 @@ fn test_query_22() raises:
     var valid_country_code_mask = filter_f64_IN_mask(country_code, valid_country_code)
     var acctbal_mask = df_customer2.select_mask("c_acctbal", "c_acctbal", GTPredF64(), GTPredF64(), 0.0, 0.0, "")
 
-    df_customer2.select_complex(List[List[Bool]](acctbal_mask, valid_country_code_mask), "AND")
+    df_customer2.select_complex([acctbal_mask.copy(), valid_country_code_mask.copy()], "AND")
 
     print("df_customer2 size: ", df_customer2.columns[0].size)
 
@@ -5376,7 +5246,7 @@ fn test_query_22() raises:
 
     # compute average c_acctbal for customers whose phone prefix is in valid_country_code and c_acctbal > 0
     var acctbal_col = df_customer2["c_acctbal"]
-    var avg_c_acctbal = pairwise_sum_f64(acctbal_col, filtered_df_size, 0, filtered_df_size) / filtered_df_size
+    var avg_c_acctbal = pairwise_sum_f64(acctbal_col, filtered_df_size, 0, filtered_df_size) / Float64(filtered_df_size)
 
     print("avg_c_acctbal: ", avg_c_acctbal)
 
@@ -5388,7 +5258,7 @@ fn test_query_22() raises:
 
     # df_customer.select("c_acctbal", "c_acctbal", GTPredF64(), GTPredF64(), avg_c_acctbal, avg_c_acctbal, "")
 
-    df_customer.select_complex(List[List[Bool]](acctbal_avg_mask, valid_country_code_mask), "AND")
+    df_customer.select_complex([acctbal_avg_mask.copy(), valid_country_code_mask.copy()], "AND")
 
     print("df_customer size: ", df_customer.columns[0].size)
 
@@ -5402,16 +5272,15 @@ fn test_query_22() raises:
 
     print("no orders df size:", joined_co_df.columns[0].size)
 
-    joined_co_df.groupby("cntrycode", "all", List[String]("cntrycode", "custkey_sum", "nationkey_sum", "c_acctbal_sum",
+    joined_co_df.groupby("cntrycode", "all", ["cntrycode", "custkey_sum", "nationkey_sum", "c_acctbal_sum",
                                                           "o_orderkey_sum", "custkey_avg", "nationkey_avg", "c_acctbal_avg",
-                                                          "o_orderkey_avg", "numcust"))
+                                                          "o_orderkey_avg", "numcust"])
     
-    joined_co_df.sort_by(List[String]("cntrycode"))
+    joined_co_df.sort_by(["cntrycode"])
 
     
     var end_time = monotonic()
     var execution_time_nanoseconds = end_time - start_time
-    var execution_time_seconds = execution_time_nanoseconds / 1000000000
 
     print("exec time: ", execution_time_seconds)
     print("final shape:", joined_co_df.columns[0].size)
@@ -5440,4 +5309,3 @@ fn test_query_22() raises:
         if (joined_co_df.column_names[i] == "numcust"):
             print(joined_co_df.column_names[i])
             print(joined_co_df[joined_co_df.col_name_to_idx["numcust"]][joined_co_df.columns[0].size - 1])
-
